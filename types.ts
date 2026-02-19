@@ -42,12 +42,12 @@ export enum CurrentStageEnum {
   PendingFollowUp = "2. Pending Follow Up",
   PendingVisitScheduling = "3. Pending Visit Scheduling",
   PendingVisit = "4. Pending Visit",
-  PendingNextVisit = "5. Pending Next Visit",
+  PendingVisitAgain = "5. Pending Visit Again",
   PendingRateFinalization = "6. Pending Rate Finalization",
   PendingTermsFinalization = "7. Pending Terms Finalization",
-  PendingAgreement = "8. Pending Agreement",
-  PendingStoreOpening = "9. Pending Store Opening",
-  PendingBrandFees = "10. Pending Brand Fees"
+  PendingAgreement = "8. Pending Agreement / Store Opening",
+  PendingBrandFees = "9. Pending Brand Fees",
+  CompletedProposal = "10. Completed Proposal"
 }
 
 export interface Proposal {
@@ -62,6 +62,7 @@ export interface Proposal {
   specificDetailsRequiredByBrand: string; // Specific Details Required by Brand (LongText)
   detailsSentStatus: boolean; // Details Sent Status (Yes/No)
   rateFinalized: boolean; // Rate Finalized (Yes/No)
+  invoiceStatus: boolean; // Invoice Status for Pending Brand Fees
 }
 
 export interface FollowUp {
@@ -69,8 +70,10 @@ export interface FollowUp {
   proposalId: string;
   followUpDate: string | null; // When this follow-up is scheduled or occurred
   remarks: string;
-  status: 'Scheduled' | 'Completed' | 'Canceled';
-  actionTaken: 'Followed Up' | 'Visit Scheduled' | null; // What happened during follow-up
+  status: 'Follow Up Again' | 'Schedule Visit' | 'Cancel Proposal';
+  nextFollowUpDate: string | null;
+  plannedVisitDate: string | null;
+  cancelRemarks: string | null;
 }
 
 export interface Visit {

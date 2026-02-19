@@ -11,7 +11,7 @@ const CheckboxInput: React.FC<CheckboxInputProps> = ({ label, id, className = ''
       <input
         id={id}
         type="checkbox"
-        className={`h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded ${className}`}
+        className={`h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded ${className}`}
         {...props}
       />
       {label && (

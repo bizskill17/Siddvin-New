@@ -1,6 +1,7 @@
 import React from 'react';
 import { Brand } from '../../types';
 import Button from '../common/Button';
+import { downloadTableAsPdf, exportRowsToCsv } from '../common/exportUtils';
 
 interface BrandsTableProps {
   brands: Brand[];
@@ -9,9 +10,54 @@ interface BrandsTableProps {
 }
 
 const BrandsTable: React.FC<BrandsTableProps> = ({ brands, onEdit, onDelete }) => {
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const visibleBrands = brands.filter((brand) => {
+    const text = [
+      brand.name,
+      brand.contactPersons[0]?.name || '',
+      brand.contactPersons[0]?.mobile || '',
+      brand.serviceFeeAgreed,
+      brand.assignedRep,
+    ].join(' ').toLowerCase();
+    return text.includes(searchTerm.trim().toLowerCase());
+  });
+
   return (
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search brands..."
+          className="px-3 py-2 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+        />
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() =>
+            exportRowsToCsv(
+              'brands',
+              ['No.', 'Brand Name', 'Contact Person', 'Contact Mobile', 'Service Fee Agreed', 'Assigned Rep'],
+              visibleBrands.map((b, i) => [
+                i + 1,
+                b.name,
+                b.contactPersons[0]?.name || 'N/A',
+                b.contactPersons[0]?.mobile || 'N/A',
+                b.serviceFeeAgreed,
+                b.assignedRep,
+              ])
+            )
+          }
+        >
+          Download Excel
+        </Button>
+        <Button size="sm" variant="secondary" onClick={() => downloadTableAsPdf('brands-table', 'Brands')}>
+          Download PDF
+        </Button>
+      </div>
     <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-gray-200">
-      <table className="min-w-full divide-y divide-gray-300">
+      <table id="brands-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-gray-300 [&_td]:border [&_td]:border-gray-300">
         <thead className="bg-gray-100">
           <tr>
             <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-gray-300">
@@ -40,15 +86,17 @@ const BrandsTable: React.FC<BrandsTableProps> = ({ brands, onEdit, onDelete }) =
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
-          {brands.map((brand, index) => (
+        <tbody className="divide-y divide-gray-200 bg-[#ece8e3]">
+          {visibleBrands.map((brand, index) => (
             <tr key={brand.id}>
               <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                 {index + 1}
               </td>
               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                 {brand.logoUrl ? (
-                  <img src={brand.logoUrl} alt={`${brand.name} Logo`} className="h-8 w-8 object-contain" />
+                  <div className="h-14 w-20 flex items-center justify-start">
+                    <img src={brand.logoUrl} alt={`${brand.name} Logo`} className="h-12 w-16 object-contain" />
+                  </div>
                 ) : (
                   'N/A'
                 )}
@@ -82,7 +130,9 @@ const BrandsTable: React.FC<BrandsTableProps> = ({ brands, onEdit, onDelete }) =
         </tbody>
       </table>
     </div>
+    </div>
   );
 };
 
 export default BrandsTable;
+

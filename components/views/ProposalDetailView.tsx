@@ -1,10 +1,12 @@
 import React from 'react';
-import { Proposal, Property, Brand, Visit, TermSheetAgreement, ContactPerson, FollowUp } from '../../types';
+import { Proposal, Property, Brand, Visit, TermSheetAgreement, ContactPerson, FollowUp, CurrentStageEnum } from '../../types';
 import StageBadge from '../common/StageBadge';
 import Button from '../common/Button';
+import CheckboxInput from '../common/CheckboxInput';
 import VisitsTable from '../tables/VisitsTable';
 import FollowUpsTable from '../tables/FollowUpsTable'; // New import
 import TermSheetAgreementsTable from '../tables/TermSheetAgreementsTable';
+import { formatDateDisplay } from '../common/dateUtils';
 
 interface ProposalDetailViewProps {
   proposal: Proposal;
@@ -23,8 +25,8 @@ interface ProposalDetailViewProps {
   onDeleteFollowUp: (followUpId: string) => void; // New prop for deleting follow-up
   onAddOrEditTermSheetDetails: (proposalId: string, currentTermSheet?: TermSheetAgreement) => void;
   onRecordAgreementDates: (proposalId: string, currentTermSheet?: TermSheetAgreement) => void;
-  onRecordStoreOpeningDate: (proposalId: string, currentTermSheet?: TermSheetAgreement) => void;
   onDeleteTermSheet: (proposalId: string) => void; // New prop for deleting term sheet
+  onUpdateInvoiceStatus: (proposalId: string, invoiceStatus: boolean) => void;
 }
 
 const ContactList: React.FC<{ contacts: ContactPerson[] }> = ({ contacts }) => {
@@ -84,18 +86,19 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
   onDeleteFollowUp, // Destructure new prop
   onAddOrEditTermSheetDetails,
   onRecordAgreementDates,
-  onRecordStoreOpeningDate,
   onDeleteTermSheet, // Destructure new prop
+  onUpdateInvoiceStatus,
 }) => {
   if (!proposal) {
     return <div className="text-center py-8">Proposal not found.</div>;
   }
 
   const hasTermSheet = !!termSheetAgreement;
+  const hasScheduledVisit = visits.some(v => !!v.scheduledDate && !v.visitDate);
   const headerTitle = `${brand?.name || 'N/A Brand'} (${property?.address || 'N/A Property'})`;
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-white shadow-lg rounded-lg">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-[#ece8e3] shadow-lg rounded-lg">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900" aria-label={`Proposal for ${brand?.name} at ${property?.address}`}>
           {headerTitle}
@@ -106,7 +109,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
       </div>
 
       {/* Proposal Summary */}
-      <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="mb-8 p-6 bg-[#ece8e3] rounded-lg border border-gray-200">
         <div className="flex flex-wrap justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Summary</h2>
           <Button variant="secondary" size="sm" onClick={() => onEditProposal(proposal)}>
@@ -118,7 +121,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
             <p className="font-medium text-gray-700">Property Address:</p>
             <p className="text-gray-900">{property?.address || 'N/A'}</p>
             {property?.googleMapsLink && (
-              <a href={property.googleMapsLink} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline text-xs">
+              <a href={property.googleMapsLink} target="_blank" rel="noopener noreferrer" className="text-amber-700 hover:underline text-xs">
                 View on Map
               </a>
             )}
@@ -166,12 +169,24 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
           </div>
           <div>
             <p className="font-medium text-gray-700">Proposal Date:</p>
-            <p className="text-gray-900">{proposal.proposalDate || 'N/A'}</p>
+            <p className="text-gray-900">{formatDateDisplay(proposal.proposalDate)}</p>
           </div>
           <div>
             <p className="font-medium text-gray-700">Current Stage:</p>
             <StageBadge stage={proposal.currentStage} className="mt-1" />
           </div>
+          {(proposal.currentStage === CurrentStageEnum.PendingBrandFees ||
+            proposal.currentStage === CurrentStageEnum.CompletedProposal) && (
+            <div>
+              <p className="font-medium text-gray-700 mb-1">Invoice Status:</p>
+              <CheckboxInput
+                id="invoiceStatus"
+                label="Invoice Recorded"
+                checked={proposal.invoiceStatus}
+                onChange={(e) => onUpdateInvoiceStatus(proposal.id, e.target.checked)}
+              />
+            </div>
+          )}
           <div>
             <p className="font-medium text-gray-700">Rate Finalized:</p>
             <p className="text-gray-900">{proposal.rateFinalized ? 'Yes' : 'No'}</p>
@@ -196,7 +211,13 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Follow-ups</h2>
-          <Button onClick={() => onAddFollowUp(proposal.id)}>Add New Follow Up</Button>
+          <Button
+            onClick={() => onAddFollowUp(proposal.id)}
+            disabled={hasScheduledVisit}
+            title={hasScheduledVisit ? 'Cannot add follow-up while a visit is already scheduled.' : 'Add New Follow Up'}
+          >
+            Add New Follow Up
+          </Button>
         </div>
         {followUps.length > 0 ? (
           <FollowUpsTable followUps={followUps} onEdit={onEditFollowUp} onDelete={onDeleteFollowUp} />
@@ -230,10 +251,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
             {hasTermSheet && (
               <>
                 <Button size="sm" variant="secondary" onClick={() => onRecordAgreementDates(proposal.id, termSheetAgreement)}>
-                  Record Agreement Dates
-                </Button>
-                <Button size="sm" variant="secondary" onClick={() => onRecordStoreOpeningDate(proposal.id, termSheetAgreement)}>
-                  Record Store Opening
+                  Record Agreement and Store Opening
                 </Button>
                 <Button size="sm" variant="danger" onClick={() => onDeleteTermSheet(proposal.id)}>
                   Delete Term Sheet
@@ -243,31 +261,31 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
           </div>
         </div>
         {hasTermSheet ? (
-          <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="p-6 bg-[#ece8e3] rounded-lg border border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm mb-4">
               <div>
                 <p className="font-medium text-gray-700">LOI/Term Sheet Date:</p>
-                <p className="text-gray-900">{termSheetAgreement.loiTermSheetDate || 'N/A'}</p>
+                <p className="text-gray-900">{formatDateDisplay(termSheetAgreement.loiTermSheetDate)}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-700">Agreement Date:</p>
-                <p className="text-gray-900">{termSheetAgreement.agreementDate || 'N/A'}</p>
+                <p className="text-gray-900">{formatDateDisplay(termSheetAgreement.agreementDate)}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-700">Agreement Reg. Date:</p>
-                <p className="text-gray-900">{termSheetAgreement.agreementRegistrationDate || 'N/A'}</p>
+                <p className="text-gray-900">{formatDateDisplay(termSheetAgreement.agreementRegistrationDate)}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-700">Store Opening Date:</p>
-                <p className="text-gray-900">{termSheetAgreement.storeOpeningDate || 'N/A'}</p>
+                <p className="text-gray-900">{formatDateDisplay(termSheetAgreement.storeOpeningDate)}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-700">Planned Opening Date:</p>
-                <p className="text-gray-900">{termSheetAgreement.plannedOpeningDate || 'N/A'}</p>
+                <p className="text-gray-900">{formatDateDisplay(termSheetAgreement.plannedOpeningDate)}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-700">Handover Date:</p>
-                <p className="text-gray-900">{termSheetAgreement.handoverDate || 'N/A'}</p>
+                <p className="text-gray-900">{formatDateDisplay(termSheetAgreement.handoverDate)}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-700">Rent Free Period (Days):</p>
@@ -275,7 +293,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
               </div>
               <div>
                 <p className="font-medium text-gray-700">Rent Commencement Date:</p>
-                <p className="text-gray-900">{termSheetAgreement.rentCommencementDate || 'N/A'}</p>
+                <p className="text-gray-900">{formatDateDisplay(termSheetAgreement.rentCommencementDate)}</p>
               </div>
               <div className="lg:col-span-3">
                 <p className="font-medium text-gray-700">Specific Terms:</p>
@@ -298,3 +316,4 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
 };
 
 export default ProposalDetailView;
+

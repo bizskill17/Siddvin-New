@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FollowUp } from '../../types';
-import Input from '../common/Input';
 import DateInput from '../common/DateInput';
 import LongTextInput from '../common/LongTextInput';
 import SelectInput from '../common/SelectInput';
@@ -13,16 +12,22 @@ interface FollowUpFormProps {
   onCancel: () => void;
 }
 
+type FollowUpFormData = Omit<FollowUp, 'id' | 'status'> & {
+  status: FollowUp['status'] | '';
+};
+
 const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState<Omit<FollowUp, 'id'>>(
+  const [formData, setFormData] = useState<FollowUpFormData>(
     initialData
       ? { ...initialData }
       : {
-          proposalId: proposalId,
+          proposalId,
           followUpDate: null,
           remarks: '',
-          status: 'Scheduled',
-          actionTaken: null,
+          status: '',
+          nextFollowUpDate: null,
+          plannedVisitDate: null,
+          cancelRemarks: null,
         }
   );
   const [actionToTake, setActionToTake] = useState<'scheduleVisit' | null>(null);
@@ -30,8 +35,10 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
   useEffect(() => {
     if (initialData) {
       setFormData({ ...initialData });
+      setActionToTake(initialData.status === 'Schedule Visit' ? 'scheduleVisit' : null);
     } else {
-      setFormData(prev => ({ ...prev, proposalId: proposalId }));
+      setFormData((prev) => ({ ...prev, proposalId }));
+      setActionToTake(null);
     }
   }, [initialData, proposalId]);
 
@@ -41,42 +48,37 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
       ...prev,
       [id]: value,
     }));
-
-    if (id === 'actionTaken' && value === 'Visit Scheduled') {
-      setActionToTake('scheduleVisit');
-    } else if (id === 'actionTaken' && value === 'Followed Up') {
-      // If "Followed Up", set status to Completed
-      setFormData(prev => ({ ...prev, status: 'Completed' }));
-      setActionToTake(null);
-    } else if (id === 'actionTaken' && value === 'None') {
-      setActionToTake(null);
-    }
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = e.target;
-    setFormData(prev => ({ ...prev, status: value as 'Scheduled' | 'Completed' | 'Canceled' }));
+    const selectedStatus = e.target.value as FollowUpFormData['status'];
+    setFormData((prev) => ({
+      ...prev,
+      status: selectedStatus,
+      nextFollowUpDate: selectedStatus === 'Follow Up Again' ? prev.nextFollowUpDate : null,
+      plannedVisitDate: null,
+      cancelRemarks: selectedStatus === 'Cancel Proposal' ? prev.cancelRemarks : null,
+    }));
+    setActionToTake(selectedStatus === 'Schedule Visit' ? 'scheduleVisit' : null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData, actionToTake || undefined);
+    if (!formData.status) return;
+    if (formData.status === 'Follow Up Again' && !formData.nextFollowUpDate) return;
+    if (formData.status === 'Cancel Proposal' && !formData.cancelRemarks?.trim()) return;
+
+    onSubmit(formData as Omit<FollowUp, 'id'>, actionToTake || undefined);
   };
 
   const statusOptions = [
-    { value: 'Scheduled', label: 'Scheduled' },
-    { value: 'Completed', label: 'Completed' },
-    { value: 'Canceled', label: 'Canceled' },
-  ];
-
-  const actionTakenOptions = [
-    { value: 'None', label: 'None' },
-    { value: 'Followed Up', label: 'Followed Up (Mark as Completed)' },
-    { value: 'Visit Scheduled', label: 'Schedule Visit' },
+    { value: 'Follow Up Again', label: 'Follow Up Again' },
+    { value: 'Schedule Visit', label: 'Schedule Visit' },
+    { value: 'Cancel Proposal', label: 'Cancel Proposal' },
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-white rounded-lg shadow-md max-w-lg mx-auto">
+    <form onSubmit={handleSubmit} className="p-6 bg-[#ece8e3] rounded-lg shadow-md max-w-lg mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
         {initialData ? 'Edit Follow Up' : 'Add New Follow Up'}
       </h2>
@@ -92,16 +94,26 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
         value={formData.status}
         onChange={handleStatusChange}
         required
+        placeholder="Select Status"
       />
 
-      {/* Action Taken is only relevant for existing or completed follow-ups */}
-      {formData.status === 'Completed' && (
-        <SelectInput
-          id="actionTaken"
-          label="Action Taken"
-          options={actionTakenOptions}
-          value={formData.actionTaken || 'None'}
+      {formData.status === 'Follow Up Again' && (
+        <DateInput
+          id="nextFollowUpDate"
+          label="Next Follow Up Date"
+          value={formData.nextFollowUpDate || ''}
           onChange={handleChange}
+          required
+        />
+      )}
+
+      {formData.status === 'Cancel Proposal' && (
+        <LongTextInput
+          id="cancelRemarks"
+          label="Cancel Remarks"
+          value={formData.cancelRemarks || ''}
+          onChange={handleChange}
+          required
         />
       )}
 
@@ -118,3 +130,4 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
 };
 
 export default FollowUpForm;
+

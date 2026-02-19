@@ -10,8 +10,12 @@ interface SidvinTeamFormProps {
   onCancel: () => void;
 }
 
+type SidvinTeamFormData = Omit<SidvinTeamMember, 'id' | 'role'> & {
+  role: SidvinTeamMember['role'] | '';
+};
+
 const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState<Omit<SidvinTeamMember, 'id'>>(
+  const [formData, setFormData] = useState<SidvinTeamFormData>(
     initialData
       ? { ...initialData }
       : {
@@ -19,7 +23,7 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
           designation: '',
           mobile: '',
           email: '',
-          role: 'Employee', // Default role
+          role: '',
           password: '',
         }
   );
@@ -40,7 +44,8 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (!formData.role) return;
+    onSubmit(formData as Omit<SidvinTeamMember, 'id'>);
   };
 
   const roleOptions = [
@@ -49,7 +54,7 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-white rounded-lg shadow-md max-w-lg mx-auto">
+    <form onSubmit={handleSubmit} className="p-6 bg-[#ece8e3] rounded-lg shadow-md max-w-lg mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
         {initialData ? 'Edit Team Member' : 'Add New Team Member'}
       </h2>
@@ -57,7 +62,15 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
       <Input id="designation" label="Designation" value={formData.designation} onChange={handleChange} required />
       <Input id="mobile" label="Mobile" value={formData.mobile} onChange={handleChange} type="tel" required />
       <Input id="email" label="Email" value={formData.email} onChange={handleChange} type="email" required />
-      <SelectInput id="role" label="Role" options={roleOptions} value={formData.role} onChange={handleChange} required />
+      <SelectInput
+        id="role"
+        label="Role"
+        options={roleOptions}
+        value={formData.role}
+        onChange={handleChange}
+        required
+        placeholder="Select Role"
+      />
       <Input id="password" label="Password" value={formData.password} onChange={handleChange} type="password" required />
 
       <div className="flex justify-end gap-3 mt-6">
@@ -73,3 +86,4 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
 };
 
 export default SidvinTeamForm;
+

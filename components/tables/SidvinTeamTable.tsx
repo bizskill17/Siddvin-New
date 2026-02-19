@@ -1,6 +1,7 @@
 import React from 'react';
 import { SidvinTeamMember } from '../../types';
 import Button from '../common/Button';
+import { downloadTableAsPdf, exportRowsToCsv } from '../common/exportUtils';
 
 interface SidvinTeamTableProps {
   teamMembers: SidvinTeamMember[];
@@ -9,9 +10,41 @@ interface SidvinTeamTableProps {
 }
 
 const SidvinTeamTable: React.FC<SidvinTeamTableProps> = ({ teamMembers, onEdit, onDelete }) => {
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const visibleTeamMembers = teamMembers.filter((member) => {
+    const text = [member.name, member.designation, member.mobile, member.email, member.role].join(' ').toLowerCase();
+    return text.includes(searchTerm.trim().toLowerCase());
+  });
+
   return (
-    <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-gray-200">
-      <table className="min-w-full divide-y divide-gray-300">
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search team members..."
+          className="px-3 py-2 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+        />
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() =>
+            exportRowsToCsv(
+              'sidvin-team',
+              ['No.', 'Name', 'Designation', 'Mobile', 'Email', 'Role'],
+              visibleTeamMembers.map((m, i) => [i + 1, m.name, m.designation, m.mobile, m.email, m.role])
+            )
+          }
+        >
+          Download Excel
+        </Button>
+        <Button size="sm" variant="secondary" onClick={() => downloadTableAsPdf('sidvin-team-table', 'Sidvin Team')}>
+          Download PDF
+        </Button>
+      </div>
+      <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-gray-200">
+      <table id="sidvin-team-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-gray-300 [&_td]:border [&_td]:border-gray-300">
         <thead className="bg-gray-100">
           <tr>
             <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-gray-300">
@@ -37,8 +70,8 @@ const SidvinTeamTable: React.FC<SidvinTeamTableProps> = ({ teamMembers, onEdit, 
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
-          {teamMembers.map((member, index) => (
+        <tbody className="divide-y divide-gray-200 bg-[#ece8e3]">
+          {visibleTeamMembers.map((member, index) => (
             <tr key={member.id}>
               <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                 {index + 1}
@@ -66,6 +99,7 @@ const SidvinTeamTable: React.FC<SidvinTeamTableProps> = ({ teamMembers, onEdit, 
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };

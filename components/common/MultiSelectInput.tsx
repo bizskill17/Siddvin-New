@@ -26,6 +26,7 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>(value);
+  const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,6 +67,10 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
       .join(', ');
   };
 
+  const filteredOptions = options.filter((option) =>
+    option.label.toLowerCase().includes(searchTerm.trim().toLowerCase())
+  );
+
   return (
     <div className={`mb-4 ${className}`} ref={dropdownRef}>
       {label && (
@@ -77,7 +82,7 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
         <button
           type="button"
           id={id}
-          className="relative w-full cursor-default rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+          className="relative w-full cursor-default rounded-md border border-gray-300 bg-[#ece8e3] py-2 pl-3 pr-10 text-left shadow-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 sm:text-sm"
           onClick={handleToggle}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
@@ -102,15 +107,25 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
 
         {isOpen && (
           <ul
-            className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+            className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-[#ece8e3] py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
             role="listbox"
             aria-labelledby={id}
           >
-            {options.map((option) => (
+            <li className="px-3 pb-2 pt-1">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search options..."
+                className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-amber-500 focus:outline-none focus:ring-amber-500"
+                aria-label={`${label || id} search`}
+              />
+            </li>
+            {filteredOptions.map((option) => (
               <li
                 key={option.value}
                 className={`relative cursor-default select-none py-2 pl-3 pr-9 ${
-                  selectedItems.includes(option.value) ? 'bg-indigo-600 text-white' : 'text-gray-900'
+                  selectedItems.includes(option.value) ? 'bg-amber-600 text-white' : 'text-gray-900'
                 }`}
                 onClick={() => handleOptionClick(option.value)}
                 role="option"
@@ -122,7 +137,7 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
                 {selectedItems.includes(option.value) && (
                   <span
                     className={`absolute inset-y-0 right-0 flex items-center pr-4 ${
-                      selectedItems.includes(option.value) ? 'text-white' : 'text-indigo-600'
+                      selectedItems.includes(option.value) ? 'text-white' : 'text-amber-600'
                     }`}
                   >
                     <svg
@@ -142,6 +157,9 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
                 )}
               </li>
             ))}
+            {filteredOptions.length === 0 && (
+              <li className="py-2 px-3 text-sm text-gray-500">No options found</li>
+            )}
           </ul>
         )}
       </div>
@@ -150,3 +168,4 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
 };
 
 export default MultiSelectInput;
+

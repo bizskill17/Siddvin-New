@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Proposal, Property, Brand } from '../../types';
-import Input from '../common/Input';
+import { Proposal, Property, Brand, SidvinTeamMember } from '../../types';
 import DateInput from '../common/DateInput';
 import LongTextInput from '../common/LongTextInput';
 import CheckboxInput from '../common/CheckboxInput';
@@ -11,25 +10,34 @@ interface ProposalFormProps {
   initialData?: Proposal;
   properties: Property[];
   brands: Brand[];
-  hasCompletedVisits: boolean; // New prop
+  sidvinTeamMembers: SidvinTeamMember[];
+  hasCompletedVisits: boolean;
   onSubmit: (proposal: Omit<Proposal, 'id' | 'currentStage'>) => void;
   onCancel: () => void;
 }
 
-const ProposalForm: React.FC<ProposalFormProps> = ({ initialData, properties, brands, hasCompletedVisits, onSubmit, onCancel }) => {
+const ProposalForm: React.FC<ProposalFormProps> = ({
+  initialData,
+  properties,
+  brands,
+  sidvinTeamMembers,
+  hasCompletedVisits,
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState<Omit<Proposal, 'id' | 'currentStage'>>(
     initialData
       ? { ...initialData }
       : {
-          propertyId: properties[0]?.id || '',
-          brandId: brands[0]?.id || '',
+          propertyId: '',
+          brandId: '',
           proposalDate: null,
           proposalSender: '',
-          // nextFollowUpDate: null, // Removed
           brandRemarks: '',
           specificDetailsRequiredByBrand: '',
           detailsSentStatus: false,
           rateFinalized: false,
+          invoiceStatus: false,
         }
   );
 
@@ -37,14 +45,14 @@ const ProposalForm: React.FC<ProposalFormProps> = ({ initialData, properties, br
     if (initialData) {
       setFormData({ ...initialData });
     } else {
-      // Set initial values for new proposal if properties/brands available
       setFormData(prev => ({
         ...prev,
-        propertyId: properties[0]?.id || '',
-        brandId: brands[0]?.id || '',
+        propertyId: prev.propertyId || '',
+        brandId: prev.brandId || '',
+        proposalSender: prev.proposalSender || '',
       }));
     }
-  }, [initialData, properties, brands]);
+  }, [initialData, properties, brands, sidvinTeamMembers]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { id, value, type, checked } = e.target as HTMLInputElement; // Cast for checkbox handling
@@ -61,12 +69,20 @@ const ProposalForm: React.FC<ProposalFormProps> = ({ initialData, properties, br
 
   const propertyOptions = properties.map(p => ({ value: p.id, label: `${p.address} (Area: ${p.proposedArea || 'N/A'} sqft)` }));
   const brandOptions = brands.map(b => ({ value: b.id, label: b.name }));
+  const proposalSenderOptions = sidvinTeamMembers.map(member => ({
+    value: member.name,
+    label: `${member.name} (${member.designation})`,
+  }));
+  const senderExistsInOptions = proposalSenderOptions.some(option => option.value === formData.proposalSender);
+  const proposalSenderOptionsWithFallback = !senderExistsInOptions && formData.proposalSender
+    ? [{ value: formData.proposalSender, label: `${formData.proposalSender} (Existing)` }, ...proposalSenderOptions]
+    : proposalSenderOptions;
 
   // Disable "Rate Finalized" if no visits are completed, unless it was already finalized.
   const isRateFinalizedDisabled = !hasCompletedVisits && !initialData?.rateFinalized;
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-white rounded-lg shadow-md max-w-lg mx-auto">
+    <form onSubmit={handleSubmit} className="p-6 bg-[#ece8e3] rounded-lg shadow-md max-w-lg mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
         {initialData ? 'Edit Proposal' : 'Add New Proposal'}
       </h2>
@@ -99,9 +115,21 @@ const ProposalForm: React.FC<ProposalFormProps> = ({ initialData, properties, br
         <p className="text-red-500 text-sm mb-4">No brands available. Please add some in the "Brands" tab.</p>
       )}
 
-      <DateInput id="proposalDate" label="Proposal Date" value={formData.proposalDate || ''} onChange={handleChange} />
-      <Input id="proposalSender" label="Proposal Sender" value={formData.proposalSender} onChange={handleChange} required />
-      {/* Removed Next Follow Up Date input */}
+      <DateInput id="proposalDate" label="Proposal Date" value={formData.proposalDate || ''} onChange={handleChange} required />
+      {proposalSenderOptionsWithFallback.length > 0 ? (
+        <SelectInput
+          id="proposalSender"
+          label="Proposal Sender"
+          options={proposalSenderOptionsWithFallback}
+          value={formData.proposalSender}
+          onChange={handleChange}
+          required
+          placeholder="Select Proposal Sender"
+        />
+      ) : (
+        <p className="text-red-500 text-sm mb-4">No Sidvin Team Members available. Please add team members first.</p>
+      )}
+
       <LongTextInput id="brandRemarks" label="Brand Remarks" value={formData.brandRemarks} onChange={handleChange} />
       <LongTextInput
         id="specificDetailsRequiredByBrand"
@@ -141,3 +169,4 @@ const ProposalForm: React.FC<ProposalFormProps> = ({ initialData, properties, br
 };
 
 export default ProposalForm;
+

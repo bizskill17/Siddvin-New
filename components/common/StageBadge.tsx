@@ -21,7 +21,7 @@ const StageBadge: React.FC<StageBadgeProps> = ({ stage, className }) => {
     case CurrentStageEnum.PendingVisit:
       colorClass = 'bg-yellow-100 text-yellow-800';
       break;
-    case CurrentStageEnum.PendingNextVisit:
+    case CurrentStageEnum.PendingVisitAgain:
     case CurrentStageEnum.PendingRateFinalization:
       colorClass = 'bg-teal-100 text-teal-800';
       break;
@@ -31,11 +31,11 @@ const StageBadge: React.FC<StageBadgeProps> = ({ stage, className }) => {
     case CurrentStageEnum.PendingAgreement:
       colorClass = 'bg-green-100 text-green-800';
       break;
-    case CurrentStageEnum.PendingStoreOpening:
-      colorClass = 'bg-emerald-100 text-emerald-800';
-      break;
     case CurrentStageEnum.PendingBrandFees:
       colorClass = 'bg-red-100 text-red-800 font-bold';
+      break;
+    case CurrentStageEnum.CompletedProposal:
+      colorClass = 'bg-green-200 text-green-900 font-bold';
       break;
     default:
       colorClass = 'bg-gray-100 text-gray-800';

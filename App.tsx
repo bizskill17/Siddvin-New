@@ -18,6 +18,7 @@ import TermSheetAgreementsTable from './components/tables/TermSheetAgreementsTab
 import SidvinTeamTable from './components/tables/SidvinTeamTable';
 import FollowUpsTable from './components/tables/FollowUpsTable'; // New import
 import ProposalDetailView from './components/views/ProposalDetailView';
+import DashboardView from './components/views/DashboardView';
 import Button from './components/common/Button';
 import PropertyForm from './components/forms/PropertyForm';
 import BrandForm from './components/forms/BrandForm';
@@ -26,15 +27,14 @@ import EditVisitForm from './components/forms/VisitForm';
 import ScheduleVisitForm from './components/forms/ScheduleVisitForm';
 import TermSheetAgreementForm from './components/forms/TermSheetAgreementForm';
 import SidvinTeamForm from './components/forms/SidvinTeamForm';
-import RecordAgreementForm from './components/forms/RecordAgreementForm';
-import RecordStoreOpeningForm from './components/forms/RecordStoreOpeningForm';
+import RecordAgreementAndStoreOpeningForm from './components/forms/RecordAgreementAndStoreOpeningForm';
 import FollowUpForm from './components/forms/FollowUpForm'; // New import
 import DeleteConfirmationModal from './components/common/DeleteConfirmationModal'; // New import
 
-type View = 'proposals' | 'properties' | 'brands' | 'visits' | 'termSheets' | 'sidvinTeam' | 'proposalDetail' | 'addProperty' | 'editProperty' | 'addBrand' | 'editBrand' | 'addProposal' | 'editProposal' | 'scheduleVisit' | 'editVisit' | 'addTermSheetDetails' | 'editTermSheetDetails' | 'recordAgreement' | 'recordStoreOpening' | 'addTeamMember' | 'editTeamMember' | 'addFollowUp' | 'editFollowUp';
+type View = 'dashboard' | 'proposals' | 'properties' | 'brands' | 'visits' | 'termSheets' | 'sidvinTeam' | 'proposalDetail' | 'addProperty' | 'editProperty' | 'addBrand' | 'editBrand' | 'addProposal' | 'editProposal' | 'scheduleVisit' | 'editVisit' | 'addTermSheetDetails' | 'editTermSheetDetails' | 'recordAgreementAndStoreOpening' | 'addTeamMember' | 'editTeamMember' | 'addFollowUp' | 'editFollowUp';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<View>('proposals');
+  const [currentView, setCurrentView] = useState<View>('dashboard');
   const [properties, setProperties] = useState<Property[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -216,7 +216,13 @@ const App: React.FC = () => {
     handleViewChange('proposalDetail');
   };
 
-  const handleRecordStoreOpeningDate = (proposalId: string, storeOpeningDate: string | null) => {
+  const handleRecordAgreementAndStoreOpeningDates = (
+    proposalId: string,
+    agreementDate: string | null,
+    agreementRegistrationDate: string | null,
+    storeOpeningDate: string | null
+  ) => {
+    dataService.updateAgreementDates(proposalId, agreementDate, agreementRegistrationDate);
     dataService.updateStoreOpeningDate(proposalId, storeOpeningDate);
     refreshData();
     handleViewChange('proposalDetail');
@@ -232,6 +238,11 @@ const App: React.FC = () => {
     dataService.updateSidvinTeamMember(updatedMember);
     refreshData();
     handleViewChange('sidvinTeam');
+  };
+
+  const handleUpdateInvoiceStatus = (proposalId: string, invoiceStatus: boolean) => {
+    dataService.updateProposalInvoiceStatus(proposalId, invoiceStatus);
+    refreshData();
   };
 
   // --- Form Cancel Handlers ---
@@ -335,6 +346,19 @@ const App: React.FC = () => {
   // --- Render Logic ---
   const renderContent = () => {
     switch (currentView) {
+      case 'dashboard':
+        return (
+          <DashboardView
+            proposals={proposals}
+            visits={visits}
+            properties={properties}
+            brands={brands}
+            onStageClick={(stage) => {
+              setSelectedStageFilter(stage);
+              handleViewChange('proposals');
+            }}
+          />
+        );
       case 'properties':
         return (
           <>
@@ -435,27 +459,16 @@ const App: React.FC = () => {
         ) : (
           <div className="text-center py-8">No proposal selected for term sheet details.</div>
         );
-      case 'recordAgreement':
+      case 'recordAgreementAndStoreOpening':
         return selectedProposalId ? (
-          <RecordAgreementForm
+          <RecordAgreementAndStoreOpeningForm
             proposalId={selectedProposalId}
             initialData={termSheetAgreements.find(ts => ts.proposalId === selectedProposalId)}
-            onSubmit={handleRecordAgreementDates}
+            onSubmit={handleRecordAgreementAndStoreOpeningDates}
             onCancel={handleCancelForm}
           />
         ) : (
-          <div className="text-center py-8">No proposal selected to record agreement.</div>
-        );
-      case 'recordStoreOpening':
-        return selectedProposalId ? (
-          <RecordStoreOpeningForm
-            proposalId={selectedProposalId}
-            initialData={termSheetAgreements.find(ts => ts.proposalId === selectedProposalId)}
-            onSubmit={handleRecordStoreOpeningDate}
-            onCancel={handleCancelForm}
-          />
-        ) : (
-          <div className="text-center py-8">No proposal selected to record store opening.</div>
+          <div className="text-center py-8">No proposal selected to record agreement and store opening dates.</div>
         );
 
       case 'addFollowUp':
@@ -483,6 +496,7 @@ const App: React.FC = () => {
               proposals={proposals}
               properties={properties}
               brands={brands}
+              followUps={followUps}
               onViewDetails={handleViewProposalDetails}
               onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }}
               onDelete={(id) => handleDeleteClick(id, 'proposal')}
@@ -491,12 +505,29 @@ const App: React.FC = () => {
           </>
         );
       case 'addProposal':
-        return <ProposalForm properties={properties} brands={brands} hasCompletedVisits={false} onSubmit={handleAddProposal} onCancel={handleCancelForm} />;
+        return (
+          <ProposalForm
+            properties={properties}
+            brands={brands}
+            sidvinTeamMembers={sidvinTeamMembers}
+            hasCompletedVisits={false}
+            onSubmit={handleAddProposal}
+            onCancel={handleCancelForm}
+          />
+        );
       case 'editProposal':
         const proposalForEdit = editingProposal || proposals.find(p => p.id === selectedProposalId);
         const hasCompletedVisitsForEdit = checkHasCompletedVisits(proposalForEdit?.id);
         return proposalForEdit ? (
-          <ProposalForm initialData={proposalForEdit} properties={properties} brands={brands} hasCompletedVisits={hasCompletedVisitsForEdit} onSubmit={handleUpdateProposal} onCancel={handleCancelForm} />
+          <ProposalForm
+            initialData={proposalForEdit}
+            properties={properties}
+            brands={brands}
+            sidvinTeamMembers={sidvinTeamMembers}
+            hasCompletedVisits={hasCompletedVisitsForEdit}
+            onSubmit={handleUpdateProposal}
+            onCancel={handleCancelForm}
+          />
         ) : (
           <div className="text-center py-8">Proposal not found for editing.</div>
         );
@@ -534,14 +565,10 @@ const App: React.FC = () => {
             onRecordAgreementDates={(pId, currentTs) => {
               setSelectedProposalId(pId);
               setEditingTermSheet(currentTs || null);
-              setCurrentView('recordAgreement');
-            }}
-            onRecordStoreOpeningDate={(pId, currentTs) => {
-              setSelectedProposalId(pId);
-              setEditingTermSheet(currentTs || null);
-              setCurrentView('recordStoreOpening');
+              setCurrentView('recordAgreementAndStoreOpening');
             }}
             onDeleteTermSheet={(id) => handleDeleteClick(id, 'termSheet')}
+            onUpdateInvoiceStatus={handleUpdateInvoiceStatus}
           />
         ) : (
           <div className="text-center py-8">Proposal details not found.</div>
@@ -557,9 +584,20 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex">
       {/* Side Navigation */}
-      <nav className="w-64 bg-gradient-to-b from-indigo-900 to-indigo-700 text-white p-4 shadow-lg flex-shrink-0 relative z-20">
-        <h1 className="text-3xl font-extrabold mb-8 text-center tracking-wide">Sidvin Workflow</h1>
+      <nav className="w-64 bg-gradient-to-b from-amber-800 to-amber-800 text-white p-4 shadow-lg flex-shrink-0 relative z-20">
+        <div className="mb-4 px-3">
+          <h1 className="text-xl font-extrabold tracking-wide">Proposal Management</h1>
+        </div>
         <ul className="space-y-1">
+          <li>
+            <NavLink
+              view="dashboard"
+              currentView={currentView}
+              label="Dashboard"
+              onClick={() => handleViewChange('dashboard')}
+              isActive={currentView === 'dashboard'}
+            />
+          </li>
           <li>
             <NavLink
               view="proposals"
@@ -569,7 +607,7 @@ const App: React.FC = () => {
               isActive={currentView === 'proposals' && selectedStageFilter === 'All'}
             />
           </li>
-          <li className="text-indigo-200 font-semibold mt-4 mb-2 px-3 text-sm uppercase tracking-wider">Proposal Stages</li>
+          <li className="text-amber-100 font-semibold mt-4 mb-2 px-3 text-sm uppercase tracking-wider">Proposal Stages</li>
           {allProposalStages.map(stage => (
             <li key={stage}>
               <NavLink
@@ -582,7 +620,7 @@ const App: React.FC = () => {
               />
             </li>
           ))}
-          <li className="text-indigo-200 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Master Data</li>
+          <li className="text-amber-100 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Master Data</li>
           <li>
             <NavLink
               view="properties"
@@ -610,7 +648,7 @@ const App: React.FC = () => {
               isActive={currentView === 'sidvinTeam'}
             />
           </li>
-          <li className="text-indigo-200 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Transactional Data</li>
+          <li className="text-amber-100 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Transactional Data</li>
           <li>
             <NavLink
               view="visits"
@@ -633,16 +671,18 @@ const App: React.FC = () => {
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto relative">
-        {renderContent()}
-      </main>
-
-      {/* Footer */}
-      <footer className="absolute bottom-0 left-0 right-0 w-full bg-gray-800 text-white p-4 text-center text-xs shadow-inner z-10" style={{ left: '16rem' /* compensate for sidebar width */}}>
-        <p className="mb-1">&copy; Sidvin. All rights reserved.</p>
-        <p>Developed by BizSkill</p>
-      </footer>
-
+      <div className="flex-grow flex flex-col min-h-screen">
+        <main className="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          <div className="mb-6 flex items-center justify-end border-b border-gray-300 pb-3">
+            <img
+              src="https://i.ibb.co/xtfh8687/Main-Logo-qp4bsy1t5svtei9fiwtef930op1p97z2fmjj9swme0.png"
+              alt="Sidvin Logo"
+              className="h-12 w-auto object-contain"
+            />
+          </div>
+          {renderContent()}
+        </main>
+      </div>
       <DeleteConfirmationModal
         isOpen={showDeleteConfirm}
         onClose={handleCloseDeleteConfirm}
@@ -671,7 +711,7 @@ const NavLink: React.FC<NavLinkProps> = ({ label, onClick, isActive, isSubItem =
       type="button"
       onClick={onClick}
       className={`w-full text-left py-2 px-3 rounded-md transition duration-150 ease-in-out
-        ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-indigo-700 hover:text-white'}
+        ${isActive ? 'bg-amber-500 text-white shadow-md' : 'hover:bg-amber-700 hover:text-white'}
         ${isSubItem ? 'ml-4 text-sm' : 'font-medium'}
       `}
     >
@@ -681,3 +721,7 @@ const NavLink: React.FC<NavLinkProps> = ({ label, onClick, isActive, isSubItem =
 };
 
 export default App;
+
+
+
+

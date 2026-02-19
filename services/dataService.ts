@@ -41,18 +41,26 @@ export const calculateCurrentStage = (
 
   // Evaluate milestones in reverse order of progression (highest stage first)
 
-  // 10. Pending Brand Fees (Both Agreement Registered AND Store Opened)
+  // 10. Completed Proposal (Agreement Registered + Store Opened + Invoice Recorded)
+  if (
+    isNotBlank(proposalTermSheet?.agreementRegistrationDate) &&
+    isNotBlank(proposalTermSheet?.storeOpeningDate) &&
+    proposal.invoiceStatus === true
+  ) {
+    return CurrentStageEnum.CompletedProposal;
+  }
+
+  // 9. Pending Brand Fees (Both Agreement Registered AND Store Opened, but invoice not recorded)
   if (isNotBlank(proposalTermSheet?.agreementRegistrationDate) && isNotBlank(proposalTermSheet?.storeOpeningDate)) {
     return CurrentStageEnum.PendingBrandFees;
   }
 
-  // 9. Pending Store Opening (Agreement Registered, but Store Not Opened)
-  if (isNotBlank(proposalTermSheet?.agreementRegistrationDate) && !isNotBlank(proposalTermSheet?.storeOpeningDate)) {
-    return CurrentStageEnum.PendingStoreOpening;
-  }
-
-  // 8. Pending Agreement (Terms Finalized, but Agreement Not Registered)
-  if (isNotBlank(proposalTermSheet?.loiTermSheetDate) && !isNotBlank(proposalTermSheet?.agreementRegistrationDate)) {
+  // 8. Pending Agreement / Store Opening:
+  // If LOI/Terms are finalized and either agreement registration or store opening is still pending.
+  if (
+    isNotBlank(proposalTermSheet?.loiTermSheetDate) &&
+    (!isNotBlank(proposalTermSheet?.agreementRegistrationDate) || !isNotBlank(proposalTermSheet?.storeOpeningDate))
+  ) {
     return CurrentStageEnum.PendingAgreement;
   }
 
@@ -61,42 +69,36 @@ export const calculateCurrentStage = (
     return CurrentStageEnum.PendingTermsFinalization;
   }
 
-  // 6. Pending Rate Finalization (Visit Completed, but Rate Not Finalized)
-  if (proposalVisits.some(v => isNotBlank(v.visitDate)) && proposal.rateFinalized === false) {
+  const hasCompletedVisit = proposalVisits.some(v => isNotBlank(v.visitDate));
+  const hasScheduledUncompletedVisit = proposalVisits.some(v => isNotBlank(v.scheduledDate) && !isNotBlank(v.visitDate));
+
+  // 5. Pending Visit Again (At least one visit completed, and another visit has been scheduled before rate finalization)
+  if (hasCompletedVisit && hasScheduledUncompletedVisit && proposal.rateFinalized === false) {
+    return CurrentStageEnum.PendingVisitAgain;
+  }
+
+  // 6. Pending Rate Finalization (Visit Completed, but no new visit scheduled and rate not finalized)
+  if (hasCompletedVisit && proposal.rateFinalized === false) {
     return CurrentStageEnum.PendingRateFinalization;
   }
 
-  // 5. Pending Next Visit (A visit has been completed, but no rate finalized and no new follow-up or visit scheduled to advance it)
-  // This stage acts as a generic "post-visit" holding state before specific next actions.
-  const hasCompletedVisit = proposalVisits.some(v => isNotBlank(v.visitDate));
-  if (hasCompletedVisit) {
-    // Check if there are any *scheduled* follow-ups or visits after the last completed visit date
-    const lastCompletedVisitDate = Math.max(...proposalVisits.filter(v => isNotBlank(v.visitDate)).map(v => new Date(v.visitDate || '').getTime()));
-    const hasPendingFollowUpAfterVisit = proposalFollowUps.some(fu => fu.status === 'Scheduled' && new Date(fu.followUpDate || '').getTime() > lastCompletedVisitDate);
-    const hasScheduledVisitAfterVisit = proposalVisits.some(v => isNotBlank(v.scheduledDate) && !isNotBlank(v.visitDate) && new Date(v.scheduledDate || '').getTime() > lastCompletedVisitDate);
-
-    if (!proposal.rateFinalized && !hasPendingFollowUpAfterVisit && !hasScheduledVisitAfterVisit) {
-      return CurrentStageEnum.PendingNextVisit;
-    }
-  }
-
-
-  // 4. Pending Visit (Visit Scheduled, but not Completed)
-  if (proposalVisits.some(v => isNotBlank(v.scheduledDate)) && !proposalVisits.some(v => isNotBlank(v.visitDate))) {
+  // 4. Pending Visit (First visit scheduled, but not completed)
+  if (hasScheduledUncompletedVisit && !hasCompletedVisit) {
     return CurrentStageEnum.PendingVisit;
   }
 
-  // 3. Pending Visit Scheduling (Proposal Sent, but no Visit Scheduled or Follow-up pending to lead to a visit)
+  // 3. Pending Visit Scheduling (Follow-up indicates decision to schedule a visit, but visit not yet scheduled)
   if (
     isNotBlank(proposal.proposalDate) &&
     !proposalVisits.some(v => isNotBlank(v.scheduledDate)) &&
-    !proposalFollowUps.some(fu => fu.status === 'Scheduled' && fu.actionTaken === 'Visit Scheduled') // Only check for follow-ups explicitly for scheduling visits
+    proposalFollowUps.some(fu => fu.status === 'Schedule Visit')
   ) {
     return CurrentStageEnum.PendingVisitScheduling;
   }
 
-  // 2. Pending Follow Up (Proposal Sent, and a follow-up is scheduled)
-  if (isNotBlank(proposal.proposalDate) && proposalFollowUps.some(fu => fu.status === 'Scheduled')) {
+  // 2. Pending Follow Up (Proposal Sent and no visit scheduled yet).
+  // This is the immediate stage after creating/sending a proposal.
+  if (isNotBlank(proposal.proposalDate) && !proposalVisits.some(v => isNotBlank(v.scheduledDate))) {
     return CurrentStageEnum.PendingFollowUp;
   }
 
@@ -237,7 +239,8 @@ export const initializeDemoData = () => {
     brandRemarks: '',
     specificDetailsRequiredByBrand: '',
     detailsSentStatus: false,
-    rateFinalized: false
+    rateFinalized: false,
+    invoiceStatus: false
   });
 
   // Proposal 2: Pending Follow Up (Proposal sent, follow-up scheduled)
@@ -252,15 +255,18 @@ export const initializeDemoData = () => {
     brandRemarks: 'Brand interested, needs more info on property layout.',
     specificDetailsRequiredByBrand: 'Detailed floor plans, photos.',
     detailsSentStatus: true,
-    rateFinalized: false
+    rateFinalized: false,
+    invoiceStatus: false
   });
   followUps.push({
     id: uniqueId(),
     proposalId: proposal2Id,
     followUpDate: '2023-10-15',
     remarks: 'Initial follow-up call to provide requested floor plans.',
-    status: 'Scheduled',
-    actionTaken: null,
+    status: 'Follow Up Again',
+    nextFollowUpDate: '2023-10-22',
+    plannedVisitDate: null,
+    cancelRemarks: null,
   });
 
   // Proposal 3: Pending Visit (Visit Scheduled, but not completed)
@@ -275,7 +281,8 @@ export const initializeDemoData = () => {
     brandRemarks: 'Brand expressed strong interest after initial details.',
     specificDetailsRequiredByBrand: '',
     detailsSentStatus: true,
-    rateFinalized: false
+    rateFinalized: false,
+    invoiceStatus: false
   });
   visits.push({
     id: uniqueId(),
@@ -301,7 +308,8 @@ export const initializeDemoData = () => {
     brandRemarks: 'Visit successful, discussing commercial terms.',
     specificDetailsRequiredByBrand: 'Best and final offer structure.',
     detailsSentStatus: true,
-    rateFinalized: false
+    rateFinalized: false,
+    invoiceStatus: false
   });
   visits.push({
     id: uniqueId(),
@@ -327,7 +335,8 @@ export const initializeDemoData = () => {
     brandRemarks: 'Rate agreed, preparing LOI.',
     specificDetailsRequiredByBrand: '',
     detailsSentStatus: true,
-    rateFinalized: true
+    rateFinalized: true,
+    invoiceStatus: false
   });
 
   // Proposal 6: Pending Agreement (Terms finalized, but agreement not registered)
@@ -342,7 +351,8 @@ export const initializeDemoData = () => {
     brandRemarks: 'LOI signed, proceeding to agreement.',
     specificDetailsRequiredByBrand: '',
     detailsSentStatus: true,
-    rateFinalized: true
+    rateFinalized: true,
+    invoiceStatus: false
   });
   termSheetAgreements.push({
     proposalId: proposal6Id,
@@ -371,7 +381,8 @@ export const initializeDemoData = () => {
     brandRemarks: 'Agreement executed, awaiting store fit-out and opening.',
     specificDetailsRequiredByBrand: '',
     detailsSentStatus: true,
-    rateFinalized: true
+    rateFinalized: true,
+    invoiceStatus: false
   });
   termSheetAgreements.push({
     proposalId: proposal7Id,
@@ -497,6 +508,7 @@ export const addProposal = (newProposal: Omit<Proposal, 'id' | 'currentStage'>):
   const proposal: Proposal = {
     id: uniqueId(),
     ...newProposal,
+    invoiceStatus: newProposal.invoiceStatus ?? false,
     currentStage: CurrentStageEnum.Draft // Will be set after all data is in place
   };
   proposals.push(proposal);
@@ -513,6 +525,14 @@ export const updateProposal = (updatedProposal: Proposal): Proposal => {
     };
   }
   return proposals[index];
+};
+
+export const updateProposalInvoiceStatus = (proposalId: string, invoiceStatus: boolean): Proposal | undefined => {
+  const proposal = proposals.find(p => p.id === proposalId);
+  if (!proposal) return undefined;
+  proposal.invoiceStatus = invoiceStatus;
+  proposal.currentStage = calculateCurrentStage(proposal, visits, termSheetAgreements, followUps);
+  return proposal;
 };
 export const deleteProposal = (id: string): boolean => {
   const initialLength = proposals.length;

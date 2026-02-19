@@ -26,7 +26,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-auto" role="document">
+      <div className="bg-[#ece8e3] rounded-lg shadow-xl p-6 max-w-sm w-full mx-auto" role="document">
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-lg font-semibold text-gray-900" id="modal-title">
             {title}

@@ -20,7 +20,7 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
           name: '',
           contactPersons: [{ id: Math.random().toString(36).substring(2, 9), name: '', designation: '', mobile: '', email: '' }],
           serviceFeeAgreed: '',
-          assignedRep: sidvinTeamMembers[0]?.email || '', // Default to first rep's email
+          assignedRep: '',
           logoUrl: null,
         }
   );
@@ -29,10 +29,9 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
     if (initialData) {
       setFormData({ ...initialData });
     } else {
-      // Set default assignedRep if not in initialData and team members exist
       setFormData(prev => ({
         ...prev,
-        assignedRep: prev.assignedRep || sidvinTeamMembers[0]?.email || ''
+        assignedRep: prev.assignedRep || ''
       }));
     }
   }, [initialData, sidvinTeamMembers]);
@@ -84,7 +83,7 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
   }));
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-white rounded-lg shadow-md max-w-lg mx-auto">
+    <form onSubmit={handleSubmit} className="p-6 bg-[#ece8e3] rounded-lg shadow-md max-w-lg mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
         {initialData ? 'Edit Brand' : 'Add New Brand'}
       </h2>
@@ -94,7 +93,7 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
       <hr className="my-6 border-gray-200" />
       <h3 className="text-lg font-semibold mb-4 text-gray-800">Contact Persons</h3>
       {formData.contactPersons.map((contact, index) => (
-        <div key={contact.id} className="p-4 border border-gray-200 rounded-md mb-4 bg-gray-50">
+        <div key={contact.id} className="p-4 border border-gray-200 rounded-md mb-4 bg-[#ece8e3]">
           <h4 className="font-medium text-gray-700 mb-2">Contact #{index + 1}</h4>
           <Input
             id="name"
@@ -159,6 +158,7 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
           value={formData.assignedRep}
           onChange={handleChange}
           required
+          placeholder="Select Assigned Representative"
         />
       ) : (
         <p className="text-red-500 text-sm mb-4">No Sidvin Team Members available. Please add some in the "Sidvin Team" tab.</p>
@@ -178,3 +178,4 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
 };
 
 export default BrandForm;
+
