@@ -52,3 +52,36 @@ export const downloadTableAsPdf = (tableId: string, title: string) => {
   win.focus();
   win.print();
 };
+
+export const downloadElementAsPdf = (elementId: string, title: string) => {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  const clone = el.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll('button, input, [data-export-ignore="true"]').forEach((n) => n.remove());
+
+  const win = window.open('', '_blank', 'width=1200,height=800');
+  if (!win) return;
+
+  win.document.write(`
+    <html>
+      <head>
+        <title>${title}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 16px; color: #000; }
+          h1, h2, h3, p, li, span, div { color: #000 !important; }
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+          th, td { border: 1px solid #000; padding: 8px; font-size: 12px; text-align: left; }
+          .sr-only { display: none; }
+        </style>
+      </head>
+      <body>
+        <h1>${title}</h1>
+        ${clone.outerHTML}
+      </body>
+    </html>
+  `);
+  win.document.close();
+  win.focus();
+  win.print();
+};

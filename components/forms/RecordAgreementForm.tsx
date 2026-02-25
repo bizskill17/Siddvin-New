@@ -28,9 +28,7 @@ const RecordAgreementForm: React.FC<RecordAgreementFormProps> = ({ proposalId, i
 
   return (
     <form onSubmit={handleSubmit} className="p-6 bg-[#ece8e3] rounded-lg shadow-md max-w-lg mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Record Agreement Dates</h2>
-      <p className="text-sm text-gray-600 mb-4">For Proposal ID: {proposalId.substring(0, 8)}...</p>
-
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Record Agreement Dates</h2>`r`n
       <DateInput
         id="agreementDate"
         label="Agreement Date"
@@ -57,3 +55,4 @@ const RecordAgreementForm: React.FC<RecordAgreementFormProps> = ({ proposalId, i
 };
 
 export default RecordAgreementForm;
+

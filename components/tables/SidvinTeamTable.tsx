@@ -24,7 +24,7 @@ const SidvinTeamTable: React.FC<SidvinTeamTableProps> = ({ teamMembers, onEdit, 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search team members..."
-          className="px-3 py-2 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
         />
         <Button
           size="sm"
@@ -43,29 +43,29 @@ const SidvinTeamTable: React.FC<SidvinTeamTableProps> = ({ teamMembers, onEdit, 
           Download PDF
         </Button>
       </div>
-      <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-gray-200">
-      <table id="sidvin-team-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-gray-300 [&_td]:border [&_td]:border-gray-300">
+      <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-black">
+      <table id="sidvin-team-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
         <thead className="bg-gray-100">
           <tr>
-            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-gray-300">
+            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-black">
               No.
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Name
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Designation
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Mobile
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Email
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Role
             </th>
-            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 border-b border-gray-300">
+            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 border-b border-black">
               <span className="sr-only">Actions</span>
             </th>
           </tr>
@@ -76,11 +76,11 @@ const SidvinTeamTable: React.FC<SidvinTeamTableProps> = ({ teamMembers, onEdit, 
               <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                 {index + 1}
               </td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{member.name}</td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{member.designation}</td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{member.mobile}</td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{member.email}</td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{member.role}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{member.name}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{member.designation}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{member.mobile}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{member.email}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{member.role}</td>
               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <div className="flex justify-end space-x-2">
                   {onEdit && (
@@ -105,3 +105,4 @@ const SidvinTeamTable: React.FC<SidvinTeamTableProps> = ({ teamMembers, onEdit, 
 };
 
 export default SidvinTeamTable;
+

@@ -12,6 +12,10 @@ interface FollowUpsTableProps {
 
 const FollowUpsTable: React.FC<FollowUpsTableProps> = ({ followUps, onEdit, onDelete }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
+  const displayDate = (value: string | null | undefined) => {
+    const formatted = formatDateDisplay(value);
+    return formatted === 'N/A' ? '' : formatted;
+  };
   const visibleFollowUps = followUps.filter((fu) => {
     const text = [
       formatDateDisplay(fu.followUpDate),
@@ -32,7 +36,7 @@ const FollowUpsTable: React.FC<FollowUpsTableProps> = ({ followUps, onEdit, onDe
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search follow ups..."
-          className="px-3 py-2 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
         />
         <Button
           size="sm"
@@ -43,12 +47,12 @@ const FollowUpsTable: React.FC<FollowUpsTableProps> = ({ followUps, onEdit, onDe
               ['No.', 'Follow Up Date', 'Status', 'Next Follow Up Date', 'Planned Visit Date', 'Cancel Remarks', 'Remarks'],
               visibleFollowUps.map((fu, i) => [
                 i + 1,
-                formatDateDisplay(fu.followUpDate),
+                displayDate(fu.followUpDate),
                 fu.status,
-                formatDateDisplay(fu.nextFollowUpDate),
-                formatDateDisplay(fu.plannedVisitDate),
-                fu.cancelRemarks || 'N/A',
-                fu.remarks || 'N/A',
+                displayDate(fu.nextFollowUpDate),
+                displayDate(fu.plannedVisitDate),
+                fu.cancelRemarks || '',
+                fu.remarks || '',
               ])
             )
           }
@@ -59,32 +63,32 @@ const FollowUpsTable: React.FC<FollowUpsTableProps> = ({ followUps, onEdit, onDe
           Download PDF
         </Button>
       </div>
-      <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-gray-200">
-      <table id="followups-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-gray-300 [&_td]:border [&_td]:border-gray-300">
+      <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-black">
+      <table id="followups-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
         <thead className="bg-gray-100">
           <tr>
-            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-gray-300">
+            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-black">
               No.
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Follow Up Date
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Status
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Next Follow Up Date
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Planned Visit Date
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Cancel Remarks
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Remarks
             </th>
-            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 border-b border-gray-300">
+            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 border-b border-black">
               <span className="sr-only">Actions</span>
             </th>
           </tr>
@@ -95,12 +99,12 @@ const FollowUpsTable: React.FC<FollowUpsTableProps> = ({ followUps, onEdit, onDe
               <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                 {index + 1}
               </td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{formatDateDisplay(fu.followUpDate)}</td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{fu.status}</td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{formatDateDisplay(fu.nextFollowUpDate)}</td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{formatDateDisplay(fu.plannedVisitDate)}</td>
-              <td className="px-3 py-4 text-sm text-gray-500">{fu.cancelRemarks || 'N/A'}</td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{fu.remarks || 'N/A'}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{displayDate(fu.followUpDate)}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{fu.status}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{displayDate(fu.nextFollowUpDate)}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{displayDate(fu.plannedVisitDate)}</td>
+              <td className="px-3 py-4 text-sm text-black">{fu.cancelRemarks || ''}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{fu.remarks || ''}</td>
               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <div className="flex justify-end space-x-2">
                   {onEdit && (
@@ -125,4 +129,5 @@ const FollowUpsTable: React.FC<FollowUpsTableProps> = ({ followUps, onEdit, onDe
 };
 
 export default FollowUpsTable;
+
 

@@ -7,9 +7,8 @@ interface StageBadgeProps {
 }
 
 const StageBadge: React.FC<StageBadgeProps> = ({ stage, className }) => {
-  let colorClass = 'bg-gray-100 text-gray-800'; // Default
+  let colorClass = 'bg-gray-100 text-gray-800';
 
-  // Assign color classes based on the actual CurrentStageEnum values
   switch (stage) {
     case CurrentStageEnum.Draft:
       colorClass = 'bg-blue-100 text-blue-800';
@@ -22,11 +21,13 @@ const StageBadge: React.FC<StageBadgeProps> = ({ stage, className }) => {
       colorClass = 'bg-yellow-100 text-yellow-800';
       break;
     case CurrentStageEnum.PendingVisitAgain:
-    case CurrentStageEnum.PendingRateFinalization:
       colorClass = 'bg-teal-100 text-teal-800';
       break;
     case CurrentStageEnum.PendingTermsFinalization:
       colorClass = 'bg-indigo-100 text-indigo-800';
+      break;
+    case CurrentStageEnum.PendingForDeposit:
+      colorClass = 'bg-orange-100 text-orange-800';
       break;
     case CurrentStageEnum.PendingAgreement:
       colorClass = 'bg-green-100 text-green-800';
@@ -42,9 +43,7 @@ const StageBadge: React.FC<StageBadgeProps> = ({ stage, className }) => {
   }
 
   return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass} ${className}`}
-    >
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass} ${className}`}>
       {stage}
     </span>
   );
