@@ -87,6 +87,7 @@ const App: React.FC = () => {
   const [activeUserId, setActiveUserId] = useState<string>('');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [savingMessage, setSavingMessage] = useState('Submitting...');
 
   const fetchData = useCallback(async () => {
     const [props, brs, vsts, terms, team, fus, prs] = await Promise.all([
@@ -129,7 +130,8 @@ const App: React.FC = () => {
     await fetchData();
   };
 
-  const runWithSaving = async (work: () => Promise<void>) => {
+  const runWithSaving = async (message: string, work: () => Promise<void>) => {
+    setSavingMessage(message);
     setIsSaving(true);
     try {
       await work();
@@ -159,7 +161,7 @@ const App: React.FC = () => {
 
   const handleAddProperty = async (newProperty: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
     handleViewChange('properties');
-    await runWithSaving(async () => {
+    await runWithSaving('Adding Property...', async () => {
       await dataService.addProperty(newProperty, currentUserName);
       await refreshData();
     });
@@ -167,7 +169,7 @@ const App: React.FC = () => {
 
   const handleUpdateProperty = async (updatedProperty: Property) => {
     handleViewChange('properties');
-    await runWithSaving(async () => {
+    await runWithSaving('Updating Property...', async () => {
       await dataService.updateProperty(updatedProperty, currentUserName);
       await refreshData();
     });
@@ -175,7 +177,7 @@ const App: React.FC = () => {
 
   const handleAddBrand = async (newBrand: Omit<Brand, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
     handleViewChange('brands');
-    await runWithSaving(async () => {
+    await runWithSaving('Adding Brand...', async () => {
       await dataService.addBrand(newBrand, currentUserName);
       await refreshData();
     });
@@ -183,7 +185,7 @@ const App: React.FC = () => {
 
   const handleUpdateBrand = async (updatedBrand: Brand) => {
     handleViewChange('brands');
-    await runWithSaving(async () => {
+    await runWithSaving('Updating Brand...', async () => {
       await dataService.updateBrand(updatedBrand, currentUserName);
       await refreshData();
     });
@@ -191,7 +193,7 @@ const App: React.FC = () => {
 
   const handleAddProposal = async (newProposal: Omit<Proposal, 'id' | 'serialNo' | 'currentStage' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
     handleViewChange('proposals');
-    await runWithSaving(async () => {
+    await runWithSaving('Adding Proposal...', async () => {
       await dataService.addProposal(newProposal, currentUserName);
       await refreshData();
     });
@@ -199,7 +201,7 @@ const App: React.FC = () => {
 
   const handleUpdateProposal = async (updatedProposal: Proposal) => {
     handleViewChange('proposals');
-    await runWithSaving(async () => {
+    await runWithSaving('Updating Proposal...', async () => {
       await dataService.updateProposal(updatedProposal, currentUserName);
       await refreshData();
     });
@@ -215,7 +217,7 @@ const App: React.FC = () => {
       sidvinAttendees: '',
     };
     setCurrentView('proposalDetail');
-    await runWithSaving(async () => {
+    await runWithSaving('Scheduling Visit...', async () => {
       await dataService.addVisit(newVisit, currentUserName);
       await refreshData();
     });
@@ -224,7 +226,7 @@ const App: React.FC = () => {
   const handleUpdateVisit = async (updatedVisit: Omit<Visit, 'id' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
     if (!editingVisit) return;
     setCurrentView('proposalDetail');
-    await runWithSaving(async () => {
+    await runWithSaving('Updating Visit...', async () => {
       await dataService.updateVisit({ ...editingVisit, ...updatedVisit }, currentUserName);
       await refreshData();
     });
@@ -232,7 +234,7 @@ const App: React.FC = () => {
 
   const handleAddFollowUp = async (newFollowUp: Omit<FollowUp, 'id' | 'createdAt' | 'updatedAt' | 'updatedBy'>, actionToTake?: 'scheduleVisit') => {
     setCurrentView(actionToTake === 'scheduleVisit' ? 'scheduleVisit' : 'proposalDetail');
-    await runWithSaving(async () => {
+    await runWithSaving('Adding Follow Up...', async () => {
       await dataService.addFollowUp(newFollowUp, currentUserName);
       await refreshData();
       if (actionToTake === 'scheduleVisit') {
@@ -247,7 +249,7 @@ const App: React.FC = () => {
   const handleUpdateFollowUp = async (updatedFollowUp: Omit<FollowUp, 'id' | 'createdAt' | 'updatedAt' | 'updatedBy'>, actionToTake?: 'scheduleVisit') => {
     if (!editingFollowUp) return;
     setCurrentView(actionToTake === 'scheduleVisit' ? 'scheduleVisit' : 'proposalDetail');
-    await runWithSaving(async () => {
+    await runWithSaving('Updating Follow Up...', async () => {
       await dataService.updateFollowUp({ ...editingFollowUp, ...updatedFollowUp }, currentUserName);
       await refreshData();
       if (actionToTake === 'scheduleVisit') {
@@ -261,7 +263,7 @@ const App: React.FC = () => {
 
   const handleAddOrUpdateTermSheetDetails = async (termSheetData: Omit<TermSheetAgreement, 'agreementDate' | 'storeOpeningDate' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
     handleViewChange('proposalDetail');
-    await runWithSaving(async () => {
+    await runWithSaving('Saving Terms...', async () => {
       const existingTermSheet = await dataService.getTermSheetByProposalId(termSheetData.proposalId);
       const fullTermSheet: TermSheetAgreement = {
         ...termSheetData,
@@ -283,7 +285,7 @@ const App: React.FC = () => {
     storeOpeningDate: string | null
   ) => {
     handleViewChange('proposalDetail');
-    await runWithSaving(async () => {
+    await runWithSaving('Updating Agreement...', async () => {
       await dataService.updateAgreementDates(proposalId, agreementDate, agreementRegistrationDate, currentUserName);
       await dataService.updateStoreOpeningDate(proposalId, storeOpeningDate, currentUserName);
       await refreshData();
@@ -299,7 +301,7 @@ const App: React.FC = () => {
       return;
     }
     handleViewChange('sidvinTeam');
-    await runWithSaving(async () => {
+    await runWithSaving('Adding Team Member...', async () => {
       await dataService.addSidvinTeamMember(newMember, currentUserName);
       await refreshData();
     });
@@ -317,7 +319,7 @@ const App: React.FC = () => {
       return;
     }
     handleViewChange('sidvinTeam');
-    await runWithSaving(async () => {
+    await runWithSaving('Updating Team Member...', async () => {
       await dataService.updateSidvinTeamMember(updatedMember, currentUserName);
       await refreshData();
     });
@@ -501,7 +503,7 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-[70] bg-black/20 flex items-center justify-center">
           <div className="bg-[#ece8e3] px-6 py-5 rounded-lg shadow-lg flex flex-col items-center gap-3">
             <div className="h-10 w-10 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin" />
-            <p className="text-sm text-black">Submitting data...</p>
+            <p className="text-sm text-black">{savingMessage}</p>
           </div>
         </div>
       )}
