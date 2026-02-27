@@ -508,7 +508,7 @@ const App: React.FC = () => {
       case 'dashboard':
         return <DashboardView proposals={proposals} visits={visits} properties={properties} brands={brands} onStageClick={(stage) => { setSelectedStageFilter(stage); handleViewChange('proposals'); }} />;
       case 'properties':
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Properties Master Data</h1><Button onClick={() => handleViewChange('addProperty')}>Add New Property</Button></div><PropertiesTable properties={properties} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} onDelete={(id) => handleDeleteClick(id, 'property')} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Property</h1><Button onClick={() => handleViewChange('addProperty')}>Add New Property</Button></div><PropertiesTable properties={properties} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} onDelete={(id) => handleDeleteClick(id, 'property')} /></>);
       case 'propertyFeeFollowUp':
         const visiblePendingPropertyTasks = properties.filter((p) => getPropertyTaskStatus(p) === selectedPropertyTaskFilter);
         return (
@@ -528,13 +528,13 @@ const App: React.FC = () => {
       case 'categoryMaster':
         return <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />;
       case 'brands':
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Brands Master Data</h1><Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button></div><BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Brands</h1><Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button></div><BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} /></>);
       case 'addBrand':
         return <BrandForm sidvinTeamMembers={sidvinTeamMembers} companyOptions={companyOptions} categoryOptions={categoryOptions} onSubmit={handleAddBrand} onCancel={handleCancelForm} currentUserName={currentUserName} />;
       case 'editBrand':
         return editingBrand ? <BrandForm initialData={editingBrand} sidvinTeamMembers={sidvinTeamMembers} companyOptions={companyOptions} categoryOptions={categoryOptions} onSubmit={(payload) => handleUpdateBrand({ ...editingBrand, ...payload })} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Brand not found for editing.</div>;
       case 'sidvinTeam':
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Sidvin Team Members</h1><Button onClick={() => handleViewChange('addTeamMember')}>Add New Team Member</Button></div><SidvinTeamTable teamMembers={sidvinTeamMembers} onEdit={(m) => { setEditingTeamMember(m); setCurrentView('editTeamMember'); }} onDelete={(id) => handleDeleteClick(id, 'teamMember')} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Sidvin Team</h1><Button onClick={() => handleViewChange('addTeamMember')}>Add New Team Member</Button></div><SidvinTeamTable teamMembers={sidvinTeamMembers} onEdit={(m) => { setEditingTeamMember(m); setCurrentView('editTeamMember'); }} onDelete={(id) => handleDeleteClick(id, 'teamMember')} /></>);
       case 'addTeamMember':
         return <SidvinTeamForm onSubmit={handleAddTeamMember} onCancel={handleCancelForm} />;
       case 'editTeamMember':
