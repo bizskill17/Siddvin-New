@@ -12,6 +12,8 @@ const LongTextInput: React.FC<LongTextInputProps> = ({
   className = '',
   value,
   required,
+  disabled,
+  readOnly,
   onChange,
   onInvalid,
   ...props
@@ -44,9 +46,11 @@ const LongTextInput: React.FC<LongTextInputProps> = ({
       <textarea
         id={id}
         rows={4}
-        className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm ${error ? 'border-red-500' : 'border-gray-300'} ${className}`}
+        className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm ${error ? 'border-red-500' : 'border-gray-300'} ${disabled || readOnly ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''} ${className}`}
         value={value === null || value === undefined ? '' : value} // Handle null/undefined values for display
         required={required}
+        disabled={disabled}
+        readOnly={readOnly}
         onChange={handleChange}
         onInvalid={handleInvalid}
         {...props}

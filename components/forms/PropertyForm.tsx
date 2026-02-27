@@ -220,9 +220,9 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
           <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Fee Coordination</h3>
           <CheckboxInput id="propertySigningApplicable" label="Property Signing Applicable" checked={formData.propertySigningApplicable} onChange={handleChange} />
           <Input id="propertyFeeEmailSentDate" label="Email Sent Date" value={formData.propertyFeeEmailSentDate} onChange={handleChange} type="date" />
-          <Input id="propertyFeeAcceptanceEmailDate" label="Acceptance Email Date" value={formData.propertyFeeAcceptanceEmailDate} onChange={handleChange} type="date" />
+          <Input id="propertyFeeAcceptanceEmailDate" label="Acceptance Email Date" value={formData.propertyFeeAcceptanceEmailDate} onChange={handleChange} type="date" disabled={!formData.propertyFeeEmailSentDate} />
           <CheckboxInput id="propertyFeeNegotiationRequired" label="Negotiation Required" checked={formData.propertyFeeNegotiationRequired} onChange={handleChange} />
-          <Input id="propertyFeePaperSigningDate" label="Paper Signing Date (If Applicable)" value={formData.propertyFeePaperSigningDate} onChange={handleChange} type="date" />
+          <Input id="propertyFeePaperSigningDate" label="Paper Signing Date (If Applicable)" value={formData.propertyFeePaperSigningDate} onChange={handleChange} type="date" disabled={!(formData.propertySigningApplicable && formData.propertyFeeAcceptanceEmailDate)} />
           <Input id="propertyFeeFollowUpDate" label="Property Follow Up Date" value={formData.propertyFeeFollowUpDate} onChange={handleChange} type="date" />
           <LongTextInput id="propertyFeeFollowUpRemarks" label="Property Follow Up Remarks" value={formData.propertyFeeFollowUpRemarks} onChange={handleChange} />
           <Input id="propertyFeeStatusDisplay" label="Current Property Status" value={getDerivedPropertyFeeStage(formData)} readOnly />

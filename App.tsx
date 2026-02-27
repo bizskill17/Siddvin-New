@@ -408,7 +408,7 @@ const App: React.FC = () => {
         return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Properties Master Data</h1><Button onClick={() => handleViewChange('addProperty')}>Add New Property</Button></div><PropertiesTable properties={properties} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} onDelete={(id) => handleDeleteClick(id, 'property')} /></>);
       case 'propertyFeeFollowUp':
         const pendingPropertyFee = properties.filter((p) => p.propertyFeeStatus !== 'Accepted & Signed');
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Pending Property Fee Follow Up</h1></div><PropertiesTable properties={pendingPropertyFee} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Pending Property Tasks</h1></div><PropertiesTable properties={pendingPropertyFee} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} /></>);
       case 'addProperty':
         return <PropertyForm onSubmit={handleAddProperty} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} />;
       case 'editProperty':
@@ -505,7 +505,7 @@ const App: React.FC = () => {
           {allProposalStages.map(stage => <li key={stage}><NavLink label={`${stage} (${stageCounts[stage] || 0})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter(stage); }} isActive={currentView === 'proposals' && selectedStageFilter === stage} isSubItem /></li>)}
           <li className="text-amber-100 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Master Data</li>
           <li><NavLink label={`Properties (${properties.length})`} onClick={() => handleViewChange('properties')} isActive={currentView === 'properties'} /></li>
-          <li><NavLink label={`Property Fee Follow Up (${pendingPropertyFeeCount})`} onClick={() => handleViewChange('propertyFeeFollowUp')} isActive={currentView === 'propertyFeeFollowUp'} /></li>
+          <li><NavLink label={`Pending Property Tasks (${pendingPropertyFeeCount})`} onClick={() => handleViewChange('propertyFeeFollowUp')} isActive={currentView === 'propertyFeeFollowUp'} /></li>
           <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} /></li>
           <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} /></li>
           <li className="text-amber-100 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Transactional Data</li>
