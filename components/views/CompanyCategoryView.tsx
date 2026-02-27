@@ -103,11 +103,11 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
                 const isClickable = linkedBrands.length > 0;
                 const isSelected = selectedCategory === name;
                 return (
-                <div key={name} className={`border rounded p-3 ${isSelected ? 'border-orange-700' : 'border-gray-200'}`}>
+                <div key={name} className={`border-2 rounded p-3 transition-colors ${isSelected ? 'border-orange-700 bg-orange-50/40' : 'border-orange-700 bg-[#ece8e3]'}`}>
                   <button
                     type="button"
                     onClick={() => isClickable && setSelectedCategory(isSelected ? null : name)}
-                    className={`w-full text-left ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+                    className={`w-full text-left rounded px-1 py-1 ${isClickable ? 'cursor-pointer hover:bg-orange-100/40' : 'cursor-default'}`}
                     disabled={!isClickable}
                   >
                     <div className="flex items-center justify-between">
