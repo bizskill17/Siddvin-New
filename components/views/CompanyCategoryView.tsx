@@ -40,7 +40,7 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">
+      <h1 className="text-3xl font-bold text-orange-700">
         {mode === 'company' ? 'Company Master' : mode === 'category' ? 'Category Master' : 'Company & Category Master'}
       </h1>
 

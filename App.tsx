@@ -508,13 +508,13 @@ const App: React.FC = () => {
       case 'dashboard':
         return <DashboardView proposals={proposals} visits={visits} properties={properties} brands={brands} onStageClick={(stage) => { setSelectedStageFilter(stage); handleViewChange('proposals'); }} />;
       case 'properties':
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Properties Master Data</h1><Button onClick={() => handleViewChange('addProperty')}>Add New Property</Button></div><PropertiesTable properties={properties} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} onDelete={(id) => handleDeleteClick(id, 'property')} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Properties Master Data</h1><Button onClick={() => handleViewChange('addProperty')}>Add New Property</Button></div><PropertiesTable properties={properties} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} onDelete={(id) => handleDeleteClick(id, 'property')} /></>);
       case 'propertyFeeFollowUp':
         const visiblePendingPropertyTasks = properties.filter((p) => getPropertyTaskStatus(p) === selectedPropertyTaskFilter);
         return (
           <>
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">{selectedPropertyTaskFilter}</h1>
+              <h1 className="text-3xl font-bold text-orange-700">{selectedPropertyTaskFilter}</h1>
             </div>
             <PropertiesTable properties={visiblePendingPropertyTasks} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} getStatusLabel={getPropertyTaskStatus} />
           </>
@@ -528,25 +528,25 @@ const App: React.FC = () => {
       case 'categoryMaster':
         return <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />;
       case 'brands':
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Brands Master Data</h1><Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button></div><BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Brands Master Data</h1><Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button></div><BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} /></>);
       case 'addBrand':
         return <BrandForm sidvinTeamMembers={sidvinTeamMembers} companyOptions={companyOptions} categoryOptions={categoryOptions} onSubmit={handleAddBrand} onCancel={handleCancelForm} currentUserName={currentUserName} />;
       case 'editBrand':
         return editingBrand ? <BrandForm initialData={editingBrand} sidvinTeamMembers={sidvinTeamMembers} companyOptions={companyOptions} categoryOptions={categoryOptions} onSubmit={(payload) => handleUpdateBrand({ ...editingBrand, ...payload })} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Brand not found for editing.</div>;
       case 'sidvinTeam':
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Sidvin Team Members</h1><Button onClick={() => handleViewChange('addTeamMember')}>Add New Team Member</Button></div><SidvinTeamTable teamMembers={sidvinTeamMembers} onEdit={(m) => { setEditingTeamMember(m); setCurrentView('editTeamMember'); }} onDelete={(id) => handleDeleteClick(id, 'teamMember')} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Sidvin Team Members</h1><Button onClick={() => handleViewChange('addTeamMember')}>Add New Team Member</Button></div><SidvinTeamTable teamMembers={sidvinTeamMembers} onEdit={(m) => { setEditingTeamMember(m); setCurrentView('editTeamMember'); }} onDelete={(id) => handleDeleteClick(id, 'teamMember')} /></>);
       case 'addTeamMember':
         return <SidvinTeamForm onSubmit={handleAddTeamMember} onCancel={handleCancelForm} />;
       case 'editTeamMember':
         return editingTeamMember ? <SidvinTeamForm initialData={editingTeamMember} onSubmit={(payload) => handleUpdateTeamMember({ ...editingTeamMember, ...payload })} onCancel={handleCancelForm} /> : <div className="text-center py-8">Team Member not found for editing.</div>;
       case 'visits':
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">All Site Visits</h1></div><VisitsTable visits={visits} onEdit={(v) => { setEditingVisit(v); setCurrentView('editVisit'); }} onDelete={(id) => handleDeleteClick(id, 'visit')} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">All Site Visits</h1></div><VisitsTable visits={visits} onEdit={(v) => { setEditingVisit(v); setCurrentView('editVisit'); }} onDelete={(id) => handleDeleteClick(id, 'visit')} /></>);
       case 'editVisit':
         return editingVisit ? <EditVisitForm proposalId={editingVisit.proposalId} initialData={editingVisit} sidvinTeamMembers={sidvinTeamMembers} onSubmit={handleUpdateVisit} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Visit not found for editing.</div>;
       case 'scheduleVisit':
         return selectedProposalId ? <ScheduleVisitForm proposalId={selectedProposalId} onSubmit={handleScheduleVisit} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">No proposal selected to schedule visit.</div>;
       case 'termSheets':
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">All Terms</h1></div><TermSheetAgreementsTable termSheets={termSheetAgreements} onEdit={(ts) => { setEditingTermSheet(ts); setCurrentView('editTermSheetDetails'); }} onDelete={(id) => handleDeleteClick(id, 'termSheet')} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">All Terms</h1></div><TermSheetAgreementsTable termSheets={termSheetAgreements} onEdit={(ts) => { setEditingTermSheet(ts); setCurrentView('editTermSheetDetails'); }} onDelete={(id) => handleDeleteClick(id, 'termSheet')} /></>);
       case 'addTermSheetDetails':
       case 'editTermSheetDetails':
         return selectedProposalId ? <TermSheetAgreementForm proposalId={selectedProposalId} initialData={editingTermSheet || (termSheetAgreements.find(ts => ts.proposalId === selectedProposalId) || undefined)} onSubmit={handleAddOrUpdateTermSheetDetails} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">No proposal selected for terms.</div>;
@@ -557,7 +557,7 @@ const App: React.FC = () => {
       case 'editFollowUp':
         return editingFollowUp ? <FollowUpForm proposalId={editingFollowUp.proposalId} initialData={editingFollowUp} onSubmit={handleUpdateFollowUp} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Follow-up not found for editing.</div>;
       case 'proposals':
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Proposal Workflow</h1><Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button></div><ProposalsTable proposals={proposals} properties={properties} brands={brands} followUps={followUps} termSheetAgreements={termSheetAgreements} onViewDetails={handleViewProposalDetails} onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onDelete={(id) => handleDeleteClick(id, 'proposal')} selectedStage={selectedStageFilter} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Proposal Workflow</h1><Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button></div><ProposalsTable proposals={proposals} properties={properties} brands={brands} followUps={followUps} termSheetAgreements={termSheetAgreements} onViewDetails={handleViewProposalDetails} onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onDelete={(id) => handleDeleteClick(id, 'proposal')} selectedStage={selectedStageFilter} /></>);
       case 'addProposal':
         return <ProposalForm properties={properties} brands={brands} sidvinTeamMembers={sidvinTeamMembers} onSubmit={handleAddProposal} onCancel={handleCancelForm} currentUserName={currentUserName} />;
       case 'editProposal':
@@ -565,7 +565,7 @@ const App: React.FC = () => {
         return proposalForEdit ? <ProposalForm initialData={proposalForEdit} properties={properties} brands={brands} sidvinTeamMembers={sidvinTeamMembers} onSubmit={(payload) => handleUpdateProposal({ ...proposalForEdit, ...payload })} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Proposal not found for editing.</div>;
       case 'successStories':
         const successful = proposals.filter(p => p.currentStage === CurrentStageEnum.CompletedProposal);
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Success Stories</h1></div><div className="bg-[#ece8e3] border border-gray-200 rounded-lg p-4">{successful.length === 0 ? <p className="text-gray-600">No billed proposals yet.</p> : <ul className="space-y-3">{successful.map(p => <li key={p.id} className="border border-gray-200 rounded p-3 flex items-center justify-between"><div><div className="font-semibold text-gray-900">{brands.find(b => b.id === p.brandId)?.name || 'N/A'} at {properties.find(pr => pr.id === p.propertyId)?.address || 'N/A'}</div><div className="text-sm text-gray-600">Invoice: {p.invoiceNo || 'N/A'} | Amount: {p.invoiceAmount ?? 'N/A'}</div></div><Button size="sm" variant="secondary" onClick={() => handleViewProposalDetails(p.id)}>View</Button></li>)}</ul>}</div></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Success Stories</h1></div><div className="bg-[#ece8e3] border border-gray-200 rounded-lg p-4">{successful.length === 0 ? <p className="text-gray-600">No billed proposals yet.</p> : <ul className="space-y-3">{successful.map(p => <li key={p.id} className="border border-gray-200 rounded p-3 flex items-center justify-between"><div><div className="font-semibold text-gray-900">{brands.find(b => b.id === p.brandId)?.name || 'N/A'} at {properties.find(pr => pr.id === p.propertyId)?.address || 'N/A'}</div><div className="text-sm text-gray-600">Invoice: {p.invoiceNo || 'N/A'} | Amount: {p.invoiceAmount ?? 'N/A'}</div></div><Button size="sm" variant="secondary" onClick={() => handleViewProposalDetails(p.id)}>View</Button></li>)}</ul>}</div></>);
       case 'proposalDetail':
         const proposal = proposals.find(p => p.id === selectedProposalId);
         const propertyForProposal = properties.find(p => p.id === proposal?.propertyId);
@@ -660,7 +660,7 @@ const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(true)}
-                className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-gray-300 bg-[#ece8e3] text-gray-800"
+                className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-orange-700 bg-orange-700 text-white hover:bg-orange-800"
                 aria-label="Open menu"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

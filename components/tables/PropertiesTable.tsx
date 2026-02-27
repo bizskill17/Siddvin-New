@@ -68,7 +68,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
       <table id="properties-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
         <thead className="bg-orange-700 text-white">
           <tr>
-            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-black">
+            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6 border-b border-black">
               Property Code
             </th>
             <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
@@ -145,5 +145,6 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
 };
 
 export default PropertiesTable;
+
 
 
