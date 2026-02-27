@@ -68,7 +68,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
         }
   );
 
-  const canManagePropertyFee = currentUserRole === 'Super Admin' || currentUserRole === 'Property Fee Coordinator';
   const getDerivedPropertyFeeStage = (data: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>): Property['propertyFeeStatus'] => {
     if (!data.propertyFeeEmailSentDate) return 'Pending Property Email';
     if (!data.propertyFeeAcceptanceEmailDate) {
@@ -186,7 +185,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
           )}
         </div>
       ))}
-      <Button type="button" variant="secondary" onClick={addContactPerson} className="mb-6">Add Another Contact Person</Button>
+      <Button type="button" variant="secondary" onClick={addContactPerson} className="mb-6 !bg-blue-900 !text-white hover:!bg-blue-950 focus:!ring-blue-900">Add Another Contact Person</Button>
 
       <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Details</h3>
       <Input id="proposedRent" label="Proposed Rent" value={formData.proposedRent} onChange={handleChange} type="number" min="0" required />
@@ -214,20 +213,18 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       <Input id="cadDrawingUrl" label="CAD Drawing URL" value={formData.cadDrawingUrl} onChange={handleChange} type="url" />
       <Input id="propertyPresentation" label="Property Presentation URL" value={formData.propertyPresentation} onChange={handleChange} type="url" />
 
-      {canManagePropertyFee && (
-        <>
-          <hr className="my-6 border-gray-200" />
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Coordination</h3>
-          <CheckboxInput id="propertySigningApplicable" label="Property Signing Applicable" checked={formData.propertySigningApplicable} onChange={handleChange} />
-          <Input id="propertyFeeEmailSentDate" label="Email Sent Date" value={formData.propertyFeeEmailSentDate} onChange={handleChange} type="date" />
-          <Input id="propertyFeeAcceptanceEmailDate" label="Acceptance Email Date" value={formData.propertyFeeAcceptanceEmailDate} onChange={handleChange} type="date" disabled={!formData.propertyFeeEmailSentDate} />
-          <CheckboxInput id="propertyFeeNegotiationRequired" label="Negotiation Required" checked={formData.propertyFeeNegotiationRequired} onChange={handleChange} />
-          <Input id="propertyFeePaperSigningDate" label="Paper Signing Date (If Applicable)" value={formData.propertyFeePaperSigningDate} onChange={handleChange} type="date" disabled={!(formData.propertySigningApplicable && formData.propertyFeeAcceptanceEmailDate)} />
-          <Input id="propertyFeeFollowUpDate" label="Property Follow Up Date" value={formData.propertyFeeFollowUpDate} onChange={handleChange} type="date" />
-          <LongTextInput id="propertyFeeFollowUpRemarks" label="Property Follow Up Remarks" value={formData.propertyFeeFollowUpRemarks} onChange={handleChange} />
-          <Input id="propertyFeeStatusDisplay" label="Current Property Status" value={getDerivedPropertyFeeStage(formData)} readOnly />
-        </>
-      )}
+      <>
+        <hr className="my-6 border-gray-200" />
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Coordination</h3>
+        <CheckboxInput id="propertySigningApplicable" label="Property Signing Applicable" checked={formData.propertySigningApplicable} onChange={handleChange} />
+        <Input id="propertyFeeEmailSentDate" label="Email Sent Date" value={formData.propertyFeeEmailSentDate} onChange={handleChange} type="date" />
+        <Input id="propertyFeeAcceptanceEmailDate" label="Acceptance Email Date" value={formData.propertyFeeAcceptanceEmailDate} onChange={handleChange} type="date" disabled={!formData.propertyFeeEmailSentDate} />
+        <CheckboxInput id="propertyFeeNegotiationRequired" label="Negotiation Required" checked={formData.propertyFeeNegotiationRequired} onChange={handleChange} />
+        <Input id="propertyFeePaperSigningDate" label="Paper Signing Date (If Applicable)" value={formData.propertyFeePaperSigningDate} onChange={handleChange} type="date" disabled={!(formData.propertySigningApplicable && formData.propertyFeeAcceptanceEmailDate)} />
+        <Input id="propertyFeeFollowUpDate" label="Property Follow Up Date" value={formData.propertyFeeFollowUpDate} onChange={handleChange} type="date" />
+        <LongTextInput id="propertyFeeFollowUpRemarks" label="Property Follow Up Remarks" value={formData.propertyFeeFollowUpRemarks} onChange={handleChange} />
+        <Input id="propertyFeeStatusDisplay" label="Current Property Status" value={getDerivedPropertyFeeStage(formData)} readOnly />
+      </>
 
       <Input id="updatedByDisplay" label="Updated By" value={currentUserName} readOnly />
 
