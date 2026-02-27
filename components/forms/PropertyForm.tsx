@@ -223,9 +223,9 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
           <Input id="propertyFeeAcceptanceEmailDate" label="Acceptance Email Date" value={formData.propertyFeeAcceptanceEmailDate} onChange={handleChange} type="date" />
           <CheckboxInput id="propertyFeeNegotiationRequired" label="Negotiation Required" checked={formData.propertyFeeNegotiationRequired} onChange={handleChange} />
           <Input id="propertyFeePaperSigningDate" label="Paper Signing Date (If Applicable)" value={formData.propertyFeePaperSigningDate} onChange={handleChange} type="date" />
-          <Input id="propertyFeeFollowUpDate" label="Property Fee Follow Up Date" value={formData.propertyFeeFollowUpDate} onChange={handleChange} type="date" />
-          <LongTextInput id="propertyFeeFollowUpRemarks" label="Property Fee Follow Up Remarks" value={formData.propertyFeeFollowUpRemarks} onChange={handleChange} />
-          <Input id="propertyFeeStatusDisplay" label="Current Property Fee Stage" value={getDerivedPropertyFeeStage(formData)} readOnly />
+          <Input id="propertyFeeFollowUpDate" label="Property Follow Up Date" value={formData.propertyFeeFollowUpDate} onChange={handleChange} type="date" />
+          <LongTextInput id="propertyFeeFollowUpRemarks" label="Property Follow Up Remarks" value={formData.propertyFeeFollowUpRemarks} onChange={handleChange} />
+          <Input id="propertyFeeStatusDisplay" label="Current Property Status" value={getDerivedPropertyFeeStage(formData)} readOnly />
         </>
       )}
 
