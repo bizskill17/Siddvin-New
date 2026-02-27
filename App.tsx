@@ -518,11 +518,6 @@ const App: React.FC = () => {
         <main className="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
             <div className="flex items-end gap-3">
-              <div className="w-72">
-              <SelectInput id="activeUser" label="Acting As" value={activeUser?.id || ''} onChange={(e) => setActiveUserId(e.target.value)} options={sidvinTeamMembers.map(member => ({ value: member.id, label: `${member.name} (${member.role})` }))} placeholder="Select Team Member" />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(true)}
@@ -533,6 +528,11 @@ const App: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
+              <div className="w-72">
+              <SelectInput id="activeUser" label="Acting As" value={activeUser?.id || ''} onChange={(e) => setActiveUserId(e.target.value)} options={sidvinTeamMembers.map(member => ({ value: member.id, label: `${member.name} (${member.role})` }))} placeholder="Select Team Member" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
               <img src="https://i.ibb.co/xtfh8687/Main-Logo-qp4bsy1t5svtei9fiwtef930op1p97z2fmjj9swme0.png" alt="Sidvin Logo" className="h-12 w-auto object-contain" />
             </div>
           </div>
