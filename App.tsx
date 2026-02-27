@@ -10,6 +10,7 @@ import {
   FollowUp,
 } from './types';
 import * as dataService from './services/dataService';
+import { MasterOptionItem } from './services/dataService';
 import PropertiesTable from './components/tables/PropertiesTable';
 import BrandsTable from './components/tables/BrandsTable';
 import ProposalsTable from './components/tables/ProposalsTable';
@@ -78,6 +79,8 @@ const App: React.FC = () => {
   const [termSheetAgreements, setTermSheetAgreements] = useState<TermSheetAgreement[]>([]);
   const [sidvinTeamMembers, setSidvinTeamMembers] = useState<SidvinTeamMember[]>([]);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
+  const [companyMasterOptions, setCompanyMasterOptions] = useState<MasterOptionItem[]>([]);
+  const [categoryMasterOptions, setCategoryMasterOptions] = useState<MasterOptionItem[]>([]);
 
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -101,23 +104,9 @@ const App: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('Submitting...');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [customCompanyOptions, setCustomCompanyOptions] = useState<string[]>([]);
-  const [customCategoryOptions, setCustomCategoryOptions] = useState<string[]>([]);
-
-  useEffect(() => {
-    try {
-      const companyRaw = localStorage.getItem('brand-company-options');
-      const categoryRaw = localStorage.getItem('brand-category-options');
-      setCustomCompanyOptions(companyRaw ? JSON.parse(companyRaw) : []);
-      setCustomCategoryOptions(categoryRaw ? JSON.parse(categoryRaw) : []);
-    } catch {
-      setCustomCompanyOptions([]);
-      setCustomCategoryOptions([]);
-    }
-  }, []);
 
   const fetchData = useCallback(async () => {
-    const [props, brs, vsts, terms, team, fus, prs] = await Promise.all([
+    const [props, brs, vsts, terms, team, fus, prs, companies, categories] = await Promise.all([
       dataService.getProperties(),
       dataService.getBrands(),
       dataService.getVisits(),
@@ -125,6 +114,8 @@ const App: React.FC = () => {
       dataService.getSidvinTeamMembers(),
       dataService.getFollowUps(),
       dataService.getProposals(),
+      dataService.getCompanyMasterOptions(),
+      dataService.getCategoryMasterOptions(),
     ]);
 
     const calculated = prs.map((p) => ({
@@ -139,6 +130,8 @@ const App: React.FC = () => {
     setSidvinTeamMembers(team);
     setFollowUps(fus);
     setProposals(calculated);
+    setCompanyMasterOptions(companies);
+    setCategoryMasterOptions(categories);
 
     if (!activeUserId && team.length > 0) setActiveUserId(team[0].id);
   }, [activeUserId]);
@@ -199,28 +192,42 @@ const App: React.FC = () => {
     setCurrentView('proposalDetail');
   };
 
-  const companyOptions = Array.from(new Set([...brands.map(b => (b.companyName || '').trim()).filter(Boolean), ...customCompanyOptions])).sort((a, b) => a.localeCompare(b));
-  const categoryOptions = Array.from(new Set([...brands.map(b => (b.category || '').trim()).filter(Boolean), ...customCategoryOptions])).sort((a, b) => a.localeCompare(b));
+  const companyOptions = Array.from(new Set([...brands.map(b => (b.companyName || '').trim()).filter(Boolean), ...companyMasterOptions.map(c => c.name)])).sort((a, b) => a.localeCompare(b));
+  const categoryOptions = Array.from(new Set([...brands.map(b => (b.category || '').trim()).filter(Boolean), ...categoryMasterOptions.map(c => c.name)])).sort((a, b) => a.localeCompare(b));
 
-  const addCompanyOption = (value: string) => {
-    const next = Array.from(new Set([...customCompanyOptions, value.trim()])).filter(Boolean).sort((a, b) => a.localeCompare(b));
-    setCustomCompanyOptions(next);
-    localStorage.setItem('brand-company-options', JSON.stringify(next));
+  const addCompanyOption = async (value: string) => {
+    const normalized = value.trim();
+    if (!normalized) return;
+    if (companyOptions.some(v => v.toLowerCase() === normalized.toLowerCase())) return;
+    await runWithSaving('Adding Company...', async () => {
+      await dataService.addCompanyMasterOption(normalized, currentUserName);
+      await refreshData();
+    });
   };
-  const addCategoryOption = (value: string) => {
-    const next = Array.from(new Set([...customCategoryOptions, value.trim()])).filter(Boolean).sort((a, b) => a.localeCompare(b));
-    setCustomCategoryOptions(next);
-    localStorage.setItem('brand-category-options', JSON.stringify(next));
+  const addCategoryOption = async (value: string) => {
+    const normalized = value.trim();
+    if (!normalized) return;
+    if (categoryOptions.some(v => v.toLowerCase() === normalized.toLowerCase())) return;
+    await runWithSaving('Adding Category...', async () => {
+      await dataService.addCategoryMasterOption(normalized, currentUserName);
+      await refreshData();
+    });
   };
-  const removeCompanyOption = (value: string) => {
-    const next = customCompanyOptions.filter(v => v !== value);
-    setCustomCompanyOptions(next);
-    localStorage.setItem('brand-company-options', JSON.stringify(next));
+  const removeCompanyOption = async (value: string) => {
+    const row = companyMasterOptions.find(v => v.name.toLowerCase() === value.toLowerCase());
+    if (!row?.id) return;
+    await runWithSaving('Removing Company...', async () => {
+      await dataService.deleteCompanyMasterOption(row.id);
+      await refreshData();
+    });
   };
-  const removeCategoryOption = (value: string) => {
-    const next = customCategoryOptions.filter(v => v !== value);
-    setCustomCategoryOptions(next);
-    localStorage.setItem('brand-category-options', JSON.stringify(next));
+  const removeCategoryOption = async (value: string) => {
+    const row = categoryMasterOptions.find(v => v.name.toLowerCase() === value.toLowerCase());
+    if (!row?.id) return;
+    await runWithSaving('Removing Category...', async () => {
+      await dataService.deleteCategoryMasterOption(row.id);
+      await refreshData();
+    });
   };
 
   const handlePropertyTaskView = (status: PropertyTaskStatus) => {

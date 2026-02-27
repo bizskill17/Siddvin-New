@@ -11,7 +11,18 @@ import {
 
 export const BACKEND_URL = 'https://script.google.com/macros/s/AKfycby0NHNUflCQ0YhpLMK9byMFKEuOQnxkKFs3HyKJB2HCxO1QT-ZKqz7U13lsgKsBhdG6Yg/exec';
 
-type EntityName = 'Properties' | 'Brands' | 'Proposals' | 'Visits' | 'FollowUps' | 'TermSheets' | 'SidvinTeam' | 'SidvinTeamMembers' | 'Sidvin Team Members';
+type EntityName =
+  | 'Properties'
+  | 'Brands'
+  | 'Proposals'
+  | 'Visits'
+  | 'FollowUps'
+  | 'TermSheets'
+  | 'SidvinTeam'
+  | 'SidvinTeamMembers'
+  | 'Sidvin Team Members'
+  | 'CompanyMaster'
+  | 'CategoryMaster';
 
 const ENTITY_MAP = {
   properties: 'Properties',
@@ -21,6 +32,8 @@ const ENTITY_MAP = {
   followUps: 'FollowUps',
   termSheets: 'TermSheets',
   sidvinTeam: 'SidvinTeam',
+  companyMaster: 'CompanyMaster',
+  categoryMaster: 'CategoryMaster',
 } as const;
 
 const qs = (params: Record<string, string>) => {
@@ -210,6 +223,14 @@ const normalizeMember = (m: any): SidvinTeamMember => ({
   email: toCleanString(m?.email),
   role: toCleanString(m?.role) as SidvinTeamMember['role'],
   password: toCleanString(m?.password),
+  createdAt: m?.createdAt ? String(m.createdAt) : undefined,
+  updatedAt: m?.updatedAt ? String(m.updatedAt) : undefined,
+  updatedBy: m?.updatedBy ? String(m.updatedBy) : undefined,
+});
+
+const normalizeMasterOption = (m: any): MasterOptionItem => ({
+  id: toCleanString(m?.id),
+  name: toCleanString(m?.name),
   createdAt: m?.createdAt ? String(m.createdAt) : undefined,
   updatedAt: m?.updatedAt ? String(m.updatedAt) : undefined,
   updatedBy: m?.updatedBy ? String(m.updatedBy) : undefined,
@@ -511,3 +532,32 @@ export const updateStoreOpeningDate = async (
 export const deleteTermSheet = async (_proposalId: string): Promise<boolean> => {
   throw new Error('TermSheet delete is not supported by current backend. Add a deleteByProposalId action in Apps Script.');
 };
+
+export const getCompanyMasterOptions = async (): Promise<MasterOptionItem[]> => (await listEntity(ENTITY_MAP.companyMaster as EntityName)).map(normalizeMasterOption);
+export const addCompanyMasterOption = async (name: string, updatedBy = 'System'): Promise<MasterOptionItem> => {
+  const payload = { name };
+  const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.companyMaster, data: payload, updatedBy });
+  return normalizeMasterOption(res.data);
+};
+export const deleteCompanyMasterOption = async (id: string): Promise<boolean> => {
+  const res: any = await postJson({ action: 'delete', entity: ENTITY_MAP.companyMaster, id });
+  return !!res.ok;
+};
+
+export const getCategoryMasterOptions = async (): Promise<MasterOptionItem[]> => (await listEntity(ENTITY_MAP.categoryMaster as EntityName)).map(normalizeMasterOption);
+export const addCategoryMasterOption = async (name: string, updatedBy = 'System'): Promise<MasterOptionItem> => {
+  const payload = { name };
+  const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.categoryMaster, data: payload, updatedBy });
+  return normalizeMasterOption(res.data);
+};
+export const deleteCategoryMasterOption = async (id: string): Promise<boolean> => {
+  const res: any = await postJson({ action: 'delete', entity: ENTITY_MAP.categoryMaster, id });
+  return !!res.ok;
+};
+export interface MasterOptionItem {
+  id: string;
+  name: string;
+  createdAt?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+}

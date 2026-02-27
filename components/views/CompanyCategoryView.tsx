@@ -6,10 +6,10 @@ interface CompanyCategoryViewProps {
   mode: 'company' | 'category' | 'both';
   companyOptions: string[];
   categoryOptions: string[];
-  onAddCompany: (value: string) => void;
-  onAddCategory: (value: string) => void;
-  onRemoveCompany: (value: string) => void;
-  onRemoveCategory: (value: string) => void;
+  onAddCompany: (value: string) => Promise<void> | void;
+  onAddCategory: (value: string) => Promise<void> | void;
+  onRemoveCompany: (value: string) => Promise<void> | void;
+  onRemoveCategory: (value: string) => Promise<void> | void;
 }
 
 const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
@@ -24,17 +24,17 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
   const [newCompany, setNewCompany] = useState('');
   const [newCategory, setNewCategory] = useState('');
 
-  const addCompany = () => {
+  const addCompany = async () => {
     const val = newCompany.trim();
     if (!val) return;
-    onAddCompany(val);
+    await onAddCompany(val);
     setNewCompany('');
   };
 
-  const addCategory = () => {
+  const addCategory = async () => {
     const val = newCategory.trim();
     if (!val) return;
-    onAddCategory(val);
+    await onAddCategory(val);
     setNewCategory('');
   };
 
