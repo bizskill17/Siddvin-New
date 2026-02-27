@@ -42,7 +42,8 @@ type View =
   | 'sidvinTeam'
   | 'successStories'
   | 'propertyFeeFollowUp'
-  | 'companyCategoryMaster'
+  | 'companyMaster'
+  | 'categoryMaster'
   | 'proposalDetail'
   | 'addProperty'
   | 'editProperty'
@@ -486,8 +487,10 @@ const App: React.FC = () => {
         return <PropertyForm onSubmit={handleAddProperty} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} />;
       case 'editProperty':
         return editingProperty ? <PropertyForm initialData={editingProperty} onSubmit={(payload) => handleUpdateProperty({ ...editingProperty, ...payload })} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} /> : <div className="text-center py-8">Property not found for editing.</div>;
-      case 'companyCategoryMaster':
-        return <CompanyCategoryView companyOptions={companyOptions} categoryOptions={categoryOptions} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />;
+      case 'companyMaster':
+        return <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />;
+      case 'categoryMaster':
+        return <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />;
       case 'brands':
         return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Brands Master Data</h1><Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button></div><BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} /></>);
       case 'addBrand':
@@ -595,7 +598,8 @@ const App: React.FC = () => {
               />
             </li>
           ))}
-          <li><NavLink label={`Company & Category`} onClick={() => handleViewChange('companyCategoryMaster')} isActive={currentView === 'companyCategoryMaster'} /></li>
+          <li><NavLink label={`Company`} onClick={() => handleViewChange('companyMaster')} isActive={currentView === 'companyMaster'} /></li>
+          <li><NavLink label={`Category`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} /></li>
           <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} /></li>
           <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} /></li>
           <li className="text-amber-100 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Transactional Data</li>

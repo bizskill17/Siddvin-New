@@ -3,6 +3,7 @@ import Button from '../common/Button';
 import Input from '../common/Input';
 
 interface CompanyCategoryViewProps {
+  mode: 'company' | 'category' | 'both';
   companyOptions: string[];
   categoryOptions: string[];
   onAddCompany: (value: string) => void;
@@ -12,6 +13,7 @@ interface CompanyCategoryViewProps {
 }
 
 const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
+  mode,
   companyOptions,
   categoryOptions,
   onAddCompany,
@@ -38,9 +40,12 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Company & Category Master</h1>
+      <h1 className="text-3xl font-bold text-gray-900">
+        {mode === 'company' ? 'Company Master' : mode === 'category' ? 'Category Master' : 'Company & Category Master'}
+      </h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className={`grid grid-cols-1 ${mode === 'both' ? 'lg:grid-cols-2' : ''} gap-6`}>
+        {(mode === 'both' || mode === 'company') && (
         <div className="bg-[#ece8e3] border border-gray-200 rounded-lg p-4">
           <h2 className="text-xl font-semibold text-gray-800 mb-3">Company Names</h2>
           <div className="flex gap-2 mb-3">
@@ -62,7 +67,9 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
             )}
           </div>
         </div>
+        )}
 
+        {(mode === 'both' || mode === 'category') && (
         <div className="bg-[#ece8e3] border border-gray-200 rounded-lg p-4">
           <h2 className="text-xl font-semibold text-gray-800 mb-3">Categories</h2>
           <div className="flex gap-2 mb-3">
@@ -84,10 +91,10 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
             )}
           </div>
         </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default CompanyCategoryView;
-
