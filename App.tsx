@@ -517,19 +517,22 @@ const App: React.FC = () => {
       <div className="flex-grow flex flex-col min-h-screen">
         <main className="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
-            <div className="flex items-end gap-3">
-              <button
-                type="button"
-                onClick={() => setIsSidebarOpen(true)}
-                className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-gray-300 bg-[#ece8e3] text-gray-800"
-                aria-label="Open menu"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              <div className="w-72">
-              <SelectInput id="activeUser" label="Acting As" value={activeUser?.id || ''} onChange={(e) => setActiveUserId(e.target.value)} options={sidvinTeamMembers.map(member => ({ value: member.id, label: `${member.name} (${member.role})` }))} placeholder="Select Team Member" />
+            <div>
+              <label htmlFor="activeUser" className="block text-sm font-medium text-gray-700 mb-1">Acting As</label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-gray-300 bg-[#ece8e3] text-gray-800"
+                  aria-label="Open menu"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                <div className="w-72">
+                <SelectInput id="activeUser" className="mb-0" value={activeUser?.id || ''} onChange={(e) => setActiveUserId(e.target.value)} options={sidvinTeamMembers.map(member => ({ value: member.id, label: `${member.name} (${member.role})` }))} placeholder="Select Team Member" />
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
