@@ -524,9 +524,9 @@ const App: React.FC = () => {
       case 'editProperty':
         return editingProperty ? <PropertyForm initialData={editingProperty} onSubmit={(payload) => handleUpdateProperty({ ...editingProperty, ...payload })} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} /> : <div className="text-center py-8">Property not found for editing.</div>;
       case 'companyMaster':
-        return <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />;
+        return <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />;
       case 'categoryMaster':
-        return <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />;
+        return <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />;
       case 'brands':
         return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Brands Master Data</h1><Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button></div><BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} /></>);
       case 'addBrand':
