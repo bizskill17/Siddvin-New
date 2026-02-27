@@ -203,7 +203,10 @@ const App: React.FC = () => {
   const addCompanyOption = async (value: string) => {
     const normalized = value.trim();
     if (!normalized) return;
-    if (companyOptions.some(v => v.toLowerCase() === normalized.toLowerCase())) return;
+    if (companyOptions.some(v => v.toLowerCase() === normalized.toLowerCase())) {
+      window.alert('Company already exists.');
+      return;
+    }
     await runWithSaving('Adding Company...', async () => {
       await dataService.addCompanyMasterOption(normalized, currentUserName);
       await refreshData();
@@ -212,7 +215,10 @@ const App: React.FC = () => {
   const addCategoryOption = async (value: string) => {
     const normalized = value.trim();
     if (!normalized) return;
-    if (categoryOptions.some(v => v.toLowerCase() === normalized.toLowerCase())) return;
+    if (categoryOptions.some(v => v.toLowerCase() === normalized.toLowerCase())) {
+      window.alert('Category already exists.');
+      return;
+    }
     await runWithSaving('Adding Category...', async () => {
       await dataService.addCategoryMasterOption(normalized, currentUserName);
       await refreshData();
@@ -261,6 +267,13 @@ const App: React.FC = () => {
   };
 
   const handleAddBrand = async (newBrand: Omit<Brand, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
+    const duplicate = brands.find(
+      b => b.name.trim().toLowerCase() === newBrand.name.trim().toLowerCase()
+    );
+    if (duplicate) {
+      window.alert('Brand with same name already exists.');
+      return;
+    }
     handleViewChange('brands');
     await runWithSaving('Adding Brand...', async () => {
       await dataService.addBrand(newBrand, currentUserName);
@@ -269,6 +282,13 @@ const App: React.FC = () => {
   };
 
   const handleUpdateBrand = async (updatedBrand: Brand) => {
+    const duplicate = brands.find(
+      b => b.id !== updatedBrand.id && b.name.trim().toLowerCase() === updatedBrand.name.trim().toLowerCase()
+    );
+    if (duplicate) {
+      window.alert('Brand with same name already exists.');
+      return;
+    }
     handleViewChange('brands');
     await runWithSaving('Updating Brand...', async () => {
       await dataService.updateBrand(updatedBrand, currentUserName);
@@ -597,7 +617,7 @@ const App: React.FC = () => {
         </div>
         <ul className="space-y-1">
           <li><NavLink label={`Dashboard`} onClick={() => handleViewChange('dashboard')} isActive={currentView === 'dashboard'} /></li>
-          <li><SectionToggle label="Proposal Stages" isOpen={expandedSections.proposalStages} onClick={() => toggleSection('proposalStages')} /></li>
+          <li><SectionToggle label="Proposal" isOpen={expandedSections.proposalStages} onClick={() => toggleSection('proposalStages')} /></li>
           {expandedSections.proposalStages && (
             <>
               <li><NavLink label={`All Proposals (${proposals.length})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter('All'); }} isActive={currentView === 'proposals' && selectedStageFilter === 'All'} isSubItem /></li>
@@ -605,7 +625,7 @@ const App: React.FC = () => {
               {allProposalStages.map(stage => <li key={stage}><NavLink label={`${stage} (${stageCounts[stage] || 0})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter(stage); }} isActive={currentView === 'proposals' && selectedStageFilter === stage} isSubItem /></li>)}
             </>
           )}
-          <li><SectionToggle label="Property Tasks" isOpen={expandedSections.propertyTasks} onClick={() => toggleSection('propertyTasks')} /></li>
+          <li><SectionToggle label="Property" isOpen={expandedSections.propertyTasks} onClick={() => toggleSection('propertyTasks')} /></li>
           {expandedSections.propertyTasks && (
             <>
               <li><NavLink label={`Properties (${properties.length})`} onClick={() => handleViewChange('properties')} isActive={currentView === 'properties'} isSubItem /></li>
@@ -621,11 +641,11 @@ const App: React.FC = () => {
               ))}
             </>
           )}
-          <li><SectionToggle label="Master Data" isOpen={expandedSections.masterData} onClick={() => toggleSection('masterData')} /></li>
+          <li><SectionToggle label="Master" isOpen={expandedSections.masterData} onClick={() => toggleSection('masterData')} /></li>
           {expandedSections.masterData && (
             <>
-              <li><NavLink label={`Company`} onClick={() => handleViewChange('companyMaster')} isActive={currentView === 'companyMaster'} isSubItem /></li>
-              <li><NavLink label={`Category`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} isSubItem /></li>
+              <li><NavLink label={`Company (${companyMasterOptions.length})`} onClick={() => handleViewChange('companyMaster')} isActive={currentView === 'companyMaster'} isSubItem /></li>
+              <li><NavLink label={`Category (${categoryMasterOptions.length})`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} isSubItem /></li>
               <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} isSubItem /></li>
               <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} isSubItem /></li>
               <li><NavLink label={`All Visits (${visits.length})`} onClick={() => handleViewChange('visits')} isActive={currentView === 'visits'} isSubItem /></li>
