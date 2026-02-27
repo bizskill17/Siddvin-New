@@ -86,7 +86,7 @@ const App: React.FC = () => {
   const [editingFollowUp, setEditingFollowUp] = useState<FollowUp | null>(null);
 
   const [selectedStageFilter, setSelectedStageFilter] = useState<CurrentStageEnum | 'All'>('All');
-  const [selectedPropertyTaskFilter, setSelectedPropertyTaskFilter] = useState<PropertyTaskStatus | 'All'>('All');
+  const [selectedPropertyTaskFilter, setSelectedPropertyTaskFilter] = useState<PropertyTaskStatus>('Property Files');
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: string; name?: string } | null>(null);
@@ -180,6 +180,11 @@ const App: React.FC = () => {
   const handleViewProposalDetails = (proposalId: string) => {
     setSelectedProposalId(proposalId);
     setCurrentView('proposalDetail');
+  };
+
+  const handlePropertyTaskView = (status: PropertyTaskStatus) => {
+    setSelectedPropertyTaskFilter(status);
+    handleViewChange('propertyFeeFollowUp');
   };
 
   const handleAddProperty = async (newProperty: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
@@ -428,30 +433,11 @@ const App: React.FC = () => {
       case 'properties':
         return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Properties Master Data</h1><Button onClick={() => handleViewChange('addProperty')}>Add New Property</Button></div><PropertiesTable properties={properties} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} onDelete={(id) => handleDeleteClick(id, 'property')} /></>);
       case 'propertyFeeFollowUp':
-        const pendingPropertyTasks = properties.filter((p) => getPropertyTaskStatus(p) !== 'Accepted & Signed');
-        const visiblePendingPropertyTasks = selectedPropertyTaskFilter === 'All'
-          ? pendingPropertyTasks
-          : pendingPropertyTasks.filter((p) => getPropertyTaskStatus(p) === selectedPropertyTaskFilter);
+        const visiblePendingPropertyTasks = properties.filter((p) => getPropertyTaskStatus(p) === selectedPropertyTaskFilter);
         return (
           <>
-            <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
-              <h1 className="text-3xl font-bold text-gray-900">Pending Property Tasks</h1>
-              <div className="w-80">
-                <SelectInput
-                  id="propertyTaskFilter"
-                  label="View By Status"
-                  value={selectedPropertyTaskFilter}
-                  onChange={(e) => setSelectedPropertyTaskFilter(e.target.value as PropertyTaskStatus | 'All')}
-                  options={[
-                    { value: 'All', label: 'All' },
-                    { value: 'Property Files', label: 'Property Files' },
-                    { value: 'Pending Property Email', label: 'Pending Property Email' },
-                    { value: 'Pending Negotiation', label: 'Pending Negotiation' },
-                    { value: 'Pending Acceptance Email', label: 'Pending Acceptance Email' },
-                    { value: 'Pending Property Signing', label: 'Pending Property Signing' },
-                  ]}
-                />
-              </div>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">{selectedPropertyTaskFilter}</h1>
             </div>
             <PropertiesTable properties={visiblePendingPropertyTasks} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} />
           </>
@@ -517,7 +503,11 @@ const App: React.FC = () => {
     acc[stage] = proposals.filter(p => p.currentStage === stage).length;
     return acc;
   }, {} as Record<string, number>);
-  const pendingPropertyFeeCount = properties.filter((p) => getPropertyTaskStatus(p) !== 'Accepted & Signed').length;
+  const propertyTaskStatuses: PropertyTaskStatus[] = ['Property Files', 'Pending Property Email', 'Pending Negotiation', 'Pending Acceptance Email', 'Pending Property Signing', 'Accepted & Signed'];
+  const propertyTaskCounts = propertyTaskStatuses.reduce((acc, status) => {
+    acc[status] = properties.filter((p) => getPropertyTaskStatus(p) === status).length;
+    return acc;
+  }, {} as Record<PropertyTaskStatus, number>);
   const successStoriesCount = proposals.filter(p => p.currentStage === CurrentStageEnum.CompletedProposal).length;
 
   return (
@@ -552,7 +542,17 @@ const App: React.FC = () => {
           {allProposalStages.map(stage => <li key={stage}><NavLink label={`${stage} (${stageCounts[stage] || 0})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter(stage); }} isActive={currentView === 'proposals' && selectedStageFilter === stage} isSubItem /></li>)}
           <li className="text-amber-100 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Master Data</li>
           <li><NavLink label={`Properties (${properties.length})`} onClick={() => handleViewChange('properties')} isActive={currentView === 'properties'} /></li>
-          <li><NavLink label={`Pending Property Tasks (${pendingPropertyFeeCount})`} onClick={() => handleViewChange('propertyFeeFollowUp')} isActive={currentView === 'propertyFeeFollowUp'} /></li>
+          <li className="text-amber-100 font-semibold mt-3 mb-1 px-3 text-xs uppercase tracking-wider">Property Tasks</li>
+          {propertyTaskStatuses.map((status) => (
+            <li key={status}>
+              <NavLink
+                label={`${status} (${propertyTaskCounts[status] || 0})`}
+                onClick={() => handlePropertyTaskView(status)}
+                isActive={currentView === 'propertyFeeFollowUp' && selectedPropertyTaskFilter === status}
+                isSubItem
+              />
+            </li>
+          ))}
           <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} /></li>
           <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} /></li>
           <li className="text-amber-100 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Transactional Data</li>
