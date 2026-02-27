@@ -51,7 +51,6 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
       <div className={`grid grid-cols-1 ${mode === 'both' ? 'lg:grid-cols-2' : ''} gap-6`}>
         {(mode === 'both' || mode === 'company') && (
         <div className="bg-[#ece8e3] border border-gray-200 rounded-lg p-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">Company Names</h2>
           <div className="flex gap-2 mb-3">
             <Input id="newCompanyName" label="Add Company Name" value={newCompany} onChange={(e) => setNewCompany(e.target.value)} />
             <div className="pt-8">
@@ -87,7 +86,6 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
 
         {(mode === 'both' || mode === 'category') && (
         <div className="bg-[#ece8e3] border border-gray-200 rounded-lg p-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">Categories</h2>
           <div className="flex gap-2 mb-3">
             <Input id="newCategoryName" label="Add Category" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
             <div className="pt-8">
