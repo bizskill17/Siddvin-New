@@ -186,7 +186,8 @@ const App: React.FC = () => {
     const hasCadDrawing = !!(property.cadDrawingUrl || '').trim();
     const hasPresentation = !!(property.propertyPresentation || '').trim();
 
-    if (!hasPhoto1 && !hasPdfDrawing && !hasCadDrawing && !hasPresentation) {
+    // Keep property in Pending Property Files until all required file URLs are present.
+    if (!(hasPhoto1 && hasPdfDrawing && hasCadDrawing && hasPresentation)) {
       return 'Pending Property Files';
     }
     return property.propertyFeeStatus;
