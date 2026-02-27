@@ -11,7 +11,7 @@ import {
 
 export const BACKEND_URL = 'https://script.google.com/macros/s/AKfycby0NHNUflCQ0YhpLMK9byMFKEuOQnxkKFs3HyKJB2HCxO1QT-ZKqz7U13lsgKsBhdG6Yg/exec';
 
-type EntityName = 'Properties' | 'Brands' | 'Proposals' | 'Visits' | 'FollowUps' | 'TermSheets' | 'SidvinTeam';
+type EntityName = 'Properties' | 'Brands' | 'Proposals' | 'Visits' | 'FollowUps' | 'TermSheets' | 'SidvinTeam' | 'SidvinTeamMembers' | 'Sidvin Team Members';
 
 const ENTITY_MAP = {
   properties: 'Properties',
@@ -185,6 +185,33 @@ const listEntity = async (entity: EntityName): Promise<any[]> => {
   return Array.isArray(res.data) ? res.data : [];
 };
 
+const listEntityWithFallback = async (entities: EntityName[]): Promise<any[]> => {
+  let lastError: any;
+  for (const entity of entities) {
+    try {
+      return await listEntity(entity);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Unable to fetch entity.');
+};
+
+const postJsonWithEntityFallback = async <T>(
+  body: { entity: EntityName; [key: string]: any },
+  entities: EntityName[],
+): Promise<T> => {
+  let lastError: any;
+  for (const entity of entities) {
+    try {
+      return await postJson<T>({ ...body, entity });
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Unable to submit entity payload.');
+};
+
 export const calculateCurrentStage = (
   proposal: Proposal,
   allVisits: Visit[],
@@ -264,17 +291,30 @@ export const deleteBrand = async (id: string): Promise<boolean> => {
   return !!res.ok;
 };
 
-export const getSidvinTeamMembers = async (): Promise<SidvinTeamMember[]> => (await listEntity(ENTITY_MAP.sidvinTeam)).map(normalizeMember);
+const SIDVIN_TEAM_ENTITY_FALLBACKS: EntityName[] = ['SidvinTeam', 'SidvinTeamMembers', 'Sidvin Team Members'];
+
+export const getSidvinTeamMembers = async (): Promise<SidvinTeamMember[]> => (
+  await listEntityWithFallback(SIDVIN_TEAM_ENTITY_FALLBACKS)
+).map(normalizeMember);
 export const addSidvinTeamMember = async (newMember: Omit<SidvinTeamMember, 'id'>, updatedBy = 'System'): Promise<SidvinTeamMember> => {
-  const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.sidvinTeam, data: newMember, updatedBy });
+  const res: any = await postJsonWithEntityFallback(
+    { action: 'create', entity: ENTITY_MAP.sidvinTeam, data: newMember, updatedBy },
+    SIDVIN_TEAM_ENTITY_FALLBACKS,
+  );
   return normalizeMember(res.data);
 };
 export const updateSidvinTeamMember = async (updatedMember: SidvinTeamMember, updatedBy = 'System'): Promise<SidvinTeamMember> => {
-  const res: any = await postJson({ action: 'update', entity: ENTITY_MAP.sidvinTeam, id: updatedMember.id, data: updatedMember, updatedBy });
+  const res: any = await postJsonWithEntityFallback(
+    { action: 'update', entity: ENTITY_MAP.sidvinTeam, id: updatedMember.id, data: updatedMember, updatedBy },
+    SIDVIN_TEAM_ENTITY_FALLBACKS,
+  );
   return normalizeMember(res.data);
 };
 export const deleteSidvinTeamMember = async (id: string): Promise<boolean> => {
-  const res: any = await postJson({ action: 'delete', entity: ENTITY_MAP.sidvinTeam, id });
+  const res: any = await postJsonWithEntityFallback(
+    { action: 'delete', entity: ENTITY_MAP.sidvinTeam, id },
+    SIDVIN_TEAM_ENTITY_FALLBACKS,
+  );
   return !!res.ok;
 };
 

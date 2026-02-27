@@ -352,7 +352,12 @@ const App: React.FC = () => {
     setDeleteError(null);
     setShowDeleteConfirm(true);
     setDeleteCallback(() => async () => {
+      const isTeamMemberDelete = type === 'teamMember';
       try {
+        if (isTeamMemberDelete) {
+          setSavingMessage('Deleting Team Member...');
+          setIsSaving(true);
+        }
         let success = false;
         switch (type) {
           case 'property': success = await dataService.deleteProperty(id); break;
@@ -373,6 +378,10 @@ const App: React.FC = () => {
         }
       } catch (error: any) {
         setDeleteError(error.message || `An error occurred while deleting ${type}.`);
+      } finally {
+        if (isTeamMemberDelete) {
+          setIsSaving(false);
+        }
       }
     });
   };
@@ -507,7 +516,7 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
-      <DeleteConfirmationModal isOpen={showDeleteConfirm} onClose={handleCloseDeleteConfirm} onConfirm={handleConfirmDelete} title={`Delete ${itemToDelete?.type}?`} message={`Are you sure you want to delete ${itemToDelete?.name || itemToDelete?.type}? This action cannot be undone.`} error={deleteError} />
+      <DeleteConfirmationModal isOpen={showDeleteConfirm} onClose={handleCloseDeleteConfirm} onConfirm={handleConfirmDelete} title={`Delete ${itemToDelete?.type}?`} message={`Are you sure you want to delete ${itemToDelete?.name || itemToDelete?.type}? This action cannot be undone.`} error={deleteError} isProcessing={isSaving} />
     </div>
   );
 };
