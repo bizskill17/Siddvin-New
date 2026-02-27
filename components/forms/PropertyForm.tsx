@@ -192,7 +192,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       <Input id="proposedRent" label="Proposed Rent" value={formData.proposedRent} onChange={handleChange} type="number" min="0" required />
       <Input id="proposedArea" label="Proposed Area (sqft)" value={formData.proposedArea} onChange={handleChange} type="number" min="0" step="0.01" required />
       <Input id="frontage" label="Frontage" value={formData.frontage} onChange={handleChange} required />
-      <Input id="noOfFloors" label="No. of Floors" value={formData.noOfFloors} onChange={handleChange} type="number" min="0" step="1" />
+      <Input id="noOfFloors" label="No. of Floors" value={formData.noOfFloors} onChange={handleChange} type="number" min="0" step="1" required />
       
       <Input id="serviceFeeProposed" label="Service Fee Proposed" value={formData.serviceFeeProposed} onChange={handleChange} required />
       <LongTextInput id="notes" label="Notes" value={formData.notes} onChange={handleChange} />
@@ -217,7 +217,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       {canManagePropertyFee && (
         <>
           <hr className="my-6 border-gray-200" />
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Fee Coordination</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Coordination</h3>
           <CheckboxInput id="propertySigningApplicable" label="Property Signing Applicable" checked={formData.propertySigningApplicable} onChange={handleChange} />
           <Input id="propertyFeeEmailSentDate" label="Email Sent Date" value={formData.propertyFeeEmailSentDate} onChange={handleChange} type="date" />
           <Input id="propertyFeeAcceptanceEmailDate" label="Acceptance Email Date" value={formData.propertyFeeAcceptanceEmailDate} onChange={handleChange} type="date" disabled={!formData.propertyFeeEmailSentDate} />

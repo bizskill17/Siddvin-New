@@ -58,6 +58,14 @@ type View =
   | 'addFollowUp'
   | 'editFollowUp';
 
+type PropertyTaskStatus =
+  | 'Property Files'
+  | 'Pending Property Email'
+  | 'Pending Negotiation'
+  | 'Pending Acceptance Email'
+  | 'Pending Property Signing'
+  | 'Accepted & Signed';
+
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [properties, setProperties] = useState<Property[]>([]);
@@ -78,6 +86,7 @@ const App: React.FC = () => {
   const [editingFollowUp, setEditingFollowUp] = useState<FollowUp | null>(null);
 
   const [selectedStageFilter, setSelectedStageFilter] = useState<CurrentStageEnum | 'All'>('All');
+  const [selectedPropertyTaskFilter, setSelectedPropertyTaskFilter] = useState<PropertyTaskStatus | 'All'>('All');
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: string; name?: string } | null>(null);
@@ -154,6 +163,18 @@ const App: React.FC = () => {
     setEditingTermSheet(null);
     setEditingTeamMember(null);
     setEditingFollowUp(null);
+  };
+
+  const getPropertyTaskStatus = (property: Property): PropertyTaskStatus => {
+    const hasPhoto1 = !!(property.propertyPhotos?.[0] || '').trim();
+    const hasPdfDrawing = !!(property.drawings?.[0] || '').trim();
+    const hasCadDrawing = !!(property.cadDrawingUrl || '').trim();
+    const hasPresentation = !!(property.propertyPresentation || '').trim();
+
+    if (!hasPhoto1 && !hasPdfDrawing && !hasCadDrawing && !hasPresentation) {
+      return 'Property Files';
+    }
+    return property.propertyFeeStatus;
   };
 
   const handleViewProposalDetails = (proposalId: string) => {
@@ -407,8 +428,34 @@ const App: React.FC = () => {
       case 'properties':
         return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Properties Master Data</h1><Button onClick={() => handleViewChange('addProperty')}>Add New Property</Button></div><PropertiesTable properties={properties} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} onDelete={(id) => handleDeleteClick(id, 'property')} /></>);
       case 'propertyFeeFollowUp':
-        const pendingPropertyFee = properties.filter((p) => p.propertyFeeStatus !== 'Accepted & Signed');
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Pending Property Tasks</h1></div><PropertiesTable properties={pendingPropertyFee} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} /></>);
+        const pendingPropertyTasks = properties.filter((p) => getPropertyTaskStatus(p) !== 'Accepted & Signed');
+        const visiblePendingPropertyTasks = selectedPropertyTaskFilter === 'All'
+          ? pendingPropertyTasks
+          : pendingPropertyTasks.filter((p) => getPropertyTaskStatus(p) === selectedPropertyTaskFilter);
+        return (
+          <>
+            <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
+              <h1 className="text-3xl font-bold text-gray-900">Pending Property Tasks</h1>
+              <div className="w-80">
+                <SelectInput
+                  id="propertyTaskFilter"
+                  label="View By Status"
+                  value={selectedPropertyTaskFilter}
+                  onChange={(e) => setSelectedPropertyTaskFilter(e.target.value as PropertyTaskStatus | 'All')}
+                  options={[
+                    { value: 'All', label: 'All' },
+                    { value: 'Property Files', label: 'Property Files' },
+                    { value: 'Pending Property Email', label: 'Pending Property Email' },
+                    { value: 'Pending Negotiation', label: 'Pending Negotiation' },
+                    { value: 'Pending Acceptance Email', label: 'Pending Acceptance Email' },
+                    { value: 'Pending Property Signing', label: 'Pending Property Signing' },
+                  ]}
+                />
+              </div>
+            </div>
+            <PropertiesTable properties={visiblePendingPropertyTasks} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} />
+          </>
+        );
       case 'addProperty':
         return <PropertyForm onSubmit={handleAddProperty} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} />;
       case 'editProperty':
@@ -470,7 +517,7 @@ const App: React.FC = () => {
     acc[stage] = proposals.filter(p => p.currentStage === stage).length;
     return acc;
   }, {} as Record<string, number>);
-  const pendingPropertyFeeCount = properties.filter((p) => p.propertyFeeStatus !== 'Accepted & Signed').length;
+  const pendingPropertyFeeCount = properties.filter((p) => getPropertyTaskStatus(p) !== 'Accepted & Signed').length;
   const successStoriesCount = proposals.filter(p => p.currentStage === CurrentStageEnum.CompletedProposal).length;
 
   return (
