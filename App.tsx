@@ -88,6 +88,7 @@ const App: React.FC = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('Submitting...');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [props, brs, vsts, terms, team, fus, prs] = await Promise.all([
@@ -144,6 +145,7 @@ const App: React.FC = () => {
 
   const handleViewChange = (view: View) => {
     setCurrentView(view);
+    setIsSidebarOpen(false);
     setSelectedProposalId(null);
     setEditingProperty(null);
     setEditingBrand(null);
@@ -472,9 +474,29 @@ const App: React.FC = () => {
   const successStoriesCount = proposals.filter(p => p.currentStage === CurrentStageEnum.CompletedProposal).length;
 
   return (
-    <div className="min-h-screen flex">
-      <nav className="w-64 bg-gradient-to-b from-amber-800 to-amber-800 text-white p-4 shadow-lg flex-shrink-0 relative z-20">
-        <div className="mb-4 px-3"><h1 className="text-xl font-extrabold tracking-wide">Proposal Management</h1></div>
+    <div className="min-h-screen flex relative">
+      {isSidebarOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 bg-black/40 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-label="Close menu overlay"
+        />
+      )}
+      <nav className={`fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-amber-800 to-amber-800 text-white p-4 shadow-lg z-40 transform transition-transform duration-300 ease-in-out lg:static lg:inset-auto lg:transform-none lg:z-20 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+        <div className="mb-4 px-3 flex items-start justify-between gap-3">
+          <h1 className="text-xl font-extrabold tracking-wide">Proposal Management</h1>
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden text-white/80 hover:text-white"
+            aria-label="Close menu"
+          >
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
         <ul className="space-y-1">
           <li><NavLink label={`Dashboard`} onClick={() => handleViewChange('dashboard')} isActive={currentView === 'dashboard'} /></li>
           <li><NavLink label={`All Proposals (${proposals.length})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter('All'); }} isActive={currentView === 'proposals' && selectedStageFilter === 'All'} /></li>
@@ -495,8 +517,20 @@ const App: React.FC = () => {
       <div className="flex-grow flex flex-col min-h-screen">
         <main className="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
-            <div className="w-72">
+            <div className="flex items-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden h-10 w-10 inline-flex items-center justify-center rounded-md border border-gray-300 bg-[#ece8e3] text-gray-800"
+                aria-label="Open menu"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <div className="w-72">
               <SelectInput id="activeUser" label="Acting As" value={activeUser?.id || ''} onChange={(e) => setActiveUserId(e.target.value)} options={sidvinTeamMembers.map(member => ({ value: member.id, label: `${member.name} (${member.role})` }))} placeholder="Select Team Member" />
+              </div>
             </div>
             <img src="https://i.ibb.co/xtfh8687/Main-Logo-qp4bsy1t5svtei9fiwtef930op1p97z2fmjj9swme0.png" alt="Sidvin Logo" className="h-12 w-auto object-contain" />
           </div>
