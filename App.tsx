@@ -483,7 +483,7 @@ const App: React.FC = () => {
           aria-label="Close menu overlay"
         />
       )}
-      <nav className={`fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-amber-800 to-amber-800 text-white p-4 shadow-lg z-40 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <nav className={`fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-amber-800 to-amber-800 text-white p-4 shadow-lg z-40 transform transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain [scrollbar-gutter:stable] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="mb-4 px-3 flex items-start justify-between gap-3">
           <h1 className="text-xl font-extrabold tracking-wide">Proposal Management</h1>
           <button
