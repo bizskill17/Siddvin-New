@@ -63,30 +63,30 @@ const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete }) =
       </div>
       <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-black">
       <table id="visits-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
-        <thead className="bg-gray-100">
+        <thead className="bg-orange-700 text-white">
           <tr>
             <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-black">
               No.
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Scheduled Date
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Scheduled Time
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Visit Date
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Developer Attendees
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Brand Attendees
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Sidvin Attendees
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Visit Outcome
             </th>
             <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 border-b border-black">
@@ -110,7 +110,7 @@ const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete }) =
               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <div className="flex justify-end space-x-2">
                   {onEdit && (
-                    <Button variant="secondary" size="sm" onClick={() => onEdit(visit)}>
+                    <Button variant="primary" size="sm" onClick={() => onEdit(visit)}>
                       Edit
                     </Button>
                   )}
@@ -131,5 +131,6 @@ const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete }) =
 };
 
 export default VisitsTable;
+
 
 

@@ -64,33 +64,33 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
       </div>
       <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-black">
       <table id="properties-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
-        <thead className="bg-gray-100">
+        <thead className="bg-orange-700 text-white">
           <tr>
             <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-black">
               Property Code
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Address
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Contact Name
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Contact Mobile
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Proposed Rent
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Proposed Area
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Property Status
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Service Fee Proposed
             </th>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">
               Notes
             </th>
             <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 border-b border-black">
@@ -122,7 +122,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <div className="flex justify-end space-x-2">
                   {onEdit && (
-                    <Button variant="secondary" size="sm" onClick={() => onEdit(property)}>
+                    <Button variant="primary" size="sm" onClick={() => onEdit(property)}>
                       Edit
                     </Button>
                   )}
@@ -143,4 +143,5 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
 };
 
 export default PropertiesTable;
+
 

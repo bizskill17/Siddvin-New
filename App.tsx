@@ -63,7 +63,7 @@ type View =
   | 'editFollowUp';
 
 type PropertyTaskStatus =
-  | 'Property Files'
+  | 'Pending Property Files'
   | 'Pending Property Email'
   | 'Pending Negotiation'
   | 'Pending Acceptance Email'
@@ -92,7 +92,7 @@ const App: React.FC = () => {
   const [editingFollowUp, setEditingFollowUp] = useState<FollowUp | null>(null);
 
   const [selectedStageFilter, setSelectedStageFilter] = useState<CurrentStageEnum | 'All'>('All');
-  const [selectedPropertyTaskFilter, setSelectedPropertyTaskFilter] = useState<PropertyTaskStatus>('Property Files');
+  const [selectedPropertyTaskFilter, setSelectedPropertyTaskFilter] = useState<PropertyTaskStatus>('Pending Property Files');
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: string; name?: string } | null>(null);
@@ -187,7 +187,7 @@ const App: React.FC = () => {
     const hasPresentation = !!(property.propertyPresentation || '').trim();
 
     if (!hasPhoto1 && !hasPdfDrawing && !hasCadDrawing && !hasPresentation) {
-      return 'Property Files';
+      return 'Pending Property Files';
     }
     return property.propertyFeeStatus;
   };
@@ -584,7 +584,7 @@ const App: React.FC = () => {
     acc[stage] = proposals.filter(p => p.currentStage === stage).length;
     return acc;
   }, {} as Record<string, number>);
-  const propertyTaskStatuses: PropertyTaskStatus[] = ['Property Files', 'Pending Property Email', 'Pending Negotiation', 'Pending Acceptance Email', 'Pending Property Signing', 'Accepted & Signed'];
+  const propertyTaskStatuses: PropertyTaskStatus[] = ['Pending Property Files', 'Pending Property Email', 'Pending Negotiation', 'Pending Acceptance Email', 'Pending Property Signing', 'Accepted & Signed'];
   const propertyTaskCounts = propertyTaskStatuses.reduce((acc, status) => {
     acc[status] = properties.filter((p) => getPropertyTaskStatus(p) === status).length;
     return acc;
@@ -648,8 +648,6 @@ const App: React.FC = () => {
               <li><NavLink label={`Category (${categoryMasterOptions.length})`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} isSubItem /></li>
               <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} isSubItem /></li>
               <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} isSubItem /></li>
-              <li><NavLink label={`All Visits (${visits.length})`} onClick={() => handleViewChange('visits')} isActive={currentView === 'visits'} isSubItem /></li>
-              <li><NavLink label={`All Terms (${termSheetAgreements.length})`} onClick={() => handleViewChange('termSheets')} isActive={currentView === 'termSheets'} isSubItem /></li>
             </>
           )}
         </ul>

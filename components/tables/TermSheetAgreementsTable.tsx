@@ -63,16 +63,16 @@ const TermSheetAgreementsTable: React.FC<TermSheetAgreementsTableProps> = ({ ter
       </div>
       <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-black">
       <table id="term-sheets-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
-        <thead className="bg-gray-100">
+        <thead className="bg-orange-700 text-white">
           <tr>
             <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-black">No.</th>
-            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">Finalization</th>
-            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">Preparation</th>
-            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">Signing</th>
-            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">Agreement</th>
-            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">Agreement Reg.</th>
-            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">Store Opening</th>
-            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">Planned Opening</th>
+            <th className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">Finalization</th>
+            <th className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">Preparation</th>
+            <th className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">Signing</th>
+            <th className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">Agreement</th>
+            <th className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">Agreement Reg.</th>
+            <th className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">Store Opening</th>
+            <th className="px-3 py-3.5 text-left text-sm font-semibold text-white border-b border-black">Planned Opening</th>
             <th className="relative py-3.5 pl-3 pr-4 sm:pr-6 border-b border-black"><span className="sr-only">Actions</span></th>
           </tr>
         </thead>
@@ -89,7 +89,7 @@ const TermSheetAgreementsTable: React.FC<TermSheetAgreementsTableProps> = ({ ter
               <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{formatDateDisplay(ts.plannedOpeningDate)}</td>
               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <div className="flex justify-end space-x-2">
-                  {onEdit && <Button variant="secondary" size="sm" onClick={() => onEdit(ts)}>Edit</Button>}
+                  {onEdit && <Button variant="primary" size="sm" onClick={() => onEdit(ts)}>Edit</Button>}
                   {onDelete && <Button variant="danger" size="sm" onClick={() => onDelete(ts.proposalId)}>Delete</Button>}
                 </div>
               </td>
@@ -103,4 +103,5 @@ const TermSheetAgreementsTable: React.FC<TermSheetAgreementsTableProps> = ({ ter
 };
 
 export default TermSheetAgreementsTable;
+
 
