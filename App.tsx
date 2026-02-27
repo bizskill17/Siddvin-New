@@ -18,6 +18,7 @@ import TermSheetAgreementsTable from './components/tables/TermSheetAgreementsTab
 import SidvinTeamTable from './components/tables/SidvinTeamTable';
 import ProposalDetailView from './components/views/ProposalDetailView';
 import DashboardView from './components/views/DashboardView';
+import CompanyCategoryView from './components/views/CompanyCategoryView';
 import Button from './components/common/Button';
 import PropertyForm from './components/forms/PropertyForm';
 import BrandForm from './components/forms/BrandForm';
@@ -41,6 +42,7 @@ type View =
   | 'sidvinTeam'
   | 'successStories'
   | 'propertyFeeFollowUp'
+  | 'companyCategoryMaster'
   | 'proposalDetail'
   | 'addProperty'
   | 'editProperty'
@@ -98,6 +100,20 @@ const App: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('Submitting...');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [customCompanyOptions, setCustomCompanyOptions] = useState<string[]>([]);
+  const [customCategoryOptions, setCustomCategoryOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const companyRaw = localStorage.getItem('brand-company-options');
+      const categoryRaw = localStorage.getItem('brand-category-options');
+      setCustomCompanyOptions(companyRaw ? JSON.parse(companyRaw) : []);
+      setCustomCategoryOptions(categoryRaw ? JSON.parse(categoryRaw) : []);
+    } catch {
+      setCustomCompanyOptions([]);
+      setCustomCategoryOptions([]);
+    }
+  }, []);
 
   const fetchData = useCallback(async () => {
     const [props, brs, vsts, terms, team, fus, prs] = await Promise.all([
@@ -180,6 +196,30 @@ const App: React.FC = () => {
   const handleViewProposalDetails = (proposalId: string) => {
     setSelectedProposalId(proposalId);
     setCurrentView('proposalDetail');
+  };
+
+  const companyOptions = Array.from(new Set([...brands.map(b => (b.companyName || '').trim()).filter(Boolean), ...customCompanyOptions])).sort((a, b) => a.localeCompare(b));
+  const categoryOptions = Array.from(new Set([...brands.map(b => (b.category || '').trim()).filter(Boolean), ...customCategoryOptions])).sort((a, b) => a.localeCompare(b));
+
+  const addCompanyOption = (value: string) => {
+    const next = Array.from(new Set([...customCompanyOptions, value.trim()])).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    setCustomCompanyOptions(next);
+    localStorage.setItem('brand-company-options', JSON.stringify(next));
+  };
+  const addCategoryOption = (value: string) => {
+    const next = Array.from(new Set([...customCategoryOptions, value.trim()])).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    setCustomCategoryOptions(next);
+    localStorage.setItem('brand-category-options', JSON.stringify(next));
+  };
+  const removeCompanyOption = (value: string) => {
+    const next = customCompanyOptions.filter(v => v !== value);
+    setCustomCompanyOptions(next);
+    localStorage.setItem('brand-company-options', JSON.stringify(next));
+  };
+  const removeCategoryOption = (value: string) => {
+    const next = customCategoryOptions.filter(v => v !== value);
+    setCustomCategoryOptions(next);
+    localStorage.setItem('brand-category-options', JSON.stringify(next));
   };
 
   const handlePropertyTaskView = (status: PropertyTaskStatus) => {
@@ -446,12 +486,14 @@ const App: React.FC = () => {
         return <PropertyForm onSubmit={handleAddProperty} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} />;
       case 'editProperty':
         return editingProperty ? <PropertyForm initialData={editingProperty} onSubmit={(payload) => handleUpdateProperty({ ...editingProperty, ...payload })} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} /> : <div className="text-center py-8">Property not found for editing.</div>;
+      case 'companyCategoryMaster':
+        return <CompanyCategoryView companyOptions={companyOptions} categoryOptions={categoryOptions} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />;
       case 'brands':
         return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Brands Master Data</h1><Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button></div><BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} /></>);
       case 'addBrand':
-        return <BrandForm sidvinTeamMembers={sidvinTeamMembers} onSubmit={handleAddBrand} onCancel={handleCancelForm} currentUserName={currentUserName} />;
+        return <BrandForm sidvinTeamMembers={sidvinTeamMembers} companyOptions={companyOptions} categoryOptions={categoryOptions} onSubmit={handleAddBrand} onCancel={handleCancelForm} currentUserName={currentUserName} />;
       case 'editBrand':
-        return editingBrand ? <BrandForm initialData={editingBrand} sidvinTeamMembers={sidvinTeamMembers} onSubmit={(payload) => handleUpdateBrand({ ...editingBrand, ...payload })} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Brand not found for editing.</div>;
+        return editingBrand ? <BrandForm initialData={editingBrand} sidvinTeamMembers={sidvinTeamMembers} companyOptions={companyOptions} categoryOptions={categoryOptions} onSubmit={(payload) => handleUpdateBrand({ ...editingBrand, ...payload })} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Brand not found for editing.</div>;
       case 'sidvinTeam':
         return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Sidvin Team Members</h1><Button onClick={() => handleViewChange('addTeamMember')}>Add New Team Member</Button></div><SidvinTeamTable teamMembers={sidvinTeamMembers} onEdit={(m) => { setEditingTeamMember(m); setCurrentView('editTeamMember'); }} onDelete={(id) => handleDeleteClick(id, 'teamMember')} /></>);
       case 'addTeamMember':
@@ -553,6 +595,7 @@ const App: React.FC = () => {
               />
             </li>
           ))}
+          <li><NavLink label={`Company & Category`} onClick={() => handleViewChange('companyCategoryMaster')} isActive={currentView === 'companyCategoryMaster'} /></li>
           <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} /></li>
           <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} /></li>
           <li className="text-amber-100 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Transactional Data</li>

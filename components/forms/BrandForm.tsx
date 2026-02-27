@@ -9,10 +9,12 @@ interface BrandFormProps {
   onSubmit: (brand: Omit<Brand, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => void;
   onCancel: () => void;
   sidvinTeamMembers: SidvinTeamMember[];
+  companyOptions: string[];
+  categoryOptions: string[];
   currentUserName: string;
 }
 
-const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, sidvinTeamMembers, currentUserName }) => {
+const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, sidvinTeamMembers, companyOptions, categoryOptions, currentUserName }) => {
   const [formData, setFormData] = useState<Omit<Brand, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>>(
     initialData
       ? {
@@ -77,6 +79,8 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
   };
 
   const assignedRepOptions = sidvinTeamMembers.map(member => ({ value: member.email, label: `${member.name} (${member.designation})` }));
+  const resolvedCompanyOptions = Array.from(new Set([...companyOptions, formData.companyName].filter(Boolean))).map(v => ({ value: v, label: v }));
+  const resolvedCategoryOptions = Array.from(new Set([...categoryOptions, formData.category].filter(Boolean))).map(v => ({ value: v, label: v }));
 
   return (
     <form onSubmit={handleSubmit} className="p-6 bg-[#ece8e3] rounded-lg shadow-md max-w-lg mx-auto">
@@ -86,8 +90,8 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
       </div>
 
       <Input id="name" label="Brand Name" value={formData.name} onChange={handleChange} required />
-      <Input id="companyName" label="Company Name" value={formData.companyName} onChange={handleChange} required />
-      <Input id="category" label="Category" value={formData.category} onChange={handleChange} required />
+      <SelectInput id="companyName" label="Company Name" options={resolvedCompanyOptions} value={formData.companyName} onChange={handleChange} required placeholder="Select Company Name" />
+      <SelectInput id="category" label="Category" options={resolvedCategoryOptions} value={formData.category} onChange={handleChange} required placeholder="Select Category" />
       <Input id="logoUrl" label="Brand Logo URL (Optional)" value={formData.logoUrl} onChange={handleChange} type="url" />
 
       <hr className="my-6 border-gray-200" />
