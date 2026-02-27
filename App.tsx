@@ -104,6 +104,11 @@ const App: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('Submitting...');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    proposalStages: false,
+    propertyTasks: false,
+    masterData: false,
+  });
 
   const fetchData = useCallback(async () => {
     const [props, brs, vsts, terms, team, fus, prs, companies, categories] = await Promise.all([
@@ -233,6 +238,10 @@ const App: React.FC = () => {
   const handlePropertyTaskView = (status: PropertyTaskStatus) => {
     setSelectedPropertyTaskFilter(status);
     handleViewChange('propertyFeeFollowUp');
+  };
+
+  const toggleSection = (section: 'proposalStages' | 'propertyTasks' | 'masterData') => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
   const handleAddProperty = async (newProperty: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
@@ -588,30 +597,41 @@ const App: React.FC = () => {
         </div>
         <ul className="space-y-1">
           <li><NavLink label={`Dashboard`} onClick={() => handleViewChange('dashboard')} isActive={currentView === 'dashboard'} /></li>
-          <li><NavLink label={`All Proposals (${proposals.length})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter('All'); }} isActive={currentView === 'proposals' && selectedStageFilter === 'All'} /></li>
-          <li><NavLink label={`Success Stories (${successStoriesCount})`} onClick={() => handleViewChange('successStories')} isActive={currentView === 'successStories'} /></li>
-          <li className="text-amber-100 font-semibold mt-4 mb-2 px-3 text-sm uppercase tracking-wider">Proposal Stages</li>
-          {allProposalStages.map(stage => <li key={stage}><NavLink label={`${stage} (${stageCounts[stage] || 0})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter(stage); }} isActive={currentView === 'proposals' && selectedStageFilter === stage} isSubItem /></li>)}
-          <li className="text-amber-100 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Master Data</li>
-          <li><NavLink label={`Properties (${properties.length})`} onClick={() => handleViewChange('properties')} isActive={currentView === 'properties'} /></li>
-          <li className="text-amber-100 font-semibold mt-3 mb-1 px-3 text-xs uppercase tracking-wider">Property Tasks</li>
-          {propertyTaskStatuses.map((status) => (
-            <li key={status}>
-              <NavLink
-                label={`${status} (${propertyTaskCounts[status] || 0})`}
-                onClick={() => handlePropertyTaskView(status)}
-                isActive={currentView === 'propertyFeeFollowUp' && selectedPropertyTaskFilter === status}
-                isSubItem
-              />
-            </li>
-          ))}
-          <li><NavLink label={`Company`} onClick={() => handleViewChange('companyMaster')} isActive={currentView === 'companyMaster'} /></li>
-          <li><NavLink label={`Category`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} /></li>
-          <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} /></li>
-          <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} /></li>
-          <li className="text-amber-100 font-semibold mt-6 mb-2 px-3 text-sm uppercase tracking-wider">Transactional Data</li>
-          <li><NavLink label={`All Visits (${visits.length})`} onClick={() => handleViewChange('visits')} isActive={currentView === 'visits'} /></li>
-          <li><NavLink label={`All Terms (${termSheetAgreements.length})`} onClick={() => handleViewChange('termSheets')} isActive={currentView === 'termSheets'} /></li>
+          <li><SectionToggle label="Proposal Stages" isOpen={expandedSections.proposalStages} onClick={() => toggleSection('proposalStages')} /></li>
+          {expandedSections.proposalStages && (
+            <>
+              <li><NavLink label={`All Proposals (${proposals.length})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter('All'); }} isActive={currentView === 'proposals' && selectedStageFilter === 'All'} isSubItem /></li>
+              <li><NavLink label={`Success Stories (${successStoriesCount})`} onClick={() => handleViewChange('successStories')} isActive={currentView === 'successStories'} isSubItem /></li>
+              {allProposalStages.map(stage => <li key={stage}><NavLink label={`${stage} (${stageCounts[stage] || 0})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter(stage); }} isActive={currentView === 'proposals' && selectedStageFilter === stage} isSubItem /></li>)}
+            </>
+          )}
+          <li><SectionToggle label="Property Tasks" isOpen={expandedSections.propertyTasks} onClick={() => toggleSection('propertyTasks')} /></li>
+          {expandedSections.propertyTasks && (
+            <>
+              <li><NavLink label={`Properties (${properties.length})`} onClick={() => handleViewChange('properties')} isActive={currentView === 'properties'} isSubItem /></li>
+              {propertyTaskStatuses.map((status) => (
+                <li key={status}>
+                  <NavLink
+                    label={`${status} (${propertyTaskCounts[status] || 0})`}
+                    onClick={() => handlePropertyTaskView(status)}
+                    isActive={currentView === 'propertyFeeFollowUp' && selectedPropertyTaskFilter === status}
+                    isSubItem
+                  />
+                </li>
+              ))}
+            </>
+          )}
+          <li><SectionToggle label="Master Data" isOpen={expandedSections.masterData} onClick={() => toggleSection('masterData')} /></li>
+          {expandedSections.masterData && (
+            <>
+              <li><NavLink label={`Company`} onClick={() => handleViewChange('companyMaster')} isActive={currentView === 'companyMaster'} isSubItem /></li>
+              <li><NavLink label={`Category`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} isSubItem /></li>
+              <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} isSubItem /></li>
+              <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} isSubItem /></li>
+              <li><NavLink label={`All Visits (${visits.length})`} onClick={() => handleViewChange('visits')} isActive={currentView === 'visits'} isSubItem /></li>
+              <li><NavLink label={`All Terms (${termSheetAgreements.length})`} onClick={() => handleViewChange('termSheets')} isActive={currentView === 'termSheets'} isSubItem /></li>
+            </>
+          )}
         </ul>
       </nav>
 
@@ -668,6 +688,21 @@ interface NavLinkProps {
   isActive: boolean;
   isSubItem?: boolean;
 }
+
+interface SectionToggleProps {
+  label: string;
+  isOpen: boolean;
+  onClick: () => void;
+}
+
+const SectionToggle: React.FC<SectionToggleProps> = ({ label, isOpen, onClick }) => (
+  <button type="button" onClick={onClick} className="w-full flex items-center justify-between text-left py-2 px-3 rounded-md font-semibold hover:bg-amber-700 hover:text-white transition duration-150 ease-in-out">
+    <span>{label}</span>
+    <svg className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+    </svg>
+  </button>
+);
 
 const NavLink: React.FC<NavLinkProps> = ({ label, onClick, isActive, isSubItem = false }) => (
   <button type="button" onClick={onClick} className={`w-full text-left py-2 px-3 rounded-md transition duration-150 ease-in-out ${isActive ? 'bg-amber-500 text-white shadow-md' : 'hover:bg-amber-700 hover:text-white'} ${isSubItem ? 'ml-4 text-sm' : 'font-medium'}`}>{label}</button>
