@@ -293,8 +293,10 @@ const App: React.FC = () => {
   };
 
   const handleAddTeamMember = async (newMember: Omit<SidvinTeamMember, 'id' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
+    const nextEmail = String(newMember.email ?? '').trim().toLowerCase();
+    const nextMobile = String(newMember.mobile ?? '').trim();
     const duplicate = sidvinTeamMembers.find(
-      m => m.email.trim().toLowerCase() === newMember.email.trim().toLowerCase() || m.mobile.trim() === newMember.mobile.trim()
+      m => String(m.email ?? '').trim().toLowerCase() === nextEmail || String(m.mobile ?? '').trim() === nextMobile
     );
     if (duplicate) {
       window.alert('Team member with same email or mobile already exists.');
@@ -308,10 +310,12 @@ const App: React.FC = () => {
   };
 
   const handleUpdateTeamMember = async (updatedMember: SidvinTeamMember) => {
+    const updatedEmail = String(updatedMember.email ?? '').trim().toLowerCase();
+    const updatedMobile = String(updatedMember.mobile ?? '').trim();
     const duplicate = sidvinTeamMembers.find(
       m => m.id !== updatedMember.id && (
-        m.email.trim().toLowerCase() === updatedMember.email.trim().toLowerCase() ||
-        m.mobile.trim() === updatedMember.mobile.trim()
+        String(m.email ?? '').trim().toLowerCase() === updatedEmail ||
+        String(m.mobile ?? '').trim() === updatedMobile
       )
     );
     if (duplicate) {

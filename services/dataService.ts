@@ -53,6 +53,7 @@ const postJson = async <T>(body: any): Promise<T> => {
 };
 
 const cleanArray = <T>(v: any): T[] => (Array.isArray(v) ? v : []);
+const toCleanString = (value: any): string => (value === null || value === undefined ? '' : String(value).trim());
 const toBool = (value: any): boolean => {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'string') return value.toLowerCase() === 'true';
@@ -174,7 +175,19 @@ const normalizeTermSheet = (t: any): TermSheetAgreement => ({
   depositStages: cleanArray(t.depositStagesJson || t.depositStages),
 });
 
-const normalizeMember = (m: any): SidvinTeamMember => ({ ...m });
+const normalizeMember = (m: any): SidvinTeamMember => ({
+  ...m,
+  id: toCleanString(m?.id),
+  name: toCleanString(m?.name),
+  designation: toCleanString(m?.designation),
+  mobile: toCleanString(m?.mobile),
+  email: toCleanString(m?.email),
+  role: toCleanString(m?.role) as SidvinTeamMember['role'],
+  password: toCleanString(m?.password),
+  createdAt: m?.createdAt ? String(m.createdAt) : undefined,
+  updatedAt: m?.updatedAt ? String(m.updatedAt) : undefined,
+  updatedBy: m?.updatedBy ? String(m.updatedBy) : undefined,
+});
 
 export const initializeDemoData = () => {
   // no-op: backend is source of truth
