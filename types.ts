@@ -15,11 +15,11 @@ export interface AuditFields {
 }
 
 export type PropertyFeeStatus =
-  | 'Pending Email'
-  | 'Pending Follow Up'
-  | 'Negotiation Required'
+  | 'Pending Property Email'
+  | 'Pending Negotiation'
   | 'Pending Acceptance Email'
-  | 'Pending Papers Signing';
+  | 'Pending Property Signing'
+  | 'Accepted & Signed';
 
 export interface Property extends AuditFields {
   id: string;
@@ -29,13 +29,21 @@ export interface Property extends AuditFields {
   contactPersons: ContactPerson[];
   proposedRent: number | null;
   proposedArea: number | null;
+  frontage: string;
+  noOfFloors: number | null;
   serviceFeeProposed: string;
   notes: string;
   password: string;
   propertyPhotos: string[];
   drawings: string[];
+  cadDrawingUrl: string | null;
   propertyPresentation: string | null;
+  propertySigningApplicable: boolean;
   propertyFeeEmailSent: boolean;
+  propertyFeeEmailSentDate: string | null;
+  propertyFeeAcceptanceEmailDate: string | null;
+  propertyFeeNegotiationRequired: boolean;
+  propertyFeePaperSigningDate: string | null;
   propertyFeeStatus: PropertyFeeStatus;
   propertyFeeFollowUpDate: string | null;
   propertyFeeFollowUpRemarks: string;
@@ -45,6 +53,8 @@ export interface Brand extends AuditFields {
   id: string;
   serialNo?: number;
   name: string;
+  companyName: string;
+  category: string;
   contactPersons: ContactPerson[];
   serviceFeeAgreed: string;
   assignedRep: string;

@@ -407,7 +407,7 @@ const App: React.FC = () => {
       case 'properties':
         return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Properties Master Data</h1><Button onClick={() => handleViewChange('addProperty')}>Add New Property</Button></div><PropertiesTable properties={properties} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} onDelete={(id) => handleDeleteClick(id, 'property')} /></>);
       case 'propertyFeeFollowUp':
-        const pendingPropertyFee = properties.filter((p) => !p.propertyFeeEmailSent || p.propertyFeeStatus === 'Pending Follow Up' || p.propertyFeeStatus === 'Negotiation Required');
+        const pendingPropertyFee = properties.filter((p) => p.propertyFeeStatus !== 'Accepted & Signed');
         return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-gray-900">Pending Property Fee Follow Up</h1></div><PropertiesTable properties={pendingPropertyFee} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} /></>);
       case 'addProperty':
         return <PropertyForm onSubmit={handleAddProperty} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} />;
@@ -470,7 +470,7 @@ const App: React.FC = () => {
     acc[stage] = proposals.filter(p => p.currentStage === stage).length;
     return acc;
   }, {} as Record<string, number>);
-  const pendingPropertyFeeCount = properties.filter((p) => !p.propertyFeeEmailSent || p.propertyFeeStatus === 'Pending Follow Up' || p.propertyFeeStatus === 'Negotiation Required' || p.propertyFeeStatus === 'Pending Email' || p.propertyFeeStatus === 'Pending Acceptance Email' || p.propertyFeeStatus === 'Pending Papers Signing').length;
+  const pendingPropertyFeeCount = properties.filter((p) => p.propertyFeeStatus !== 'Accepted & Signed').length;
   const successStoriesCount = proposals.filter(p => p.currentStage === CurrentStageEnum.CompletedProposal).length;
 
   return (

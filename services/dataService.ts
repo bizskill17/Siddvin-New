@@ -116,21 +116,47 @@ const normalizeTimeValue = (value: any): string | null => {
   return v;
 };
 
+const derivePropertyFeeStatus = (p: any): Property['propertyFeeStatus'] => {
+  const emailSentDate = fromSheetDate(p.propertyFeeEmailSentDate);
+  const acceptanceDate = fromSheetDate(p.propertyFeeAcceptanceEmailDate);
+  const paperSigningDate = fromSheetDate(p.propertyFeePaperSigningDate);
+  const negotiationRequired = toBool(p.propertyFeeNegotiationRequired);
+  const signingApplicable = toBool(p.propertySigningApplicable);
+
+  if (!emailSentDate) return 'Pending Property Email';
+  if (!acceptanceDate) {
+    return negotiationRequired ? 'Pending Negotiation' : 'Pending Acceptance Email';
+  }
+  if (signingApplicable && !paperSigningDate) return 'Pending Property Signing';
+  return 'Accepted & Signed';
+};
+
 const normalizeProperty = (p: any): Property => ({
   ...p,
   serialNo: parseSerial(p.serialNo),
   proposedRent: p.proposedRent === null ? null : (p.proposedRent === '' || p.proposedRent === undefined ? null : Number(p.proposedRent)),
   proposedArea: p.proposedArea === null ? null : (p.proposedArea === '' || p.proposedArea === undefined ? null : Number(p.proposedArea)),
+  noOfFloors: p.noOfFloors === null ? null : (p.noOfFloors === '' || p.noOfFloors === undefined ? null : Number(p.noOfFloors)),
+  frontage: p.frontage === null || p.frontage === undefined ? '' : String(p.frontage),
   propertyPhotos: cleanArray<string>(p.propertyPhotosJson || p.propertyPhotos),
   drawings: cleanArray<string>(p.drawingsJson || p.drawings),
+  cadDrawingUrl: p.cadDrawingUrl || null,
   contactPersons: cleanArray(p.contactPersonsJson || p.contactPersons),
-  propertyFeeEmailSent: toBool(p.propertyFeeEmailSent),
-  propertyFeeStatus: p.propertyFeeStatus || 'Pending Email',
+  propertySigningApplicable: toBool(p.propertySigningApplicable),
+  propertyFeeEmailSent: toBool(p.propertyFeeEmailSent) || !!fromSheetDate(p.propertyFeeEmailSentDate),
+  propertyFeeEmailSentDate: fromSheetDate(p.propertyFeeEmailSentDate),
+  propertyFeeAcceptanceEmailDate: fromSheetDate(p.propertyFeeAcceptanceEmailDate),
+  propertyFeeNegotiationRequired: toBool(p.propertyFeeNegotiationRequired),
+  propertyFeePaperSigningDate: fromSheetDate(p.propertyFeePaperSigningDate),
+  propertyFeeStatus: derivePropertyFeeStatus(p),
+  propertyFeeFollowUpDate: fromSheetDate(p.propertyFeeFollowUpDate),
 });
 
 const normalizeBrand = (b: any): Brand => ({
   ...b,
   serialNo: parseSerial(b.serialNo),
+  companyName: b.companyName || '',
+  category: b.category || '',
   contactPersons: cleanArray(b.contactPersonsJson || b.contactPersons),
 });
 
@@ -264,8 +290,15 @@ export const calculateCurrentStage = (
 
 export const getProperties = async (): Promise<Property[]> => (await listEntity(ENTITY_MAP.properties)).map(normalizeProperty);
 export const addProperty = async (newProperty: Omit<Property, 'id' | 'serialNo'>, updatedBy = 'System'): Promise<Property> => {
+  const propertyFeeStatus = derivePropertyFeeStatus(newProperty);
   const payload = {
     ...newProperty,
+    propertyFeeStatus,
+    propertyFeeEmailSent: !!newProperty.propertyFeeEmailSentDate,
+    propertyFeeEmailSentDate: toSheetDate(newProperty.propertyFeeEmailSentDate),
+    propertyFeeAcceptanceEmailDate: toSheetDate(newProperty.propertyFeeAcceptanceEmailDate),
+    propertyFeePaperSigningDate: toSheetDate(newProperty.propertyFeePaperSigningDate),
+    propertyFeeFollowUpDate: toSheetDate(newProperty.propertyFeeFollowUpDate),
     contactPersonsJson: newProperty.contactPersons || [],
     propertyPhotosJson: newProperty.propertyPhotos || [],
     drawingsJson: newProperty.drawings || [],
@@ -274,8 +307,15 @@ export const addProperty = async (newProperty: Omit<Property, 'id' | 'serialNo'>
   return normalizeProperty(res.data);
 };
 export const updateProperty = async (updatedProperty: Property, updatedBy = 'System'): Promise<Property> => {
+  const propertyFeeStatus = derivePropertyFeeStatus(updatedProperty);
   const payload = {
     ...updatedProperty,
+    propertyFeeStatus,
+    propertyFeeEmailSent: !!updatedProperty.propertyFeeEmailSentDate,
+    propertyFeeEmailSentDate: toSheetDate(updatedProperty.propertyFeeEmailSentDate),
+    propertyFeeAcceptanceEmailDate: toSheetDate(updatedProperty.propertyFeeAcceptanceEmailDate),
+    propertyFeePaperSigningDate: toSheetDate(updatedProperty.propertyFeePaperSigningDate),
+    propertyFeeFollowUpDate: toSheetDate(updatedProperty.propertyFeeFollowUpDate),
     contactPersonsJson: updatedProperty.contactPersons || [],
     propertyPhotosJson: updatedProperty.propertyPhotos || [],
     drawingsJson: updatedProperty.drawings || [],

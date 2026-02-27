@@ -18,6 +18,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
       property.contactPersons[0]?.mobile || '',
       property.proposedRent ?? '',
       property.proposedArea ?? '',
+      property.propertyFeeStatus,
       property.serviceFeeProposed,
       property.notes,
     ].join(' ').toLowerCase();
@@ -40,7 +41,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
           onClick={() =>
             exportRowsToCsv(
               'properties',
-              ['Property Code', 'Address', 'Contact Name', 'Contact Mobile', 'Proposed Rent', 'Proposed Area', 'Service Fee Proposed', 'Notes'],
+              ['Property Code', 'Address', 'Contact Name', 'Contact Mobile', 'Proposed Rent', 'Proposed Area', 'Property Fee Stage', 'Service Fee Proposed', 'Notes'],
               visibleProperties.map((p, i) => [
                 `P-${p.serialNo || i + 1}`,
                 p.address,
@@ -48,6 +49,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
                 p.contactPersons[0]?.mobile || 'N/A',
                 p.proposedRent ?? 'N/A',
                 p.proposedArea ?? 'N/A',
+                p.propertyFeeStatus,
                 p.serviceFeeProposed,
                 p.notes,
               ])
@@ -83,6 +85,9 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
               Proposed Area
             </th>
             <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
+              Property Fee Stage
+            </th>
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Service Fee Proposed
             </th>
             <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
@@ -111,6 +116,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
               <td className="whitespace-nowrap px-3 py-4 text-sm text-black">
                 {property.proposedArea !== null ? `${property.proposedArea} sqft` : 'N/A'}
               </td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{property.propertyFeeStatus}</td>
               <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{property.serviceFeeProposed}</td>
               <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{property.notes}</td>
               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

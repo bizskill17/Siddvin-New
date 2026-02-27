@@ -17,6 +17,8 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
     initialData
       ? {
           name: initialData.name,
+          companyName: initialData.companyName,
+          category: initialData.category,
           contactPersons: initialData.contactPersons,
           serviceFeeAgreed: initialData.serviceFeeAgreed,
           assignedRep: initialData.assignedRep,
@@ -24,6 +26,8 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
         }
       : {
           name: '',
+          companyName: '',
+          category: '',
           contactPersons: [{ id: Math.random().toString(36).substring(2, 9), name: '', designation: '', mobile: '', email: '' }],
           serviceFeeAgreed: '',
           assignedRep: '',
@@ -35,6 +39,8 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
     if (initialData) {
       setFormData({
         name: initialData.name,
+        companyName: initialData.companyName,
+        category: initialData.category,
         contactPersons: initialData.contactPersons,
         serviceFeeAgreed: initialData.serviceFeeAgreed,
         assignedRep: initialData.assignedRep,
@@ -80,6 +86,8 @@ const BrandForm: React.FC<BrandFormProps> = ({ initialData, onSubmit, onCancel, 
       </div>
 
       <Input id="name" label="Brand Name" value={formData.name} onChange={handleChange} required />
+      <Input id="companyName" label="Company Name" value={formData.companyName} onChange={handleChange} required />
+      <Input id="category" label="Category" value={formData.category} onChange={handleChange} required />
       <Input id="logoUrl" label="Brand Logo URL (Optional)" value={formData.logoUrl} onChange={handleChange} type="url" />
 
       <hr className="my-6 border-gray-200" />

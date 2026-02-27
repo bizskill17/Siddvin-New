@@ -3,7 +3,6 @@ import { Property, ContactPerson, UserRole } from '../../types';
 import Input from '../common/Input';
 import LongTextInput from '../common/LongTextInput';
 import CheckboxInput from '../common/CheckboxInput';
-import SelectInput from '../common/SelectInput';
 import Button from '../common/Button';
 
 interface PropertyFormProps {
@@ -23,13 +22,21 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
           contactPersons: initialData.contactPersons,
           proposedRent: initialData.proposedRent,
           proposedArea: initialData.proposedArea,
+          frontage: initialData.frontage,
+          noOfFloors: initialData.noOfFloors,
           serviceFeeProposed: initialData.serviceFeeProposed,
           notes: initialData.notes,
           password: initialData.password,
           propertyPhotos: initialData.propertyPhotos || [],
           drawings: initialData.drawings || [],
+          cadDrawingUrl: initialData.cadDrawingUrl,
           propertyPresentation: initialData.propertyPresentation,
+          propertySigningApplicable: initialData.propertySigningApplicable,
           propertyFeeEmailSent: initialData.propertyFeeEmailSent,
+          propertyFeeEmailSentDate: initialData.propertyFeeEmailSentDate,
+          propertyFeeAcceptanceEmailDate: initialData.propertyFeeAcceptanceEmailDate,
+          propertyFeeNegotiationRequired: initialData.propertyFeeNegotiationRequired,
+          propertyFeePaperSigningDate: initialData.propertyFeePaperSigningDate,
           propertyFeeStatus: initialData.propertyFeeStatus,
           propertyFeeFollowUpDate: initialData.propertyFeeFollowUpDate,
           propertyFeeFollowUpRemarks: initialData.propertyFeeFollowUpRemarks,
@@ -40,20 +47,36 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
           contactPersons: [{ id: Math.random().toString(36).substring(2, 9), name: '', designation: '', mobile: '', email: '' }],
           proposedRent: null,
           proposedArea: null,
+          frontage: '',
+          noOfFloors: null,
           serviceFeeProposed: '',
           notes: '',
           password: '',
           propertyPhotos: ['', '', '', '', ''],
           drawings: [''],
+          cadDrawingUrl: null,
           propertyPresentation: null,
+          propertySigningApplicable: false,
           propertyFeeEmailSent: false,
-          propertyFeeStatus: 'Pending Email',
+          propertyFeeEmailSentDate: null,
+          propertyFeeAcceptanceEmailDate: null,
+          propertyFeeNegotiationRequired: false,
+          propertyFeePaperSigningDate: null,
+          propertyFeeStatus: 'Pending Property Email',
           propertyFeeFollowUpDate: null,
           propertyFeeFollowUpRemarks: '',
         }
   );
 
   const canManagePropertyFee = currentUserRole === 'Super Admin' || currentUserRole === 'Property Fee Coordinator';
+  const getDerivedPropertyFeeStage = (data: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>): Property['propertyFeeStatus'] => {
+    if (!data.propertyFeeEmailSentDate) return 'Pending Property Email';
+    if (!data.propertyFeeAcceptanceEmailDate) {
+      return data.propertyFeeNegotiationRequired ? 'Pending Negotiation' : 'Pending Acceptance Email';
+    }
+    if (data.propertySigningApplicable && !data.propertyFeePaperSigningDate) return 'Pending Property Signing';
+    return 'Accepted & Signed';
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -63,13 +86,21 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
         contactPersons: initialData.contactPersons,
         proposedRent: initialData.proposedRent,
         proposedArea: initialData.proposedArea,
+        frontage: initialData.frontage,
+        noOfFloors: initialData.noOfFloors,
         serviceFeeProposed: initialData.serviceFeeProposed,
         notes: initialData.notes,
         password: initialData.password,
         propertyPhotos: initialData.propertyPhotos?.length ? initialData.propertyPhotos : ['', '', '', '', ''],
         drawings: initialData.drawings?.length ? initialData.drawings : [''],
+        cadDrawingUrl: initialData.cadDrawingUrl,
         propertyPresentation: initialData.propertyPresentation,
+        propertySigningApplicable: initialData.propertySigningApplicable,
         propertyFeeEmailSent: initialData.propertyFeeEmailSent,
+        propertyFeeEmailSentDate: initialData.propertyFeeEmailSentDate,
+        propertyFeeAcceptanceEmailDate: initialData.propertyFeeAcceptanceEmailDate,
+        propertyFeeNegotiationRequired: initialData.propertyFeeNegotiationRequired,
+        propertyFeePaperSigningDate: initialData.propertyFeePaperSigningDate,
         propertyFeeStatus: initialData.propertyFeeStatus,
         propertyFeeFollowUpDate: initialData.propertyFeeFollowUpDate,
         propertyFeeFollowUpRemarks: initialData.propertyFeeFollowUpRemarks,
@@ -118,30 +149,18 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
     });
   };
 
-  const addDrawing = () => {
-    setFormData((prev) => ({ ...prev, drawings: [...prev.drawings, ''] }));
-  };
-
-  const removeDrawing = (index: number) => {
-    setFormData((prev) => ({ ...prev, drawings: prev.drawings.filter((_, i) => i !== index) }));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const normalizedEmailSent = !!formData.propertyFeeEmailSentDate;
+    const computedStage = getDerivedPropertyFeeStage(formData);
     onSubmit({
       ...formData,
+      propertyFeeEmailSent: normalizedEmailSent,
+      propertyFeeStatus: computedStage,
       propertyPhotos: formData.propertyPhotos.filter(Boolean).slice(0, 5),
-      drawings: formData.drawings.filter(Boolean),
+      drawings: formData.drawings.slice(0, 1).filter(Boolean),
     });
   };
-
-  const propertyFeeStatusOptions = [
-    { value: 'Pending Email', label: 'Pending Email' },
-    { value: 'Pending Follow Up', label: 'Pending Follow Up' },
-    { value: 'Negotiation Required', label: 'Negotiation Required' },
-    { value: 'Pending Acceptance Email', label: 'Pending Acceptance Email' },
-    { value: 'Pending Papers Signing', label: 'Pending Papers Signing' },
-  ];
 
   return (
     <form onSubmit={handleSubmit} className="p-6 bg-[#ece8e3] rounded-lg shadow-md max-w-lg mx-auto">
@@ -151,7 +170,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       </div>
 
       <Input id="address" label="Property Address" value={formData.address} onChange={handleChange} required />
-      <Input id="googleMapsLink" label="Google Maps Link (Optional)" value={formData.googleMapsLink} onChange={handleChange} type="url" />
+      <Input id="googleMapsLink" label="Google Maps Link" value={formData.googleMapsLink} onChange={handleChange} type="url" required />
 
       <hr className="my-6 border-gray-200" />
       <h3 className="text-lg font-semibold mb-4 text-gray-800">Contact Persons</h3>
@@ -169,8 +188,11 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       ))}
       <Button type="button" variant="secondary" onClick={addContactPerson} className="mb-6">Add Another Contact Person</Button>
 
+      <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Details</h3>
       <Input id="proposedRent" label="Proposed Rent" value={formData.proposedRent} onChange={handleChange} type="number" min="0" required />
       <Input id="proposedArea" label="Proposed Area (sqft)" value={formData.proposedArea} onChange={handleChange} type="number" min="0" step="0.01" required />
+      <Input id="frontage" label="Frontage" value={formData.frontage} onChange={handleChange} required />
+      <Input id="noOfFloors" label="No. of Floors" value={formData.noOfFloors} onChange={handleChange} type="number" min="0" step="1" />
       
       <Input id="serviceFeeProposed" label="Service Fee Proposed" value={formData.serviceFeeProposed} onChange={handleChange} required />
       <LongTextInput id="notes" label="Notes" value={formData.notes} onChange={handleChange} />
@@ -188,23 +210,22 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
           type="url"
         />
       ))}
-      {formData.drawings.map((drawing, idx) => (
-        <div key={`drawing-${idx}`} className="mb-2">
-          <Input id={`drawing-${idx}`} label={`Drawing ${idx + 1} URL`} value={drawing} onChange={(e) => handleDrawingChange(idx, e.target.value)} type="url" />
-          {formData.drawings.length > 1 && <Button type="button" size="sm" variant="danger" onClick={() => removeDrawing(idx)}>Remove Drawing</Button>}
-        </div>
-      ))}
-      <Button type="button" size="sm" variant="secondary" onClick={addDrawing} className="mb-4">Add Drawing</Button>
+      <Input id="drawing-0" label="PDF Drawing URL" value={formData.drawings[0] || ''} onChange={(e) => handleDrawingChange(0, e.target.value)} type="url" />
+      <Input id="cadDrawingUrl" label="CAD Drawing URL" value={formData.cadDrawingUrl} onChange={handleChange} type="url" />
       <Input id="propertyPresentation" label="Property Presentation URL" value={formData.propertyPresentation} onChange={handleChange} type="url" />
 
       {canManagePropertyFee && (
         <>
           <hr className="my-6 border-gray-200" />
           <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Fee Coordination</h3>
-          <CheckboxInput id="propertyFeeEmailSent" label="Property Fee Email Sent" checked={formData.propertyFeeEmailSent} onChange={handleChange} />
-          <SelectInput id="propertyFeeStatus" label="Property Fee Status" options={propertyFeeStatusOptions} value={formData.propertyFeeStatus} onChange={handleChange} required />
+          <CheckboxInput id="propertySigningApplicable" label="Property Signing Applicable" checked={formData.propertySigningApplicable} onChange={handleChange} />
+          <Input id="propertyFeeEmailSentDate" label="Email Sent Date" value={formData.propertyFeeEmailSentDate} onChange={handleChange} type="date" />
+          <Input id="propertyFeeAcceptanceEmailDate" label="Acceptance Email Date" value={formData.propertyFeeAcceptanceEmailDate} onChange={handleChange} type="date" />
+          <CheckboxInput id="propertyFeeNegotiationRequired" label="Negotiation Required" checked={formData.propertyFeeNegotiationRequired} onChange={handleChange} />
+          <Input id="propertyFeePaperSigningDate" label="Paper Signing Date (If Applicable)" value={formData.propertyFeePaperSigningDate} onChange={handleChange} type="date" />
           <Input id="propertyFeeFollowUpDate" label="Property Fee Follow Up Date" value={formData.propertyFeeFollowUpDate} onChange={handleChange} type="date" />
           <LongTextInput id="propertyFeeFollowUpRemarks" label="Property Fee Follow Up Remarks" value={formData.propertyFeeFollowUpRemarks} onChange={handleChange} />
+          <Input id="propertyFeeStatusDisplay" label="Current Property Fee Stage" value={getDerivedPropertyFeeStage(formData)} readOnly />
         </>
       )}
 
