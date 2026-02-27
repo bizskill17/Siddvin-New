@@ -41,7 +41,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
           onClick={() =>
             exportRowsToCsv(
               'properties',
-              ['Property Code', 'Address', 'Contact Name', 'Contact Mobile', 'Proposed Rent', 'Proposed Area', 'Property Fee Stage', 'Service Fee Proposed', 'Notes'],
+              ['Property Code', 'Address', 'Contact Name', 'Contact Mobile', 'Proposed Rent', 'Proposed Area', 'Property Status', 'Service Fee Proposed', 'Notes'],
               visibleProperties.map((p, i) => [
                 `P-${p.serialNo || i + 1}`,
                 p.address,
@@ -85,7 +85,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
               Proposed Area
             </th>
             <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
-              Property Fee Stage
+              Property Status
             </th>
             <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-black">
               Service Fee Proposed
