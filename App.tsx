@@ -516,7 +516,7 @@ const App: React.FC = () => {
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold text-gray-900">{selectedPropertyTaskFilter}</h1>
             </div>
-            <PropertiesTable properties={visiblePendingPropertyTasks} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} />
+            <PropertiesTable properties={visiblePendingPropertyTasks} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} getStatusLabel={getPropertyTaskStatus} />
           </>
         );
       case 'addProperty':

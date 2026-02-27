@@ -15,7 +15,7 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   const baseStyles = 'font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition ease-in-out duration-150';
   const variantStyles = {
-    primary: 'bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500',
+    primary: 'bg-orange-700 text-white hover:bg-orange-800 focus:ring-orange-600',
     secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
   };

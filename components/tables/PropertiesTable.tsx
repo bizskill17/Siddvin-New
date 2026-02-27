@@ -7,10 +7,12 @@ interface PropertiesTableProps {
   properties: Property[];
   onEdit?: (property: Property) => void;
   onDelete?: (propertyId: string) => void; // New prop for delete
+  getStatusLabel?: (property: Property) => string;
 }
 
-const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, onDelete }) => {
+const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, onDelete, getStatusLabel }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
+  const resolveStatus = (property: Property) => (getStatusLabel ? getStatusLabel(property) : property.propertyFeeStatus);
   const visibleProperties = properties.filter((property) => {
     const text = [
       property.address,
@@ -18,7 +20,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
       property.contactPersons[0]?.mobile || '',
       property.proposedRent ?? '',
       property.proposedArea ?? '',
-      property.propertyFeeStatus,
+      resolveStatus(property),
       property.serviceFeeProposed,
       property.notes,
     ].join(' ').toLowerCase();
@@ -49,7 +51,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
                 p.contactPersons[0]?.mobile || 'N/A',
                 p.proposedRent ?? 'N/A',
                 p.proposedArea ?? 'N/A',
-                p.propertyFeeStatus,
+                resolveStatus(p),
                 p.serviceFeeProposed,
                 p.notes,
               ])
@@ -116,7 +118,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
               <td className="whitespace-nowrap px-3 py-4 text-sm text-black">
                 {property.proposedArea !== null ? `${property.proposedArea} sqft` : 'N/A'}
               </td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{property.propertyFeeStatus}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{resolveStatus(property)}</td>
               <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{property.serviceFeeProposed}</td>
               <td className="whitespace-nowrap px-3 py-4 text-sm text-black">{property.notes}</td>
               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
