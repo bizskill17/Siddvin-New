@@ -509,7 +509,7 @@ const App: React.FC = () => {
       case 'dashboard':
         return <DashboardView proposals={proposals} visits={visits} properties={properties} brands={brands} onStageClick={(stage) => { setSelectedStageFilter(stage); handleViewChange('proposals'); }} />;
       case 'properties':
-        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Property</h1><Button onClick={() => handleViewChange('addProperty')}>Add New Property</Button></div><PropertiesTable properties={properties} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} onDelete={(id) => handleDeleteClick(id, 'property')} /></>);
+        return (<><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-orange-700">Property</h1><Button onClick={() => handleViewChange('addProperty')}>Add New Property</Button></div><PropertiesTable properties={properties} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} onDelete={(id) => handleDeleteClick(id, 'property')} getStatusLabel={getPropertyTaskStatus} /></>);
       case 'propertyFeeFollowUp':
         const visiblePendingPropertyTasks = properties.filter((p) => getPropertyTaskStatus(p) === selectedPropertyTaskFilter);
         return (
