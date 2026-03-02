@@ -12,6 +12,7 @@ import {
 import * as dataService from './services/dataService';
 import { MasterOptionItem } from './services/dataService';
 import PropertiesTable from './components/tables/PropertiesTable';
+import PendingDepositTable from './components/tables/PendingDepositTable';
 import BrandsTable from './components/tables/BrandsTable';
 import ProposalsTable from './components/tables/ProposalsTable';
 import VisitsTable from './components/tables/VisitsTable';
@@ -43,6 +44,7 @@ type View =
   | 'sidvinTeam'
   | 'successStories'
   | 'propertyFeeFollowUp'
+  | 'pendingDeposit'
   | 'companyMaster'
   | 'categoryMaster'
   | 'proposalDetail'
@@ -107,6 +109,7 @@ const App: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState({
     proposalStages: false,
     propertyTasks: false,
+    deposit: false,
     masterData: false,
   });
 
@@ -247,8 +250,19 @@ const App: React.FC = () => {
     handleViewChange('propertyFeeFollowUp');
   };
 
-  const toggleSection = (section: 'proposalStages' | 'propertyTasks' | 'masterData') => {
+  const toggleSection = (section: 'proposalStages' | 'propertyTasks' | 'deposit' | 'masterData') => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const handleUpdateDepositReceived = async (termSheet: TermSheetAgreement, depositStageId: string) => {
+    const updatedStages = (termSheet.depositStages || []).map(ds =>
+      ds.id === depositStageId ? { ...ds, received: true } : ds
+    );
+    const updatedTermSheet: TermSheetAgreement = { ...termSheet, depositStages: updatedStages };
+    await runWithSaving('Updating Deposit...', async () => {
+      await dataService.addOrUpdateTermSheet(updatedTermSheet, currentUserName);
+      await refreshData();
+    });
   };
 
   const handleAddProperty = async (newProperty: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
@@ -520,6 +534,15 @@ const App: React.FC = () => {
             <PropertiesTable properties={visiblePendingPropertyTasks} onEdit={(p) => { setEditingProperty(p); setCurrentView('editProperty'); }} getStatusLabel={getPropertyTaskStatus} />
           </>
         );
+      case 'pendingDeposit':
+        return (
+          <>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold text-orange-700">Pending Deposit</h1>
+            </div>
+            <PendingDepositTable proposals={proposals} properties={properties} brands={brands} termSheetAgreements={termSheetAgreements} onUpdateDepositReceived={handleUpdateDepositReceived} />
+          </>
+        );
       case 'addProperty':
         return <PropertyForm onSubmit={handleAddProperty} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} />;
       case 'editProperty':
@@ -590,6 +613,7 @@ const App: React.FC = () => {
     acc[status] = properties.filter((p) => getPropertyTaskStatus(p) === status).length;
     return acc;
   }, {} as Record<PropertyTaskStatus, number>);
+  const pendingDepositCount = termSheetAgreements.filter(ts => (ts.depositStages || []).some(ds => !ds.received)).length;
   const successStoriesCount = proposals.filter(p => p.currentStage === CurrentStageEnum.CompletedProposal).length;
 
   return (
@@ -642,6 +666,12 @@ const App: React.FC = () => {
               ))}
             </>
           )}
+          <li><SectionToggle label="Deposit" isOpen={expandedSections.deposit} onClick={() => toggleSection('deposit')} /></li>
+          {expandedSections.deposit && (
+            <>
+              <li><NavLink label={`Pending Deposit (${pendingDepositCount})`} onClick={() => handleViewChange('pendingDeposit')} isActive={currentView === 'pendingDeposit'} isSubItem /></li>
+            </>
+          )}
           <li><SectionToggle label="Master" isOpen={expandedSections.masterData} onClick={() => toggleSection('masterData')} /></li>
           {expandedSections.masterData && (
             <>
@@ -669,7 +699,7 @@ const App: React.FC = () => {
                 </svg>
               </button>
               <div className="w-72">
-              <SelectInput id="activeUser" className="mb-0" value={activeUser?.id || ''} onChange={(e) => setActiveUserId(e.target.value)} options={sidvinTeamMembers.map(member => ({ value: member.id, label: `${member.name} (${member.role})` }))} placeholder="Select Team Member" />
+                <SelectInput id="activeUser" className="mb-0" value={activeUser?.id || ''} onChange={(e) => setActiveUserId(e.target.value)} options={sidvinTeamMembers.map(member => ({ value: member.id, label: `${member.name} (${member.role})` }))} placeholder="Select Team Member" />
               </div>
             </div>
             <div className="flex items-center gap-3">
