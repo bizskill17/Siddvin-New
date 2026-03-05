@@ -33,6 +33,7 @@ import RecordAgreementAndStoreOpeningForm from './components/forms/RecordAgreeme
 import FollowUpForm from './components/forms/FollowUpForm';
 import DeleteConfirmationModal from './components/common/DeleteConfirmationModal';
 import SelectInput from './components/common/SelectInput';
+import LoginForm from './components/auth/LoginForm';
 
 type View =
   | 'dashboard'
@@ -102,6 +103,7 @@ const App: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [activeUserId, setActiveUserId] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('Submitting...');
@@ -141,8 +143,8 @@ const App: React.FC = () => {
     setCompanyMasterOptions(companies);
     setCategoryMasterOptions(categories);
 
-    if (!activeUserId && team.length > 0) setActiveUserId(team[0].id);
-  }, [activeUserId]);
+    // activeUserId is now set from the LoginForm, so we don't automatically assign the first user here anymore.
+  }, []);
 
   useEffect(() => {
     fetchData()
@@ -616,6 +618,29 @@ const App: React.FC = () => {
   const pendingDepositCount = termSheetAgreements.filter(ts => (ts.depositStages || []).some(ds => !ds.received)).length;
   const successStoriesCount = proposals.filter(p => p.currentStage === CurrentStageEnum.CompletedProposal).length;
 
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin" />
+          <p className="text-sm text-gray-600">Connecting to Google Sheet...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <LoginForm
+        teamMembers={sidvinTeamMembers}
+        onLogin={(userId) => {
+          setActiveUserId(userId);
+          setIsAuthenticated(true);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen flex relative">
       {isSidebarOpen && (
@@ -698,24 +723,15 @@ const App: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
-              <div className="w-72">
-                <SelectInput id="activeUser" className="mb-0" value={activeUser?.id || ''} onChange={(e) => setActiveUserId(e.target.value)} options={sidvinTeamMembers.map(member => ({ value: member.id, label: `${member.name} (${member.role})` }))} placeholder="Select Team Member" />
+              <div className="text-sm px-3 py-2 bg-amber-50 text-amber-900 rounded-md font-medium border border-amber-200">
+                Welcome, {currentUserName} {currentUserRole ? `(${currentUserRole})` : ''}
               </div>
             </div>
             <div className="flex items-center gap-3">
               <img src="https://i.ibb.co/xtfh8687/Main-Logo-qp4bsy1t5svtei9fiwtef930op1p97z2fmjj9swme0.png" alt="Sidvin Logo" className="h-12 w-auto object-contain" />
             </div>
           </div>
-          {isInitialLoading ? (
-            <div className="min-h-[50vh] flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-10 w-10 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin" />
-                <p className="text-sm text-gray-600">Connecting to Google Sheet...</p>
-              </div>
-            </div>
-          ) : (
-            renderContent()
-          )}
+          {renderContent()}
         </main>
       </div>
       {isSaving && (
