@@ -673,7 +673,7 @@ const App: React.FC = () => {
             <>
               <li><NavLink label={`All Proposals (${proposals.length})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter('All'); }} isActive={currentView === 'proposals' && selectedStageFilter === 'All'} isSubItem /></li>
               <li><NavLink label={`Success Stories (${successStoriesCount})`} onClick={() => handleViewChange('successStories')} isActive={currentView === 'successStories'} isSubItem /></li>
-              {allProposalStages.filter(stage => stage !== CurrentStageEnum.PendingForDeposit).map(stage => <li key={stage}><NavLink label={`${stage} (${stageCounts[stage] || 0})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter(stage); }} isActive={currentView === 'proposals' && selectedStageFilter === stage} isSubItem /></li>)}
+              {allProposalStages.map(stage => <li key={stage}><NavLink label={`${stage} (${stageCounts[stage] || 0})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter(stage); }} isActive={currentView === 'proposals' && selectedStageFilter === stage} isSubItem /></li>)}
             </>
           )}
           <li><SectionToggle label="Property" isOpen={expandedSections.propertyTasks} onClick={() => toggleSection('propertyTasks')} /></li>

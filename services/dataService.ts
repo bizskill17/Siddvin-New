@@ -258,7 +258,7 @@ const listEntityWithFallback = async (entities: EntityName[]): Promise<any[]> =>
 };
 
 const postJsonWithEntityFallback = async <T>(
-  body: { entity: EntityName; [key: string]: any },
+  body: { entity: EntityName;[key: string]: any },
   entities: EntityName[],
 ): Promise<T> => {
   let lastError: any;
@@ -286,10 +286,6 @@ export const calculateCurrentStage = (
   if (invoiceBilled) return CurrentStageEnum.CompletedProposal;
 
   if (proposalTermSheet?.signingDate) {
-    const hasDepositStages = (proposalTermSheet.depositStages || []).length > 0;
-    const allDepositsReceived = hasDepositStages && proposalTermSheet.depositStages.every(ds => ds.received);
-    if (hasDepositStages && !allDepositsReceived) return CurrentStageEnum.PendingForDeposit;
-
     const registrationSatisfied = !proposalTermSheet.agreementRegistrationRequired || !!proposalTermSheet.agreementRegistrationDate;
     if (registrationSatisfied && !!proposalTermSheet.storeOpeningDate) return CurrentStageEnum.PendingBrandFees;
 

@@ -78,10 +78,9 @@ export enum CurrentStageEnum {
   PendingVisit = '4. Pending Visit',
   PendingVisitAgain = '5. Pending Visit Again',
   PendingTermsFinalization = '6. Pending Terms Finalization',
-  PendingForDeposit = '7. Pending For Deposit',
-  PendingAgreement = '8. Pending Agreement / Store Opening',
-  PendingBrandFees = '9. Pending Brand Fees',
-  CompletedProposal = '10. Completed Proposal'
+  PendingAgreement = '7. Pending Agreement / Store Opening',
+  PendingBrandFees = '8. Pending Brand Fees',
+  CompletedProposal = '9. Completed Proposal'
 }
 
 export interface Proposal extends AuditFields {
