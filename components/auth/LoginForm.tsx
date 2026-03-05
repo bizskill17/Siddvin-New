@@ -22,8 +22,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin }) => {
     }
 
     const matchedUser = teamMembers.find(
-      (m) => String(m.email ?? '').trim().toLowerCase() === email.trim().toLowerCase() && 
-             String(m.password ?? '').trim() === password.trim()
+      (m) => String(m.email ?? '').trim().toLowerCase() === email.trim().toLowerCase() &&
+        String(m.password ?? '').trim() === password.trim()
     );
 
     if (matchedUser) {
@@ -37,10 +37,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin }) => {
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <img 
-            src="https://i.ibb.co/xtfh8687/Main-Logo-qp4bsy1t5svtei9fiwtef930op1p97z2fmjj9swme0.png" 
-            alt="Sidvin Logo" 
-            className="h-20 w-auto object-contain" 
+          <img
+            src="https://i.ibb.co/xtfh8687/Main-Logo-qp4bsy1t5svtei9fiwtef930op1p97z2fmjj9swme0.png"
+            alt="Sidvin Logo"
+            className="h-20 w-auto object-contain"
           />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -63,7 +63,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin }) => {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email / Id
+                Email
               </label>
               <div className="mt-1">
                 <input

@@ -102,8 +102,8 @@ const App: React.FC = () => {
   const [deleteCallback, setDeleteCallback] = useState<(() => void) | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const [activeUserId, setActiveUserId] = useState<string>('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [activeUserId, setActiveUserId] = useState<string>(localStorage.getItem('sidvinActiveUserId') || '');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem('sidvinActiveUserId'));
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('Submitting...');
@@ -634,6 +634,7 @@ const App: React.FC = () => {
       <LoginForm
         teamMembers={sidvinTeamMembers}
         onLogin={(userId) => {
+          localStorage.setItem('sidvinActiveUserId', userId);
           setActiveUserId(userId);
           setIsAuthenticated(true);
         }}
@@ -723,8 +724,19 @@ const App: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
-              <div className="text-sm px-3 py-2 bg-amber-50 text-amber-900 rounded-md font-medium border border-amber-200">
-                Welcome, {currentUserName} {currentUserRole ? `(${currentUserRole})` : ''}
+              <div className="text-sm px-3 py-2 bg-amber-50 text-amber-900 rounded-md font-medium border border-amber-200 flex items-center justify-between gap-3">
+                <span>Welcome, {currentUserName} {currentUserRole ? `(${currentUserRole})` : ''}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem('sidvinActiveUserId');
+                    setActiveUserId('');
+                    setIsAuthenticated(false);
+                  }}
+                  className="text-xs bg-red-100 text-red-700 hover:bg-red-200 px-2 py-1 rounded border border-red-200 font-semibold transition-colors"
+                >
+                  Logout
+                </button>
               </div>
             </div>
             <div className="flex items-center gap-3">
