@@ -67,7 +67,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
         <h1 className="text-2xl font-bold text-gray-900">{brand?.name || 'N/A Brand'} ({property?.address || 'N/A Property'})</h1>
         <div className="flex gap-2" data-export-ignore="true">
           <Button variant="secondary" onClick={() => downloadElementAsPdf('proposal-detail-export', 'Proposal View')}>Download PDF</Button>
-          <Button variant="secondary" onClick={onBack}>Back to Proposals</Button>
+          <Button variant="primary" onClick={onBack}>Back to Proposals</Button>
         </div>
       </div>
 
@@ -172,3 +172,6 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
 };
 
 export default ProposalDetailView;
+
+
+

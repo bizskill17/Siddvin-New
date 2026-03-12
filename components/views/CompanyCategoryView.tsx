@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Button from '../common/Button';
 import Input from '../common/Input';
+import PageHeader from '../common/PageHeader';
 import { Brand } from '../../types';
 
 interface CompanyCategoryViewProps {
@@ -12,6 +13,7 @@ interface CompanyCategoryViewProps {
   onAddCategory: (value: string) => Promise<void> | void;
   onRemoveCompany: (value: string) => Promise<void> | void;
   onRemoveCategory: (value: string) => Promise<void> | void;
+  onBack?: () => void;
 }
 
 const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
@@ -23,6 +25,7 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
   onAddCategory,
   onRemoveCompany,
   onRemoveCategory,
+  onBack,
 }) => {
   const [newCompany, setNewCompany] = useState('');
   const [newCategory, setNewCategory] = useState('');
@@ -44,9 +47,11 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-orange-700">
-        {mode === 'company' ? 'Company' : mode === 'category' ? 'Category' : 'Company & Category'}
-      </h1>
+      <PageHeader
+        title={mode === 'company' ? 'Company' : mode === 'category' ? 'Category' : 'Company & Category'}
+        onBack={onBack}
+        backLabel="Back to Dashboard"
+      />
 
       <div className={`grid grid-cols-1 ${mode === 'both' ? 'lg:grid-cols-2' : ''} gap-6`}>
         {(mode === 'both' || mode === 'company') && (
