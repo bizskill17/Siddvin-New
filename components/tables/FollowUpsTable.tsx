@@ -17,11 +17,13 @@ const FollowUpsTable: React.FC<FollowUpsTableProps> = ({ followUps, onEdit, onDe
     const formatted = formatDateDisplay(value);
     return formatted === 'N/A' ? '' : formatted;
   };
+  const displayTime = (value: string | null | undefined) => value || '';
   const visibleFollowUps = followUps.filter((fu) => {
     const text = [
       formatDateDisplay(fu.followUpDate),
       fu.status,
       formatDateDisplay(fu.nextFollowUpDate),
+      fu.nextFollowUpTime || '',
       formatDateDisplay(fu.plannedVisitDate),
       fu.cancelRemarks || '',
       fu.remarks || '',
@@ -44,12 +46,13 @@ const FollowUpsTable: React.FC<FollowUpsTableProps> = ({ followUps, onEdit, onDe
           onClick={() =>
             exportRowsToCsv(
               'follow-ups',
-              ['No.', 'Follow Up Date', 'Status', 'Next Follow Up Date', 'Planned Visit Date', 'Cancel Remarks', 'Remarks'],
+              ['No.', 'Follow Up Date', 'Status', 'Next Follow Up Date', 'Next Follow Up Time', 'Planned Visit Date', 'Cancel Remarks', 'Remarks'],
               visibleFollowUps.map((fu, i) => [
                 i + 1,
                 displayDate(fu.followUpDate),
                 fu.status,
                 displayDate(fu.nextFollowUpDate),
+                displayTime(fu.nextFollowUpTime),
                 displayDate(fu.plannedVisitDate),
                 fu.cancelRemarks || '',
                 fu.remarks || '',
@@ -76,6 +79,9 @@ const FollowUpsTable: React.FC<FollowUpsTableProps> = ({ followUps, onEdit, onDe
               Next Follow Up Date
             </th>
             <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
+              Next Follow Up Time
+            </th>
+            <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
               Planned Visit Date
             </th>
             <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
@@ -98,6 +104,7 @@ const FollowUpsTable: React.FC<FollowUpsTableProps> = ({ followUps, onEdit, onDe
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{displayDate(fu.followUpDate)}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{fu.status}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{displayDate(fu.nextFollowUpDate)}</td>
+              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{displayTime(fu.nextFollowUpTime)}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{displayDate(fu.plannedVisitDate)}</td>
               <td className="px-3 py-2.5 text-sm text-black">{fu.cancelRemarks || ''}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{fu.remarks || ''}</td>

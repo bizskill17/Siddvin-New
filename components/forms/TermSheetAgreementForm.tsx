@@ -19,6 +19,9 @@ const createDepositStage = (index: number): DepositStage => ({
   stageName: `Stage ${index}`,
   amount: null,
   received: false,
+  receivedAmount: null,
+  receiptDate: null,
+  receipts: [],
 });
 
 const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposalId, initialData, onSubmit, onCancel, currentUserName }) => {
@@ -27,6 +30,7 @@ const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposa
       ? {
           proposalId: initialData.proposalId,
           specificTerms: initialData.specificTerms,
+          leaseAgreementRemarks: initialData.leaseAgreementRemarks || '',
           handoverDate: initialData.handoverDate,
           rentFreePeriodDays: initialData.rentFreePeriodDays,
           rentCommencementDate: initialData.rentCommencementDate,
@@ -55,6 +59,7 @@ const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposa
       : {
           proposalId,
           specificTerms: '',
+          leaseAgreementRemarks: '',
           handoverDate: null,
           rentFreePeriodDays: null,
           rentCommencementDate: null,
@@ -87,6 +92,7 @@ const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposa
       setFormData({
         proposalId: initialData.proposalId,
         specificTerms: initialData.specificTerms,
+        leaseAgreementRemarks: initialData.leaseAgreementRemarks || '',
         handoverDate: initialData.handoverDate,
         rentFreePeriodDays: initialData.rentFreePeriodDays,
         rentCommencementDate: initialData.rentCommencementDate,
@@ -186,7 +192,7 @@ const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposa
       <h3 className="text-lg font-semibold mb-4 text-gray-800">Deposit Stages</h3>
       {formData.depositStages.map((stage, index) => {
         const prevAmountFilled = index === 0 || formData.depositStages[index - 1].amount !== null;
-        const stageOpened = stage.stageName.trim() !== '' || stage.amount !== null || stage.received;
+        const stageOpened = stage.stageName.trim() !== '' || stage.amount !== null;
         return (
         <div key={stage.id} className="p-4 border border-gray-200 rounded-md mb-4">
           <Input
@@ -205,13 +211,6 @@ const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposa
             min="0"
             required={stageOpened}
             disabled={!prevAmountFilled}
-          />
-          <CheckboxInput
-            id={`stageReceived-${stage.id}`}
-            label={`${stage.stageName || `Stage ${index + 1}`} Deposit Received`}
-            checked={stage.received}
-            onChange={(e) => handleDepositChange(index, 'received', e.target.checked)}
-            disabled={!prevAmountFilled || stage.amount === null}
           />
           {formData.depositStages.length > 1 && (
             <Button type="button" variant="danger" size="sm" onClick={() => removeDepositStage(index)}>Remove Stage</Button>
@@ -245,6 +244,7 @@ const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposa
 };
 
 export default TermSheetAgreementForm;
+
 
 
 

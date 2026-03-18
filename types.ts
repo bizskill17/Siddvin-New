@@ -105,6 +105,7 @@ export interface FollowUp extends AuditFields {
   remarks: string;
   status: 'Follow Up Again' | 'Schedule Visit' | 'Cancel Proposal' | 'Pending Details & Documentation';
   nextFollowUpDate: string | null;
+  nextFollowUpTime: string | null;
   plannedVisitDate: string | null;
   cancelRemarks: string | null;
 }
@@ -126,11 +127,21 @@ export interface DepositStage {
   stageName: string;
   amount: number | null;
   received: boolean;
+  receivedAmount?: number | null;
+  receiptDate?: string | null;
+  receipts?: DepositReceipt[];
+}
+
+export interface DepositReceipt {
+  id: string;
+  receiptDate: string | null;
+  receiptAmount: number;
 }
 
 export interface TermSheetAgreement extends AuditFields {
   proposalId: string;
   specificTerms: string;
+  leaseAgreementRemarks: string;
   handoverDate: string | null;
   rentFreePeriodDays: number | null;
   rentCommencementDate: string | null;
@@ -159,3 +170,4 @@ export interface TermSheetAgreement extends AuditFields {
   powerLoad: string;
   dgBackup: string;
 }
+

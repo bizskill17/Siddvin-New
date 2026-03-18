@@ -14,6 +14,9 @@ interface PropertyFormProps {
 }
 
 const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCancel, currentUserRole, currentUserName }) => {
+  const getPropertyFeeStageLabel = (status: string) =>
+    status === 'Pending Property Email' ? 'Pending Service Fee Email' : status;
+
   const [formData, setFormData] = useState<Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>>(
     initialData
       ? {
@@ -223,7 +226,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
         <Input id="propertyFeePaperSigningDate" label="Paper Signing Date (If Applicable)" value={formData.propertyFeePaperSigningDate} onChange={handleChange} type="date" disabled={!(formData.propertySigningApplicable && formData.propertyFeeAcceptanceEmailDate)} />
         <Input id="propertyFeeFollowUpDate" label="Property Follow Up Date" value={formData.propertyFeeFollowUpDate} onChange={handleChange} type="date" />
         <LongTextInput id="propertyFeeFollowUpRemarks" label="Property Follow Up Remarks" value={formData.propertyFeeFollowUpRemarks} onChange={handleChange} />
-        <Input id="propertyFeeStatusDisplay" label="Current Property Status" value={getDerivedPropertyFeeStage(formData)} readOnly />
+        <Input id="propertyFeeStatusDisplay" label="Current Property Status" value={getPropertyFeeStageLabel(getDerivedPropertyFeeStage(formData))} readOnly />
       </>
 
       <Input id="updatedByDisplay" label="Updated By" value={currentUserName} readOnly />

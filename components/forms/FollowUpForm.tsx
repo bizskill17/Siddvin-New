@@ -27,6 +27,7 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
           remarks: initialData.remarks,
           status: initialData.status,
           nextFollowUpDate: initialData.nextFollowUpDate,
+          nextFollowUpTime: initialData.nextFollowUpTime,
           plannedVisitDate: initialData.plannedVisitDate,
           cancelRemarks: initialData.cancelRemarks,
         }
@@ -36,6 +37,7 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
           remarks: '',
           status: '',
           nextFollowUpDate: null,
+          nextFollowUpTime: null,
           plannedVisitDate: null,
           cancelRemarks: null,
         }
@@ -50,6 +52,7 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
         remarks: initialData.remarks,
         status: initialData.status,
         nextFollowUpDate: initialData.nextFollowUpDate,
+        nextFollowUpTime: initialData.nextFollowUpTime,
         plannedVisitDate: initialData.plannedVisitDate,
         cancelRemarks: initialData.cancelRemarks,
       });
@@ -71,6 +74,7 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
       ...prev,
       status: selectedStatus,
       nextFollowUpDate: selectedStatus === 'Follow Up Again' || selectedStatus === 'Pending Details & Documentation' ? prev.nextFollowUpDate : null,
+      nextFollowUpTime: selectedStatus === 'Follow Up Again' ? prev.nextFollowUpTime : null,
       plannedVisitDate: null,
       cancelRemarks: selectedStatus === 'Cancel Proposal' ? prev.cancelRemarks : null,
     }));
@@ -107,6 +111,10 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
 
       {(formData.status === 'Follow Up Again' || formData.status === 'Pending Details & Documentation') && (
         <DateInput id="nextFollowUpDate" label="Next Follow Up Date" value={formData.nextFollowUpDate || ''} onChange={handleChange} required />
+      )}
+
+      {formData.status === 'Follow Up Again' && (
+        <Input id="nextFollowUpTime" label="Next Follow Up Time" value={formData.nextFollowUpTime || ''} onChange={handleChange} type="time" />
       )}
 
       {formData.status === 'Cancel Proposal' && (

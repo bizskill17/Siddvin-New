@@ -193,11 +193,13 @@ const normalizeFollowUp = (f: any): FollowUp => ({
   ...f,
   followUpDate: fromSheetDate(f.followUpDate),
   nextFollowUpDate: fromSheetDate(f.nextFollowUpDate),
+  nextFollowUpTime: normalizeTimeValue(f.nextFollowUpTime),
   plannedVisitDate: fromSheetDate(f.plannedVisitDate),
 });
 
 const normalizeTermSheet = (t: any): TermSheetAgreement => ({
   ...t,
+  leaseAgreementRemarks: t.leaseAgreementRemarks || '',
   handoverDate: fromSheetDate(t.handoverDate),
   rentCommencementDate: fromSheetDate(t.rentCommencementDate),
   plannedOpeningDate: fromSheetDate(t.plannedOpeningDate),
@@ -433,6 +435,7 @@ export const addFollowUp = async (newFollowUp: Omit<FollowUp, 'id'>, updatedBy =
     ...newFollowUp,
     followUpDate: toSheetDate(newFollowUp.followUpDate),
     nextFollowUpDate: toSheetDate(newFollowUp.nextFollowUpDate),
+    nextFollowUpTime: newFollowUp.nextFollowUpTime || '',
     plannedVisitDate: toSheetDate(newFollowUp.plannedVisitDate),
   };
   const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.followUps, data: payload, updatedBy });
@@ -443,6 +446,7 @@ export const updateFollowUp = async (updatedFollowUp: FollowUp, updatedBy = 'Sys
     ...updatedFollowUp,
     followUpDate: toSheetDate(updatedFollowUp.followUpDate),
     nextFollowUpDate: toSheetDate(updatedFollowUp.nextFollowUpDate),
+    nextFollowUpTime: updatedFollowUp.nextFollowUpTime || '',
     plannedVisitDate: toSheetDate(updatedFollowUp.plannedVisitDate),
   };
   const res: any = await postJson({ action: 'update', entity: ENTITY_MAP.followUps, id: updatedFollowUp.id, data: payload, updatedBy });

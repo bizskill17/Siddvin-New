@@ -160,6 +160,7 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
                     return (
                       <div className="mt-1 text-xs text-black">
                         <div>Next: {formatDateDisplay(latestFollowUp.nextFollowUpDate || latestFollowUp.followUpDate)}</div>
+                        {latestFollowUp.nextFollowUpTime && <div>Time: {latestFollowUp.nextFollowUpTime}</div>}
                         <div className="truncate max-w-[260px]" title={latestFollowUp.remarks || 'N/A'}>
                           Remarks: {latestFollowUp.remarks || 'N/A'}
                         </div>

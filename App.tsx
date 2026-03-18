@@ -201,6 +201,9 @@ const App: React.FC = () => {
     return property.propertyFeeStatus;
   };
 
+  const getPropertyTaskLabel = (status: PropertyTaskStatus) =>
+    status === 'Pending Property Email' ? 'Pending Service Fee Email' : status;
+
   const handleViewProposalDetails = (proposalId: string) => {
     setSelectedProposalId(proposalId);
     setCurrentView('proposalDetail');
@@ -270,12 +273,86 @@ const App: React.FC = () => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const handleUpdateDepositReceived = async (termSheet: TermSheetAgreement, depositStageId: string) => {
-    const updatedStages = (termSheet.depositStages || []).map(ds =>
-      ds.id === depositStageId ? { ...ds, received: true } : ds
-    );
+  const getStageReceiptEntries = (stage: TermSheetAgreement['depositStages'][number]) => {
+    if (stage.receipts && stage.receipts.length > 0) {
+      return stage.receipts;
+    }
+
+    const fallbackAmount = stage.receivedAmount ?? (stage.received ? (stage.amount ?? 0) : 0);
+    if (fallbackAmount > 0) {
+      return [{
+        id: `legacy-${stage.id}`,
+        receiptDate: stage.receiptDate ?? null,
+        receiptAmount: fallbackAmount,
+      }];
+    }
+
+    return [];
+  };
+
+  const handleUpdateDepositReceived = async (
+    termSheet: TermSheetAgreement,
+    depositStageId: string,
+    receiptDate: string,
+    receiptAmount: number
+  ) => {
+    const updatedStages = (termSheet.depositStages || []).map((ds) => {
+      if (ds.id !== depositStageId) {
+        return ds;
+      }
+
+      const updatedReceipts = [
+        ...getStageReceiptEntries(ds),
+        {
+          id: Math.random().toString(36).substring(2, 9),
+          receiptDate,
+          receiptAmount,
+        },
+      ];
+      const stageAmount = ds.amount ?? 0;
+      const nextReceived = updatedReceipts.reduce((sum, receipt) => sum + (receipt.receiptAmount || 0), 0);
+
+      return {
+        ...ds,
+        receipts: updatedReceipts,
+        receiptDate,
+        receivedAmount: nextReceived,
+        received: stageAmount > 0 ? nextReceived >= stageAmount : true,
+      };
+    });
     const updatedTermSheet: TermSheetAgreement = { ...termSheet, depositStages: updatedStages };
-    await runWithSaving('Updating Deposit...', async () => {
+    await runWithSaving('Updating Receipt...', async () => {
+      await dataService.addOrUpdateTermSheet(updatedTermSheet, currentUserName);
+      await refreshData();
+    });
+  };
+
+  const handleDeleteDepositReceipt = async (
+    termSheet: TermSheetAgreement,
+    depositStageId: string,
+    receiptId: string
+  ) => {
+    const updatedStages = (termSheet.depositStages || []).map((ds) => {
+      if (ds.id !== depositStageId) {
+        return ds;
+      }
+
+      const remainingReceipts = getStageReceiptEntries(ds).filter((receipt) => receipt.id !== receiptId);
+      const totalReceived = remainingReceipts.reduce((sum, receipt) => sum + (receipt.receiptAmount || 0), 0);
+      const latestReceipt = remainingReceipts[remainingReceipts.length - 1];
+      const stageAmount = ds.amount ?? 0;
+
+      return {
+        ...ds,
+        receipts: remainingReceipts,
+        receiptDate: latestReceipt?.receiptDate ?? null,
+        receivedAmount: totalReceived > 0 ? totalReceived : null,
+        received: stageAmount > 0 ? totalReceived >= stageAmount : false,
+      };
+    });
+
+    const updatedTermSheet: TermSheetAgreement = { ...termSheet, depositStages: updatedStages };
+    await runWithSaving('Deleting Receipt...', async () => {
       await dataService.addOrUpdateTermSheet(updatedTermSheet, currentUserName);
       await refreshData();
     });
@@ -404,6 +481,7 @@ const App: React.FC = () => {
       const existingTermSheet = await dataService.getTermSheetByProposalId(termSheetData.proposalId);
       const fullTermSheet: TermSheetAgreement = {
         ...termSheetData,
+        leaseAgreementRemarks: existingTermSheet?.leaseAgreementRemarks || termSheetData.leaseAgreementRemarks || '',
         agreementDate: existingTermSheet?.agreementDate || null,
         storeOpeningDate: existingTermSheet?.storeOpeningDate || null,
         createdAt: existingTermSheet?.createdAt,
@@ -417,14 +495,28 @@ const App: React.FC = () => {
 
   const handleRecordAgreementAndStoreOpeningDates = async (
     proposalId: string,
-    agreementDate: string | null,
-    agreementRegistrationDate: string | null,
-    storeOpeningDate: string | null
+    data: {
+      leaseAgreementPrepared: string | null;
+      leaseAgreementRemarks: string;
+      leaseAgreementSigned: string | null;
+      leaseAgreementRegistered: string | null;
+      storeOpeningDate: string | null;
+    }
   ) => {
     handleViewChange('proposalDetail');
     await runWithSaving('Updating Agreement...', async () => {
-      await dataService.updateAgreementDates(proposalId, agreementDate, agreementRegistrationDate, currentUserName);
-      await dataService.updateStoreOpeningDate(proposalId, storeOpeningDate, currentUserName);
+      const existingTermSheet = await dataService.getTermSheetByProposalId(proposalId);
+      if (!existingTermSheet) {
+        throw new Error('Terms not found for this proposal.');
+      }
+      await dataService.addOrUpdateTermSheet({
+        ...existingTermSheet,
+        preparationDate: data.leaseAgreementPrepared,
+        leaseAgreementRemarks: data.leaseAgreementRemarks,
+        signingDate: data.leaseAgreementSigned,
+        agreementRegistrationDate: data.leaseAgreementRegistered,
+        storeOpeningDate: data.storeOpeningDate,
+      }, currentUserName);
       await refreshData();
     });
   };
@@ -547,6 +639,16 @@ const App: React.FC = () => {
     />
   );
 
+  const renderProposalsView = () => (
+    <>
+      {renderPageHeader(selectedStageFilter === 'All' ? 'Proposal Workflow' : selectedStageFilter, {
+        onBack: () => handleViewChange('dashboard'),
+        backLabel: 'Back to Dashboard',
+      })}
+      <ProposalsTable proposals={proposals} properties={properties} brands={brands} followUps={followUps} termSheetAgreements={termSheetAgreements} onViewDetails={handleViewProposalDetails} onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onDelete={(id) => handleDeleteClick(id, 'proposal')} selectedStage={selectedStageFilter} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>} />
+    </>
+  );
+
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
@@ -558,18 +660,18 @@ const App: React.FC = () => {
               onBack: () => handleViewChange('dashboard'),
               backLabel: 'Back to Dashboard',
             })}
-            <PropertiesTable properties={properties} onEdit={(p) => handleEditPropertyView(p, 'properties')} onDelete={(id) => handleDeleteClick(id, 'property')} getStatusLabel={getPropertyTaskStatus} toolbarInline toolbarActions={<Button onClick={handleAddPropertyView}>Add New Property</Button>} />
+            <PropertiesTable properties={properties} onEdit={(p) => handleEditPropertyView(p, 'properties')} onDelete={(id) => handleDeleteClick(id, 'property')} getStatusLabel={(property) => getPropertyTaskLabel(getPropertyTaskStatus(property))} toolbarInline toolbarActions={<Button onClick={handleAddPropertyView}>Add New Property</Button>} />
           </>
         );
       case 'propertyFeeFollowUp':
         const visiblePendingPropertyTasks = properties.filter((p) => getPropertyTaskStatus(p) === selectedPropertyTaskFilter);
         return (
           <>
-            {renderPageHeader(selectedPropertyTaskFilter, {
+            {renderPageHeader(getPropertyTaskLabel(selectedPropertyTaskFilter), {
               onBack: () => handleViewChange('properties'),
               backLabel: 'Back to Properties',
             })}
-            <PropertiesTable properties={visiblePendingPropertyTasks} onEdit={(p) => handleEditPropertyView(p, 'propertyFeeFollowUp')} getStatusLabel={getPropertyTaskStatus} toolbarInline />
+            <PropertiesTable properties={visiblePendingPropertyTasks} onEdit={(p) => handleEditPropertyView(p, 'propertyFeeFollowUp')} getStatusLabel={(property) => getPropertyTaskLabel(getPropertyTaskStatus(property))} toolbarInline />
           </>
         );
       case 'pendingDeposit':
@@ -652,15 +754,7 @@ const App: React.FC = () => {
       case 'editFollowUp':
         return editingFollowUp ? <FollowUpForm proposalId={editingFollowUp.proposalId} initialData={editingFollowUp} onSubmit={handleUpdateFollowUp} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Follow-up not found for editing.</div>;
       case 'proposals':
-        return (
-          <>
-            {renderPageHeader(selectedStageFilter === 'All' ? 'Proposal Workflow' : selectedStageFilter, {
-              onBack: () => handleViewChange('dashboard'),
-              backLabel: 'Back to Dashboard',
-            })}
-            <ProposalsTable proposals={proposals} properties={properties} brands={brands} followUps={followUps} termSheetAgreements={termSheetAgreements} onViewDetails={handleViewProposalDetails} onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onDelete={(id) => handleDeleteClick(id, 'proposal')} selectedStage={selectedStageFilter} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>} />
-          </>
-        );
+        return renderProposalsView();
       case 'addProposal':
         return <ProposalForm properties={properties} brands={brands} sidvinTeamMembers={sidvinTeamMembers} onSubmit={handleAddProposal} onCancel={handleCancelForm} currentUserName={currentUserName} />;
       case 'editProposal':
@@ -684,7 +778,7 @@ const App: React.FC = () => {
         const visitsForProposal = visits.filter(v => v.proposalId === selectedProposalId);
         const followUpsForProposal = followUps.filter(fu => fu.proposalId === selectedProposalId);
         const termSheetForProposal = termSheetAgreements.find(ts => ts.proposalId === selectedProposalId);
-        return proposal ? <ProposalDetailView proposal={proposal} property={propertyForProposal} brand={brandForProposal} visits={visitsForProposal} followUps={followUpsForProposal} termSheetAgreement={termSheetForProposal} onBack={() => handleViewChange('proposals')} onEditProposal={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onScheduleVisit={(pId) => { setSelectedProposalId(pId); setCurrentView('scheduleVisit'); }} onEditVisit={(v) => { setEditingVisit(v); setCurrentView('editVisit'); }} onDeleteVisit={(id) => handleDeleteClick(id, 'visit')} onAddFollowUp={(pId) => { setSelectedProposalId(pId); setCurrentView('addFollowUp'); }} onEditFollowUp={(fu) => { setEditingFollowUp(fu); setCurrentView('editFollowUp'); }} onDeleteFollowUp={(id) => handleDeleteClick(id, 'followUp')} onAddOrEditTermSheetDetails={(pId, currentTs) => { setSelectedProposalId(pId); setEditingTermSheet(currentTs || null); setCurrentView('addTermSheetDetails'); }} onRecordAgreementDates={(pId, currentTs) => { setSelectedProposalId(pId); setEditingTermSheet(currentTs || null); setCurrentView('recordAgreementAndStoreOpening'); }} onDeleteTermSheet={(id) => handleDeleteClick(id, 'termSheet')} /> : <div className="text-center py-8">Proposal details not found.</div>;
+        return proposal ? <ProposalDetailView proposal={proposal} property={propertyForProposal} brand={brandForProposal} visits={visitsForProposal} followUps={followUpsForProposal} termSheetAgreement={termSheetForProposal} onBack={() => handleViewChange('proposals')} onEditProposal={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onScheduleVisit={(pId) => { setSelectedProposalId(pId); setCurrentView('scheduleVisit'); }} onEditVisit={(v) => { setEditingVisit(v); setCurrentView('editVisit'); }} onDeleteVisit={(id) => handleDeleteClick(id, 'visit')} onAddFollowUp={(pId) => { setSelectedProposalId(pId); setCurrentView('addFollowUp'); }} onEditFollowUp={(fu) => { setEditingFollowUp(fu); setCurrentView('editFollowUp'); }} onDeleteFollowUp={(id) => handleDeleteClick(id, 'followUp')} onAddOrEditTermSheetDetails={(pId, currentTs) => { setSelectedProposalId(pId); setEditingTermSheet(currentTs || null); setCurrentView('addTermSheetDetails'); }} onRecordAgreementDates={(pId, currentTs) => { setSelectedProposalId(pId); setEditingTermSheet(currentTs || null); setCurrentView('recordAgreementAndStoreOpening'); }} onDeleteTermSheet={(id) => handleDeleteClick(id, 'termSheet')} onDeleteReceipt={handleDeleteDepositReceipt} /> : renderProposalsView();
       default:
         return <div className="text-center py-8">Select a view from the navigation.</div>;
     }
@@ -768,7 +862,7 @@ const App: React.FC = () => {
               {propertyTaskStatuses.map((status) => (
                 <li key={status}>
                   <NavLink
-                    label={`${status} (${propertyTaskCounts[status] || 0})`}
+                    label={`${getPropertyTaskLabel(status)} (${propertyTaskCounts[status] || 0})`}
                     onClick={() => handlePropertyTaskView(status)}
                     isActive={currentView === 'propertyFeeFollowUp' && selectedPropertyTaskFilter === status}
                     isSubItem
@@ -871,6 +965,7 @@ const NavLink: React.FC<NavLinkProps> = ({ label, onClick, isActive, isSubItem =
 );
 
 export default App;
+
 
 
 

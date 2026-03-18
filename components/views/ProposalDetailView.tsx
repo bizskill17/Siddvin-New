@@ -1,7 +1,8 @@
 import React from 'react';
-import { Proposal, Property, Brand, Visit, TermSheetAgreement, ContactPerson, FollowUp, CurrentStageEnum } from '../../types';
+import { Proposal, Property, Brand, Visit, TermSheetAgreement, ContactPerson, FollowUp, CurrentStageEnum, DepositStage } from '../../types';
 import StageBadge from '../common/StageBadge';
 import Button from '../common/Button';
+import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
 import VisitsTable from '../tables/VisitsTable';
 import FollowUpsTable from '../tables/FollowUpsTable';
 import { formatDateDisplay, formatDateTimeDisplay } from '../common/dateUtils';
@@ -25,7 +26,41 @@ interface ProposalDetailViewProps {
   onAddOrEditTermSheetDetails: (proposalId: string, currentTermSheet?: TermSheetAgreement) => void;
   onRecordAgreementDates: (proposalId: string, currentTermSheet?: TermSheetAgreement) => void;
   onDeleteTermSheet: (proposalId: string) => void;
+  onDeleteReceipt: (termSheet: TermSheetAgreement, depositStageId: string, receiptId: string) => void;
 }
+
+interface ReceiptRow {
+  id: string;
+  stageId: string;
+  stageName: string;
+  receiptDate: string | null;
+  receiptAmount: number;
+}
+
+const getStageReceiptEntries = (stage: DepositStage): ReceiptRow[] => {
+  if (stage.receipts && stage.receipts.length > 0) {
+    return stage.receipts.map((receipt) => ({
+      id: receipt.id,
+      stageId: stage.id,
+      stageName: stage.stageName,
+      receiptDate: receipt.receiptDate,
+      receiptAmount: receipt.receiptAmount,
+    }));
+  }
+
+  const fallbackAmount = stage.receivedAmount ?? (stage.received ? (stage.amount ?? 0) : 0);
+  if (fallbackAmount > 0) {
+    return [{
+      id: `legacy-${stage.id}`,
+      stageId: stage.id,
+      stageName: stage.stageName,
+      receiptDate: stage.receiptDate ?? null,
+      receiptAmount: fallbackAmount,
+    }];
+  }
+
+  return [];
+};
 
 const ContactList: React.FC<{ contacts: ContactPerson[] }> = ({ contacts }) => {
   if (contacts.length === 0) return <p className="text-gray-900">N/A</p>;
@@ -56,10 +91,24 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
   onAddOrEditTermSheetDetails,
   onRecordAgreementDates,
   onDeleteTermSheet,
+  onDeleteReceipt,
 }) => {
   const hasTermSheet = !!termSheetAgreement;
   const hasScheduledVisit = visits.some(v => !!v.scheduledDate && !v.visitDate);
   const pendingDepositStage = termSheetAgreement?.depositStages?.find(ds => !ds.received)?.stageName;
+  const receiptRows = React.useMemo(
+    () => (termSheetAgreement?.depositStages || []).flatMap((stage) => getStageReceiptEntries(stage)),
+    [termSheetAgreement]
+  );
+  const totalDepositAmount = React.useMemo(
+    () => (termSheetAgreement?.depositStages || []).reduce((sum, stage) => sum + (stage.amount || 0), 0),
+    [termSheetAgreement]
+  );
+  const totalReceiptAmount = React.useMemo(
+    () => receiptRows.reduce((sum, receipt) => sum + (receipt.receiptAmount || 0), 0),
+    [receiptRows]
+  );
+  const [receiptToDelete, setReceiptToDelete] = React.useState<ReceiptRow | null>(null);
 
   return (
     <div id="proposal-detail-export" className="container mx-auto p-4 sm:p-6 lg:p-8 bg-[#ece8e3] shadow-lg rounded-lg">
@@ -134,7 +183,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
             <Button size="sm" onClick={() => onAddOrEditTermSheetDetails(proposal.id, termSheetAgreement)}>{hasTermSheet ? 'Edit Terms' : 'Add Terms'}</Button>
             {hasTermSheet && (
               <>
-                <Button size="sm" variant="secondary" onClick={() => onRecordAgreementDates(proposal.id, termSheetAgreement)}>Record Agreement / Store Opening</Button>
+                <Button size="sm" onClick={() => onRecordAgreementDates(proposal.id, termSheetAgreement)}>Record Agreement / Store Opening</Button>
                 <Button size="sm" variant="danger" onClick={() => onDeleteTermSheet(proposal.id)}>Delete Terms</Button>
               </>
             )}
@@ -144,20 +193,59 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
           <div className="p-6 bg-[#ece8e3] rounded-lg border border-gray-200 text-sm">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div><p className="font-medium text-gray-700">Finalization Date:</p><p className="text-gray-900">{formatDateDisplay(termSheetAgreement.finalizationDate)}</p></div>
-              <div><p className="font-medium text-gray-700">Preparation Date:</p><p className="text-gray-900">{formatDateDisplay(termSheetAgreement.preparationDate)}</p></div>
-              <div><p className="font-medium text-gray-700">Signing Date:</p><p className="text-gray-900">{formatDateDisplay(termSheetAgreement.signingDate)}</p></div>
+              <div><p className="font-medium text-gray-700">Lease Agreement Prepared:</p><p className="text-gray-900">{formatDateDisplay(termSheetAgreement.preparationDate)}</p></div>
+              <div><p className="font-medium text-gray-700">Lease Agreement Signed:</p><p className="text-gray-900">{formatDateDisplay(termSheetAgreement.signingDate)}</p></div>
               <div><p className="font-medium text-gray-700">Agreement Registration Required:</p><p className="text-gray-900">{termSheetAgreement.agreementRegistrationRequired ? 'Yes' : 'No'}</p></div>
-              {termSheetAgreement.agreementRegistrationRequired && <div><p className="font-medium text-gray-700">Agreement Registration Date:</p><p className="text-gray-900">{formatDateDisplay(termSheetAgreement.agreementRegistrationDate)}</p></div>}
+              {termSheetAgreement.agreementRegistrationRequired && <div><p className="font-medium text-gray-700">Lease Agreement Registered:</p><p className="text-gray-900">{formatDateDisplay(termSheetAgreement.agreementRegistrationDate)}</p></div>}
               {termSheetAgreement.agreementRegistrationRequired && <div><p className="font-medium text-gray-700">Registration Fee Shares:</p><p className="text-gray-900">Property {termSheetAgreement.registrationFeePropertyShare ?? 'N/A'}% / Brand {termSheetAgreement.registrationFeeBrandShare ?? 'N/A'}%</p></div>}
-              <div><p className="font-medium text-gray-700">Agreement Date:</p><p className="text-gray-900">{formatDateDisplay(termSheetAgreement.agreementDate)}</p></div>
               <div><p className="font-medium text-gray-700">Store Opening Date:</p><p className="text-gray-900">{formatDateDisplay(termSheetAgreement.storeOpeningDate)}</p></div>
+              <div className="lg:col-span-3"><p className="font-medium text-gray-700">Lease Agreement Remarks:</p><p className="text-gray-900 break-words">{termSheetAgreement.leaseAgreementRemarks || 'N/A'}</p></div>
               <div className="lg:col-span-3"><p className="font-medium text-gray-700">Terms:</p><p className="text-gray-900 break-words">{termSheetAgreement.specificTerms || 'N/A'}</p></div>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Deposit</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              Deposit <span className="text-base font-medium text-gray-600">(Total Deposit: {totalDepositAmount})</span>
+            </h3>
             {termSheetAgreement.depositStages.length === 0 ? <p className="text-gray-600">No deposit stages.</p> : (
-              <ul className="list-disc pl-5">
-                {termSheetAgreement.depositStages.map(ds => <li key={ds.id}>{ds.stageName}: {ds.amount ?? 'N/A'} ({ds.received ? 'Received' : 'Pending'})</li>)}
+              <ul className="list-disc pl-5 space-y-1">
+                {termSheetAgreement.depositStages.map((ds) => (
+                  <li key={ds.id}>
+                    {ds.stageName}: {ds.amount ?? 'N/A'}
+                  </li>
+                ))}
               </ul>
+            )}
+            <h3 className="mt-5 text-lg font-semibold text-gray-800 mb-2">
+              Receipt <span className="text-base font-medium text-gray-600">(Total Receipt: {totalReceiptAmount})</span>
+            </h3>
+            {receiptRows.length === 0 ? (
+              <p className="text-gray-600">No receipts recorded.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse border border-gray-300">
+                  <thead className="bg-orange-700 text-white">
+                    <tr>
+                      <th className="border border-black px-3 py-2 text-left">Stage</th>
+                      <th className="border border-black px-3 py-2 text-left">Receipt Date</th>
+                      <th className="border border-black px-3 py-2 text-left">Receipt Amount</th>
+                      <th className="border border-black px-3 py-2 text-center" data-export-ignore="true">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-[#ece8e3]">
+                    {receiptRows.map((receipt) => (
+                      <tr key={receipt.id}>
+                        <td className="border border-black px-3 py-2">{receipt.stageName || 'N/A'}</td>
+                        <td className="border border-black px-3 py-2">{formatDateDisplay(receipt.receiptDate)}</td>
+                        <td className="border border-black px-3 py-2">{receipt.receiptAmount}</td>
+                        <td className="border border-black px-3 py-2 text-center" data-export-ignore="true">
+                          <Button size="sm" variant="danger" onClick={() => setReceiptToDelete(receipt)}>
+                            Delete
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div><p className="font-medium text-gray-700">Created:</p><p className="text-gray-900">{formatDateTimeDisplay(termSheetAgreement.createdAt)}</p></div>
@@ -167,6 +255,20 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
           </div>
         ) : <p className="text-gray-600">No terms recorded.</p>}
       </div>
+      {termSheetAgreement && receiptToDelete && (
+        <DeleteConfirmationModal
+          isOpen
+          onClose={() => setReceiptToDelete(null)}
+          onConfirm={() => {
+            onDeleteReceipt(termSheetAgreement, receiptToDelete.stageId, receiptToDelete.id);
+            setReceiptToDelete(null);
+          }}
+          title="Delete Receipt"
+          message={`Delete the receipt for ${receiptToDelete.stageName} dated ${formatDateDisplay(receiptToDelete.receiptDate)}?`}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
+      )}
     </div>
   );
 };
