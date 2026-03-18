@@ -26,9 +26,6 @@ const StageBadge: React.FC<StageBadgeProps> = ({ stage, className }) => {
     case CurrentStageEnum.PendingTermsFinalization:
       colorClass = 'bg-indigo-100 text-indigo-800';
       break;
-    case CurrentStageEnum.PendingForDeposit:
-      colorClass = 'bg-orange-100 text-orange-800';
-      break;
     case CurrentStageEnum.PendingAgreement:
       colorClass = 'bg-green-100 text-green-800';
       break;

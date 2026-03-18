@@ -95,11 +95,30 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
 }) => {
   const hasTermSheet = !!termSheetAgreement;
   const hasScheduledVisit = visits.some(v => !!v.scheduledDate && !v.visitDate);
-  const pendingDepositStage = termSheetAgreement?.depositStages?.find(ds => !ds.received)?.stageName;
+
   const receiptRows = React.useMemo(
     () => (termSheetAgreement?.depositStages || []).flatMap((stage) => getStageReceiptEntries(stage)),
     [termSheetAgreement]
   );
+
+  const pendingDepositInfo = React.useMemo(() => {
+    if (!termSheetAgreement) return null;
+    const stages = termSheetAgreement.depositStages || [];
+    const totalReceived = receiptRows.reduce((sum, r) => sum + r.receiptAmount, 0);
+    let runningReceived = totalReceived;
+    for (const ds of stages) {
+      const amt = ds.amount || 0;
+      if (runningReceived >= amt && amt > 0) {
+        runningReceived -= amt;
+      } else {
+        return { name: ds.stageName, amount: amt - runningReceived };
+      }
+    }
+    return null;
+  }, [termSheetAgreement, receiptRows]);
+
+  const pendingDepositStage = pendingDepositInfo?.name;
+
   const totalDepositAmount = React.useMemo(
     () => (termSheetAgreement?.depositStages || []).reduce((sum, stage) => sum + (stage.amount || 0), 0),
     [termSheetAgreement]
@@ -139,7 +158,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
           <div>
             <p className="font-medium text-gray-700">Current Stage:</p>
             <StageBadge stage={proposal.currentStage} className="mt-1" />
-            {proposal.currentStage === CurrentStageEnum.PendingForDeposit && pendingDepositStage && (
+            {pendingDepositStage && (
               <p className="text-xs text-black mt-1">{`Pending for ${pendingDepositStage} Deposit`}</p>
             )}
           </div>
@@ -224,7 +243,6 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
                 <table className="min-w-full border-collapse border border-gray-300">
                   <thead className="bg-orange-700 text-white">
                     <tr>
-                      <th className="border border-black px-3 py-2 text-left">Stage</th>
                       <th className="border border-black px-3 py-2 text-left">Receipt Date</th>
                       <th className="border border-black px-3 py-2 text-left">Receipt Amount</th>
                       <th className="border border-black px-3 py-2 text-center" data-export-ignore="true">Action</th>
@@ -233,7 +251,6 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
                   <tbody className="bg-[#ece8e3]">
                     {receiptRows.map((receipt) => (
                       <tr key={receipt.id}>
-                        <td className="border border-black px-3 py-2">{receipt.stageName || 'N/A'}</td>
                         <td className="border border-black px-3 py-2">{formatDateDisplay(receipt.receiptDate)}</td>
                         <td className="border border-black px-3 py-2">{receipt.receiptAmount}</td>
                         <td className="border border-black px-3 py-2 text-center" data-export-ignore="true">

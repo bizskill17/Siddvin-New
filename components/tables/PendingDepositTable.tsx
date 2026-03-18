@@ -66,16 +66,32 @@ const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
       const depositReceived = stages.reduce((sum, ds) => sum + getStageReceivedAmount(ds), 0);
       if (depositReceived >= totalDeposit && totalDeposit > 0) continue;
 
-      const nextPending = stages.find((ds) => !ds.received);
-      if (!nextPending) continue;
+      let nextDepositName = 'N/A';
+      let nextDepositAmount = 0;
+      let nextDepositStageId = '';
+      let runningReceived = depositReceived;
+      let foundNext = false;
+
+      for (const ds of stages) {
+        const stageAmount = ds.amount || 0;
+        if (runningReceived >= stageAmount && stageAmount > 0) {
+          runningReceived -= stageAmount;
+        } else {
+          nextDepositName = ds.stageName || 'N/A';
+          nextDepositAmount = stageAmount - runningReceived;
+          nextDepositStageId = ds.id;
+          foundNext = true;
+          break;
+        }
+      }
+
+      if (!foundNext) continue;
 
       const proposal = proposals.find((p) => p.id === ts.proposalId);
       if (!proposal) continue;
 
       const property = properties.find((p) => p.id === proposal.propertyId);
       const brand = brands.find((b) => b.id === proposal.brandId);
-      const stageReceivedAmount = getStageReceivedAmount(nextPending);
-      const nextDepositAmount = nextPending.amount || 0;
 
       result.push({
         proposal,
@@ -83,12 +99,12 @@ const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
         brandName: brand?.name || 'N/A',
         totalDeposit,
         depositReceived,
-        nextDepositName: nextPending.stageName || 'N/A',
+        nextDepositName,
         nextDepositAmount,
-        stageReceivedAmount,
-        remainingAmount: Math.max(0, nextDepositAmount - stageReceivedAmount),
+        stageReceivedAmount: depositReceived,
+        remainingAmount: nextDepositAmount,
         termSheet: ts,
-        nextDepositStageId: nextPending.id,
+        nextDepositStageId,
       });
     }
     return result;

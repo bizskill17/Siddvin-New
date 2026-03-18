@@ -18,7 +18,7 @@ export type PropertyFeeStatus =
   | 'Pending Property Email'
   | 'Pending Negotiation'
   | 'Pending Acceptance Email'
-  | 'Pending Property Signing'
+  | 'Pending MOU Signing'
   | 'Accepted & Signed';
 
 export interface Property extends AuditFields {
@@ -80,7 +80,7 @@ export enum CurrentStageEnum {
   PendingTermsFinalization = '6. Pending Terms Finalization',
   PendingAgreement = '7. Pending Agreement / Store Opening',
   PendingBrandFees = '8. Pending Brand Fees',
-  CompletedProposal = '9. Completed Proposal'
+  CompletedProposal = '9. Success Stories'
 }
 
 export interface Proposal extends AuditFields {

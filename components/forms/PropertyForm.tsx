@@ -20,55 +20,55 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
   const [formData, setFormData] = useState<Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>>(
     initialData
       ? {
-          address: initialData.address,
-          googleMapsLink: initialData.googleMapsLink,
-          contactPersons: initialData.contactPersons,
-          proposedRent: initialData.proposedRent,
-          proposedArea: initialData.proposedArea,
-          frontage: initialData.frontage,
-          noOfFloors: initialData.noOfFloors,
-          serviceFeeProposed: initialData.serviceFeeProposed,
-          notes: initialData.notes,
-          password: initialData.password,
-          propertyPhotos: initialData.propertyPhotos || [],
-          drawings: initialData.drawings || [],
-          cadDrawingUrl: initialData.cadDrawingUrl,
-          propertyPresentation: initialData.propertyPresentation,
-          propertySigningApplicable: initialData.propertySigningApplicable,
-          propertyFeeEmailSent: initialData.propertyFeeEmailSent,
-          propertyFeeEmailSentDate: initialData.propertyFeeEmailSentDate,
-          propertyFeeAcceptanceEmailDate: initialData.propertyFeeAcceptanceEmailDate,
-          propertyFeeNegotiationRequired: initialData.propertyFeeNegotiationRequired,
-          propertyFeePaperSigningDate: initialData.propertyFeePaperSigningDate,
-          propertyFeeStatus: initialData.propertyFeeStatus,
-          propertyFeeFollowUpDate: initialData.propertyFeeFollowUpDate,
-          propertyFeeFollowUpRemarks: initialData.propertyFeeFollowUpRemarks,
-        }
+        address: initialData.address,
+        googleMapsLink: initialData.googleMapsLink,
+        contactPersons: initialData.contactPersons,
+        proposedRent: initialData.proposedRent,
+        proposedArea: initialData.proposedArea,
+        frontage: initialData.frontage,
+        noOfFloors: initialData.noOfFloors,
+        serviceFeeProposed: initialData.serviceFeeProposed,
+        notes: initialData.notes,
+        password: initialData.password,
+        propertyPhotos: initialData.propertyPhotos || [],
+        drawings: initialData.drawings || [],
+        cadDrawingUrl: initialData.cadDrawingUrl,
+        propertyPresentation: initialData.propertyPresentation,
+        propertySigningApplicable: initialData.propertySigningApplicable,
+        propertyFeeEmailSent: initialData.propertyFeeEmailSent,
+        propertyFeeEmailSentDate: initialData.propertyFeeEmailSentDate,
+        propertyFeeAcceptanceEmailDate: initialData.propertyFeeAcceptanceEmailDate,
+        propertyFeeNegotiationRequired: initialData.propertyFeeNegotiationRequired,
+        propertyFeePaperSigningDate: initialData.propertyFeePaperSigningDate,
+        propertyFeeStatus: initialData.propertyFeeStatus,
+        propertyFeeFollowUpDate: initialData.propertyFeeFollowUpDate,
+        propertyFeeFollowUpRemarks: initialData.propertyFeeFollowUpRemarks,
+      }
       : {
-          address: '',
-          googleMapsLink: null,
-          contactPersons: [{ id: Math.random().toString(36).substring(2, 9), name: '', designation: '', mobile: '', email: '' }],
-          proposedRent: null,
-          proposedArea: null,
-          frontage: '',
-          noOfFloors: null,
-          serviceFeeProposed: '',
-          notes: '',
-          password: '',
-          propertyPhotos: ['', '', '', '', ''],
-          drawings: [''],
-          cadDrawingUrl: null,
-          propertyPresentation: null,
-          propertySigningApplicable: false,
-          propertyFeeEmailSent: false,
-          propertyFeeEmailSentDate: null,
-          propertyFeeAcceptanceEmailDate: null,
-          propertyFeeNegotiationRequired: false,
-          propertyFeePaperSigningDate: null,
-          propertyFeeStatus: 'Pending Property Email',
-          propertyFeeFollowUpDate: null,
-          propertyFeeFollowUpRemarks: '',
-        }
+        address: '',
+        googleMapsLink: null,
+        contactPersons: [{ id: Math.random().toString(36).substring(2, 9), name: '', designation: '', mobile: '', email: '' }],
+        proposedRent: null,
+        proposedArea: null,
+        frontage: '',
+        noOfFloors: null,
+        serviceFeeProposed: '',
+        notes: '',
+        password: '',
+        propertyPhotos: ['', '', '', '', ''],
+        drawings: [''],
+        cadDrawingUrl: null,
+        propertyPresentation: null,
+        propertySigningApplicable: false,
+        propertyFeeEmailSent: false,
+        propertyFeeEmailSentDate: null,
+        propertyFeeAcceptanceEmailDate: null,
+        propertyFeeNegotiationRequired: false,
+        propertyFeePaperSigningDate: null,
+        propertyFeeStatus: 'Pending Property Email',
+        propertyFeeFollowUpDate: null,
+        propertyFeeFollowUpRemarks: '',
+      }
   );
 
   const getDerivedPropertyFeeStage = (data: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>): Property['propertyFeeStatus'] => {
@@ -76,7 +76,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
     if (!data.propertyFeeAcceptanceEmailDate) {
       return data.propertyFeeNegotiationRequired ? 'Pending Negotiation' : 'Pending Acceptance Email';
     }
-    if (data.propertySigningApplicable && !data.propertyFeePaperSigningDate) return 'Pending Property Signing';
+    if (data.propertySigningApplicable && !data.propertyFeePaperSigningDate) return 'Pending MOU Signing';
     return 'Accepted & Signed';
   };
 
@@ -195,7 +195,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       <Input id="proposedArea" label="Proposed Area (sqft)" value={formData.proposedArea} onChange={handleChange} type="number" min="0" step="0.01" required />
       <Input id="frontage" label="Frontage" value={formData.frontage} onChange={handleChange} required />
       <Input id="noOfFloors" label="No. of Floors" value={formData.noOfFloors} onChange={handleChange} type="number" min="0" step="1" required />
-      
+
       <Input id="serviceFeeProposed" label="Service Fee Proposed" value={formData.serviceFeeProposed} onChange={handleChange} required />
       <LongTextInput id="notes" label="Notes" value={formData.notes} onChange={handleChange} />
       <Input id="password" label="Property Password" value={formData.password} onChange={handleChange} type="password" required />
@@ -219,11 +219,11 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       <>
         <hr className="my-6 border-gray-200" />
         <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Coordination</h3>
-        <CheckboxInput id="propertySigningApplicable" label="Property Signing Applicable" checked={formData.propertySigningApplicable} onChange={handleChange} />
+        <CheckboxInput id="propertySigningApplicable" label="MOU Signing Applicable" checked={formData.propertySigningApplicable} onChange={handleChange} />
         <Input id="propertyFeeEmailSentDate" label="Email Sent Date" value={formData.propertyFeeEmailSentDate} onChange={handleChange} type="date" />
-        <Input id="propertyFeeAcceptanceEmailDate" label="Acceptance Email Date" value={formData.propertyFeeAcceptanceEmailDate} onChange={handleChange} type="date" disabled={!formData.propertyFeeEmailSentDate} />
+        <Input id="propertyFeeAcceptanceEmailDate" label="Acceptance Email Date" value={formData.propertyFeeAcceptanceEmailDate} onChange={handleChange} type="date" />
         <CheckboxInput id="propertyFeeNegotiationRequired" label="Negotiation Required" checked={formData.propertyFeeNegotiationRequired} onChange={handleChange} />
-        <Input id="propertyFeePaperSigningDate" label="Paper Signing Date (If Applicable)" value={formData.propertyFeePaperSigningDate} onChange={handleChange} type="date" disabled={!(formData.propertySigningApplicable && formData.propertyFeeAcceptanceEmailDate)} />
+        <Input id="propertyFeePaperSigningDate" label="MOU Signing Date" value={formData.propertyFeePaperSigningDate} onChange={handleChange} type="date" disabled={!formData.propertySigningApplicable} />
         <Input id="propertyFeeFollowUpDate" label="Property Follow Up Date" value={formData.propertyFeeFollowUpDate} onChange={handleChange} type="date" />
         <LongTextInput id="propertyFeeFollowUpRemarks" label="Property Follow Up Remarks" value={formData.propertyFeeFollowUpRemarks} onChange={handleChange} />
         <Input id="propertyFeeStatusDisplay" label="Current Property Status" value={getPropertyFeeStageLabel(getDerivedPropertyFeeStage(formData))} readOnly />

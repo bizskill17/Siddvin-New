@@ -44,7 +44,6 @@ type View =
   | 'visits'
   | 'termSheets'
   | 'sidvinTeam'
-  | 'successStories'
   | 'propertyFeeFollowUp'
   | 'pendingDeposit'
   | 'companyMaster'
@@ -71,7 +70,7 @@ type PropertyTaskStatus =
   | 'Pending Property Email'
   | 'Pending Negotiation'
   | 'Pending Acceptance Email'
-  | 'Pending Property Signing'
+  | 'Pending MOU Signing'
   | 'Accepted & Signed';
 
 const App: React.FC = () => {
@@ -97,7 +96,7 @@ const App: React.FC = () => {
 
   const [selectedStageFilter, setSelectedStageFilter] = useState<CurrentStageEnum | 'All'>('All');
   const [selectedPropertyTaskFilter, setSelectedPropertyTaskFilter] = useState<PropertyTaskStatus>('Pending Property Files');
-  
+
   const [propertyReturnView, setPropertyReturnView] = useState<'properties' | 'propertyFeeFollowUp'>('properties');
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -190,19 +189,22 @@ const App: React.FC = () => {
 
   const getPropertyTaskStatus = (property: Property): PropertyTaskStatus => {
     const hasPhoto1 = !!(property.propertyPhotos?.[0] || '').trim();
-    const hasPdfDrawing = !!(property.drawings?.[0] || '').trim();
-    const hasCadDrawing = !!(property.cadDrawingUrl || '').trim();
-    const hasPresentation = !!(property.propertyPresentation || '').trim();
 
-    // Keep property in Pending Property Files until all required file URLs are present.
-    if (!(hasPhoto1 && hasPdfDrawing && hasCadDrawing && hasPresentation)) {
+    // Keep property in Pending Property Files until only Photograph 1 URL is present.
+    if (!hasPhoto1) {
       return 'Pending Property Files';
     }
-    return property.propertyFeeStatus;
+    // Backward compatibility for 'Pending Property Signing'
+    const status = property.propertyFeeStatus as string;
+    if (status === 'Pending Property Signing') return 'Pending MOU Signing';
+    return property.propertyFeeStatus as any;
   };
 
-  const getPropertyTaskLabel = (status: PropertyTaskStatus) =>
-    status === 'Pending Property Email' ? 'Pending Service Fee Email' : status;
+  const getPropertyTaskLabel = (status: PropertyTaskStatus) => {
+    if (status === 'Pending Property Email') return 'Pending Service Fee Email';
+    if (status === 'Pending MOU Signing') return 'Pending MOU Signing';
+    return status;
+  };
 
   const handleViewProposalDetails = (proposalId: string) => {
     setSelectedProposalId(proposalId);
@@ -760,17 +762,6 @@ const App: React.FC = () => {
       case 'editProposal':
         const proposalForEdit = editingProposal || proposals.find(p => p.id === selectedProposalId);
         return proposalForEdit ? <ProposalForm initialData={proposalForEdit} properties={properties} brands={brands} sidvinTeamMembers={sidvinTeamMembers} onSubmit={(payload) => handleUpdateProposal({ ...proposalForEdit, ...payload })} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Proposal not found for editing.</div>;
-      case 'successStories':
-        const successful = proposals.filter(p => p.currentStage === CurrentStageEnum.CompletedProposal);
-        return (
-          <>
-            {renderPageHeader('Success Stories', {
-              onBack: () => handleViewChange('proposals'),
-              backLabel: 'Back to Proposals',
-            })}
-            <div className="bg-[#ece8e3] border border-gray-200 rounded-lg p-4">{successful.length === 0 ? <p className="text-gray-600">No billed proposals yet.</p> : <ul className="space-y-3">{successful.map(p => <li key={p.id} className="border border-gray-200 rounded p-3 flex items-center justify-between"><div><div className="font-semibold text-gray-900">{brands.find(b => b.id === p.brandId)?.name || 'N/A'} at {properties.find(pr => pr.id === p.propertyId)?.address || 'N/A'}</div><div className="text-sm text-gray-600">Invoice: {p.invoiceNo || 'N/A'} | Amount: {p.invoiceAmount ?? 'N/A'}</div></div><Button size="sm" variant="secondary" onClick={() => handleViewProposalDetails(p.id)}>View</Button></li>)}</ul>}</div>
-          </>
-        );
       case 'proposalDetail':
         const proposal = proposals.find(p => p.id === selectedProposalId);
         const propertyForProposal = properties.find(p => p.id === proposal?.propertyId);
@@ -789,13 +780,12 @@ const App: React.FC = () => {
     acc[stage] = proposals.filter(p => p.currentStage === stage).length;
     return acc;
   }, {} as Record<string, number>);
-  const propertyTaskStatuses: PropertyTaskStatus[] = ['Pending Property Files', 'Pending Property Email', 'Pending Negotiation', 'Pending Acceptance Email', 'Pending Property Signing', 'Accepted & Signed'];
+  const propertyTaskStatuses: PropertyTaskStatus[] = ['Pending Property Files', 'Pending Property Email', 'Pending Negotiation', 'Pending Acceptance Email', 'Pending MOU Signing', 'Accepted & Signed'];
   const propertyTaskCounts = propertyTaskStatuses.reduce((acc, status) => {
     acc[status] = properties.filter((p) => getPropertyTaskStatus(p) === status).length;
     return acc;
   }, {} as Record<PropertyTaskStatus, number>);
   const pendingDepositCount = termSheetAgreements.filter(ts => (ts.depositStages || []).some(ds => !ds.received)).length;
-  const successStoriesCount = proposals.filter(p => p.currentStage === CurrentStageEnum.CompletedProposal).length;
 
   if (isInitialLoading) {
     return (
@@ -851,7 +841,6 @@ const App: React.FC = () => {
           {expandedSections.proposalStages && (
             <>
               <li><NavLink label={`All Proposals (${proposals.length})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter('All'); }} isActive={currentView === 'proposals' && selectedStageFilter === 'All'} isSubItem /></li>
-              <li><NavLink label={`Success Stories (${successStoriesCount})`} onClick={() => handleViewChange('successStories')} isActive={currentView === 'successStories'} isSubItem /></li>
               {allProposalStages.map(stage => <li key={stage}><NavLink label={`${stage} (${stageCounts[stage] || 0})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter(stage); }} isActive={currentView === 'proposals' && selectedStageFilter === stage} isSubItem /></li>)}
             </>
           )}
@@ -965,9 +954,3 @@ const NavLink: React.FC<NavLinkProps> = ({ label, onClick, isActive, isSubItem =
 );
 
 export default App;
-
-
-
-
-
-

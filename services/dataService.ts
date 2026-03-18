@@ -140,7 +140,7 @@ const derivePropertyFeeStatus = (p: any): Property['propertyFeeStatus'] => {
   if (!acceptanceDate) {
     return negotiationRequired ? 'Pending Negotiation' : 'Pending Acceptance Email';
   }
-  if (signingApplicable && !paperSigningDate) return 'Pending Property Signing';
+  if (signingApplicable && !paperSigningDate) return 'Pending MOU Signing';
   return 'Accepted & Signed';
 };
 
@@ -173,15 +173,19 @@ const normalizeBrand = (b: any): Brand => ({
   contactPersons: cleanArray(b.contactPersonsJson || b.contactPersons),
 });
 
-const normalizeProposal = (p: any): Proposal => ({
-  ...p,
-  serialNo: parseSerial(p.serialNo),
-  invoiceStatus: toBool(p.invoiceStatus),
-  proposalDate: fromSheetDate(p.proposalDate),
-  invoiceDate: fromSheetDate(p.invoiceDate),
-  invoiceAmount: p.invoiceAmount === null ? null : (p.invoiceAmount === '' || p.invoiceAmount === undefined ? null : Number(p.invoiceAmount)),
-  currentStage: (p.currentStage || CurrentStageEnum.Draft) as CurrentStageEnum,
-});
+const normalizeProposal = (p: any): Proposal => {
+  let currentStage = (p.currentStage || CurrentStageEnum.Draft) as CurrentStageEnum;
+  if (p.currentStage === '9. Completed Proposal') currentStage = CurrentStageEnum.CompletedProposal;
+  return {
+    ...p,
+    serialNo: parseSerial(p.serialNo),
+    invoiceStatus: toBool(p.invoiceStatus),
+    proposalDate: fromSheetDate(p.proposalDate),
+    invoiceDate: fromSheetDate(p.invoiceDate),
+    invoiceAmount: p.invoiceAmount === null ? null : (p.invoiceAmount === '' || p.invoiceAmount === undefined ? null : Number(p.invoiceAmount)),
+    currentStage,
+  };
+};
 
 const normalizeVisit = (v: any): Visit => ({
   ...v,
