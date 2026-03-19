@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+i wimport React, { useState } from 'react';
 import { SidvinTeamMember } from '../../types';
 import Button from '../common/Button';
 
