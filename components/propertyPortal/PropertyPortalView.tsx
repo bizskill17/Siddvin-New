@@ -115,8 +115,9 @@ const collectProposalActivities = (
 const AuthGate: React.FC<{
   properties: Property[];
   onAuthenticate: (propertyId: string) => void;
+  onBackToTeamLogin: () => void;
   initialPropertyId?: string;
-}> = ({ properties, onAuthenticate, initialPropertyId = '' }) => {
+}> = ({ properties, onAuthenticate, onBackToTeamLogin, initialPropertyId = '' }) => {
   const [propertyId, setPropertyId] = useState(initialPropertyId);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -153,6 +154,15 @@ const AuthGate: React.FC<{
             {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>}
             <button type="submit" className="w-full rounded-xl bg-slate-900 text-white py-2.5 font-semibold hover:bg-slate-700">Access Dashboard</button>
           </form>
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              className="text-sm font-semibold text-black underline decoration-dotted underline-offset-4 hover:text-slate-700"
+              onClick={onBackToTeamLogin}
+            >
+              Back to Sidvin Team Login
+            </button>
+          </div>
         </section>
       </div>
     </div>
@@ -296,7 +306,7 @@ const PropertyPortalView: React.FC<PropertyPortalViewProps> = ({
   }, [bundles, masterRows]);
 
   if (!sessionPropertyId) {
-    return <AuthGate properties={properties} initialPropertyId={initialPropertyId} onAuthenticate={(id) => { setSessionPropertyId(id); onSessionStart(id); }} />;
+    return <AuthGate properties={properties} initialPropertyId={initialPropertyId} onAuthenticate={(id) => { setSessionPropertyId(id); onSessionStart(id); }} onBackToTeamLogin={onBackToTeamLogin} />;
   }
 
   if (!property) {
