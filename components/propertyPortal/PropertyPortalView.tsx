@@ -121,7 +121,6 @@ const AuthGate: React.FC<{
   const [propertyId, setPropertyId] = useState(initialPropertyId);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const preview = useMemo(() => findPropertyByIdentifier(properties, propertyId), [properties, propertyId]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,7 +144,6 @@ const AuthGate: React.FC<{
             <div>
               <label className="block text-sm font-semibold mb-1">Property ID / Code *</label>
               <input value={propertyId} onChange={(e) => setPropertyId(e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-500" placeholder="Example: P-9" required />
-              {preview && <p className="mt-2 text-xs text-black">Property: {preview.address}</p>}
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">Password</label>
