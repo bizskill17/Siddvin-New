@@ -9,7 +9,12 @@ import {
   FollowUp,
 } from '../types';
 
-export const BACKEND_URL = 'https://script.google.com/macros/s/AKfycby0NHNUflCQ0YhpLMK9byMFKEuOQnxkKFs3HyKJB2HCxO1QT-ZKqz7U13lsgKsBhdG6Yg/exec';
+const PROD_BACKEND_URL = 'https://script.google.com/macros/s/AKfycby0NHNUflCQ0YhpLMK9byMFKEuOQnxkKFs3HyKJB2HCxO1QT-ZKqz7U13lsgKsBhdG6Yg/exec';
+const DEV_PROXY_BACKEND_URL = '/gas';
+
+export const BACKEND_URL =
+  (import.meta.env.VITE_BACKEND_URL as string | undefined)?.trim() ||
+  (import.meta.env.DEV ? DEV_PROXY_BACKEND_URL : PROD_BACKEND_URL);
 
 type EntityName =
   | 'Properties'
@@ -46,7 +51,14 @@ const getJson = async <T>(url: string): Promise<T> => {
   const noCacheUrl = `${url}${sep}_ts=${Date.now()}`;
   const res = await fetch(noCacheUrl, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Backend request failed: ${res.status}`);
-  const json = await res.json();
+  const raw = await res.text();
+  let json: any;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    const shortBody = raw.slice(0, 140).replace(/\s+/g, ' ').trim();
+    throw new Error(`Backend returned non-JSON. Check Apps Script deployment/doGet. Response: ${shortBody}`);
+  }
   if (json?.ok === false) throw new Error(json.error || 'Backend error');
   return json;
 };
@@ -60,7 +72,14 @@ const postJson = async <T>(body: any): Promise<T> => {
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Backend request failed: ${res.status}`);
-  const json = await res.json();
+  const raw = await res.text();
+  let json: any;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    const shortBody = raw.slice(0, 140).replace(/\s+/g, ' ').trim();
+    throw new Error(`Backend returned non-JSON. Check Apps Script deployment/doPost. Response: ${shortBody}`);
+  }
   if (json?.ok === false) throw new Error(json.error || 'Backend error');
   return json;
 };
@@ -242,6 +261,16 @@ const normalizeMasterOption = (m: any): MasterOptionItem => ({
   updatedBy: m?.updatedBy ? String(m.updatedBy) : undefined,
 });
 
+const getNextSerialNoForEntity = async (entity: EntityName): Promise<number> => {
+  const rows = await listEntity(entity);
+  let maxSerial = 0;
+  for (const row of rows) {
+    const serial = parseSerial((row as any)?.serialNo);
+    if (serial && serial > maxSerial) maxSerial = serial;
+  }
+  return maxSerial + 1;
+};
+
 export const initializeDemoData = () => {
   // no-op: backend is source of truth
 };
@@ -400,15 +429,19 @@ export const getProposalById = async (id: string): Promise<Proposal | undefined>
   return res.data ? normalizeProposal(res.data) : undefined;
 };
 export const addProposal = async (newProposal: Omit<Proposal, 'id' | 'serialNo' | 'currentStage'>, updatedBy = 'System'): Promise<Proposal> => {
+  const nextSerialNo = await getNextSerialNoForEntity(ENTITY_MAP.proposals);
   const payload = {
     ...newProposal,
+    serialNo: nextSerialNo,
     proposalDate: toSheetDate(newProposal.proposalDate),
     invoiceDate: toSheetDate(newProposal.invoiceDate),
     currentStage: CurrentStageEnum.Draft,
     invoiceStatus: !!newProposal.invoiceNo && !!newProposal.invoiceDate && newProposal.invoiceAmount !== null
   };
   const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.proposals, data: payload, updatedBy });
-  return normalizeProposal(res.data);
+  const normalized = normalizeProposal(res.data);
+  if (!normalized.serialNo) normalized.serialNo = nextSerialNo;
+  return normalized;
 };
 export const updateProposal = async (updatedProposal: Proposal, updatedBy = 'System'): Promise<Proposal> => {
   const payload = {

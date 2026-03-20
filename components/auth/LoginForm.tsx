@@ -1,13 +1,14 @@
-i wimport React, { useState } from 'react';
+import React, { useState } from 'react';
 import { SidvinTeamMember } from '../../types';
 import Button from '../common/Button';
 
 interface LoginFormProps {
   teamMembers: SidvinTeamMember[];
   onLogin: (userId: string) => void;
+  onSwitchToPropertyPortal?: () => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin, onSwitchToPropertyPortal }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -104,6 +105,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin }) => {
                 Sign in
               </Button>
             </div>
+            {onSwitchToPropertyPortal && (
+              <div>
+                <button
+                  type="button"
+                  onClick={onSwitchToPropertyPortal}
+                  className="w-full text-sm font-semibold text-slate-700 hover:text-slate-900 underline decoration-dotted"
+                >
+                  Open Property Dashboard Login
+                </button>
+              </div>
+            )}
           </form>
         </div>
       </div>

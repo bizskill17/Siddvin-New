@@ -35,6 +35,7 @@ import DeleteConfirmationModal from './components/common/DeleteConfirmationModal
 import SelectInput from './components/common/SelectInput';
 import LoginForm from './components/auth/LoginForm';
 import PageHeader from './components/common/PageHeader';
+import PropertyPortalView from './components/propertyPortal/PropertyPortalView';
 
 type View =
   | 'dashboard'
@@ -73,6 +74,8 @@ type PropertyTaskStatus =
   | 'Pending MOU Signing'
   | 'Accepted & Signed';
 
+type PortalMode = 'team' | 'property';
+
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [properties, setProperties] = useState<Property[]>([]);
@@ -106,6 +109,8 @@ const App: React.FC = () => {
 
   const [activeUserId, setActiveUserId] = useState<string>(localStorage.getItem('sidvinActiveUserId') || '');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem('sidvinActiveUserId'));
+  const [portalMode, setPortalMode] = useState<PortalMode>(localStorage.getItem('sidvinPortalMode') === 'property' ? 'property' : 'team');
+  const [propertyPortalSessionId, setPropertyPortalSessionId] = useState<string>(localStorage.getItem('sidvinPropertyPortalId') || '');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('Submitting...');
@@ -160,6 +165,33 @@ const App: React.FC = () => {
 
   const refreshData = async () => {
     await fetchData();
+  };
+
+  const switchToTeamPortal = () => {
+    setPortalMode('team');
+    localStorage.setItem('sidvinPortalMode', 'team');
+    setPropertyPortalSessionId('');
+    localStorage.removeItem('sidvinPropertyPortalId');
+  };
+
+  const switchToPropertyPortal = () => {
+    setPortalMode('property');
+    localStorage.setItem('sidvinPortalMode', 'property');
+    localStorage.removeItem('sidvinActiveUserId');
+    setActiveUserId('');
+    setIsAuthenticated(false);
+  };
+
+  const startPropertySession = (propertyId: string) => {
+    setPropertyPortalSessionId(propertyId);
+    localStorage.setItem('sidvinPropertyPortalId', propertyId);
+    setPortalMode('property');
+    localStorage.setItem('sidvinPortalMode', 'property');
+  };
+
+  const endPropertySession = () => {
+    setPropertyPortalSessionId('');
+    localStorage.removeItem('sidvinPropertyPortalId');
   };
 
   const runWithSaving = async (message: string, work: () => Promise<void>) => {
@@ -798,12 +830,32 @@ const App: React.FC = () => {
     );
   }
 
+  if (portalMode === 'property') {
+    return (
+      <PropertyPortalView
+        properties={properties}
+        brands={brands}
+        proposals={proposals}
+        visits={visits}
+        followUps={followUps}
+        termSheetAgreements={termSheetAgreements}
+        initialPropertyId={propertyPortalSessionId}
+        onSessionStart={startPropertySession}
+        onSessionEnd={endPropertySession}
+        onRefresh={refreshData}
+        onBackToTeamLogin={switchToTeamPortal}
+      />
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <LoginForm
         teamMembers={sidvinTeamMembers}
+        onSwitchToPropertyPortal={switchToPropertyPortal}
         onLogin={(userId) => {
           localStorage.setItem('sidvinActiveUserId', userId);
+          localStorage.setItem('sidvinPortalMode', 'team');
           setActiveUserId(userId);
           setIsAuthenticated(true);
         }}
