@@ -178,11 +178,10 @@ const PropertySummary: React.FC<{ property: Property }> = ({ property }) => (
   <section className="mx-auto max-w-5xl rounded-2xl border border-amber-300 bg-white p-4 shadow-sm">
     <h3 className="portal-heading text-2xl font-bold text-center text-[#7a5916]">Property Summary</h3>
     <div className="mt-3 grid gap-2 sm:grid-cols-2 text-black">
-      <p><span className="font-bold">Proposed Rent:</span> <span className="font-normal">{property.proposedRent ?? 'N/A'}</span></p>
       <p><span className="font-bold">Proposed Area (sqft):</span> <span className="font-normal">{property.proposedArea ?? 'N/A'}</span></p>
+      <p><span className="font-bold">Proposed Rent:</span> <span className="font-normal">{property.proposedRent ?? 'N/A'}</span></p>
       <p><span className="font-bold">Number of Floors:</span> <span className="font-normal">{property.noOfFloors ?? 'N/A'}</span></p>
-      <p><span className="font-bold">Service Fee Proposed:</span> <span className="font-normal">{property.serviceFeeProposed || 'N/A'}</span></p>
-      <p className="sm:col-span-2"><span className="font-bold">Notes:</span> <span className="font-normal">{property.notes || 'N/A'}</span></p>
+      <p><span className="font-bold">Service Fee Agreed:</span> <span className="font-normal">{property.serviceFeeProposed || 'N/A'}</span></p>
       <p className="sm:col-span-2"><span className="font-bold">Contact Persons:</span> <span className="font-normal">{property.contactPersons.length ? property.contactPersons.map((p) => `${p.name} (${p.mobile || 'N/A'})`).join(', ') : 'No contacts'}</span></p>
     </div>
   </section>
