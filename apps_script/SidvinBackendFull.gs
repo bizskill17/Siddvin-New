@@ -32,8 +32,8 @@ var SidvinNotificationEvent = {
 
 var SIDVIN_NOTIFICATION_CONFIG = {
   API_URL: "https://app.messageautosender.com/api/v1/message/create",
-  OWNER_GROUP_ID: "120363038687376021@g.us",
-  OWNER_MOBILE: "8638215773",
+  OWNER_GROUP_ID: "120363420785096184@g.us",
+  OWNER_MOBILE: "9864023888",
 
   // Fallbacks only; prefer Script Properties.
   MAS_USERNAME: "bizskill",
@@ -260,6 +260,20 @@ function buildBaseNotificationPayload_(entity, savedData, updatedBy) {
   payload.propertyAddress = payload.propertyAddress || context.propertyAddress;
   payload.brandName = payload.brandName || context.brandName;
   payload.serialNo = payload.serialNo || context.serialNo;
+  payload.propertyContactPersons = payload.propertyContactPersons || context.propertyContactPersons;
+  payload.brandContactPersons = payload.brandContactPersons || context.brandContactPersons;
+  if (!isFilled_(payload.propertyContactName) && isFilled_(context.propertyContactName)) {
+    payload.propertyContactName = context.propertyContactName;
+  }
+  if (!isFilled_(payload.propertyContactMobile) && isFilled_(context.propertyContactMobile)) {
+    payload.propertyContactMobile = context.propertyContactMobile;
+  }
+  if (!isFilled_(payload.brandContactName) && isFilled_(context.brandContactName)) {
+    payload.brandContactName = context.brandContactName;
+  }
+  if (!isFilled_(payload.brandContactMobile) && isFilled_(context.brandContactMobile)) {
+    payload.brandContactMobile = context.brandContactMobile;
+  }
 
   if (!isFilled_(payload.contactPersonName) || !isFilled_(payload.mobile)) {
     var contact = firstContactSafe_(savedData && savedData.contactPersonsJson ? savedData.contactPersonsJson : savedData.contactPersons);
@@ -267,6 +281,13 @@ function buildBaseNotificationPayload_(entity, savedData, updatedBy) {
       if (!isFilled_(payload.contactPersonName)) payload.contactPersonName = contact.name;
       if (!isFilled_(payload.mobile)) payload.mobile = contact.mobile;
     }
+  }
+
+  if (entity === "Properties" && !isFilled_(payload.propertyContactPersons)) {
+    payload.propertyContactPersons = toContactArraySafe_(savedData && savedData.contactPersonsJson ? savedData.contactPersonsJson : savedData.contactPersons);
+  }
+  if (entity === "Brands" && !isFilled_(payload.brandContactPersons)) {
+    payload.brandContactPersons = toContactArraySafe_(savedData && savedData.contactPersonsJson ? savedData.contactPersonsJson : savedData.contactPersons);
   }
 
   if (!isFilled_(payload.proposalDate) && isFilled_(context.proposalDate)) {
@@ -289,7 +310,13 @@ function resolveContext_(entity, savedData) {
     serialNo: "",
     proposalDate: "",
     proposalSender: "",
-    brandRemarks: ""
+    brandRemarks: "",
+    propertyContactPersons: [],
+    brandContactPersons: [],
+    propertyContactName: "",
+    propertyContactMobile: "",
+    brandContactName: "",
+    brandContactMobile: ""
   };
 
   if (entity === "Proposals") {
@@ -326,7 +353,13 @@ function getProposalContextByProposalId_(proposalId, proposalPropertyId, proposa
     serialNo: "",
     proposalDate: "",
     proposalSender: "",
-    brandRemarks: ""
+    brandRemarks: "",
+    propertyContactPersons: [],
+    brandContactPersons: [],
+    propertyContactName: "",
+    propertyContactMobile: "",
+    brandContactName: "",
+    brandContactMobile: ""
   };
 
   var proposal = null;
@@ -347,11 +380,25 @@ function getProposalContextByProposalId_(proposalId, proposalPropertyId, proposa
   if (isFilled_(propertyId)) {
     var property = backendGetById_("Properties", propertyId);
     out.propertyAddress = property && property.address ? property.address : "";
+    var propertyContacts = toContactArraySafe_(property && (property.contactPersonsJson || property.contactPersons));
+    out.propertyContactPersons = propertyContacts;
+    var propertyContact = firstContactSafe_(propertyContacts);
+    if (propertyContact) {
+      out.propertyContactName = propertyContact.name;
+      out.propertyContactMobile = propertyContact.mobile;
+    }
   }
 
   if (isFilled_(brandId)) {
     var brand = backendGetById_("Brands", brandId);
     out.brandName = brand && brand.name ? brand.name : "";
+    var brandContacts = toContactArraySafe_(brand && (brand.contactPersonsJson || brand.contactPersons));
+    out.brandContactPersons = brandContacts;
+    var brandContact = firstContactSafe_(brandContacts);
+    if (brandContact) {
+      out.brandContactName = brandContact.name;
+      out.brandContactMobile = brandContact.mobile;
+    }
   }
 
   return out;
@@ -544,15 +591,50 @@ function toReceiptArray_(value) {
   return [];
 }
 
-function sendMessage_(waMessage) {
+function sendMessage_(waMessage, notificationPayload) {
   if (!isFilled_(waMessage)) {
     throw new Error("Cannot send blank message.");
   }
 
   var creds = getMessageAutosenderCredentials_();
+  var resolved = resolveNotificationRecipients_(notificationPayload || {});
+  var primaryResult = sendMessageRequest_(
+    resolved.ownerMobile,
+    resolved.groupIds,
+    waMessage,
+    creds
+  );
+
+  var failedRecipients = [];
+  for (var i = 0; i < resolved.extraMobiles.length; i++) {
+    var mobile = resolved.extraMobiles[i];
+    try {
+      sendMessageRequest_(mobile, [], waMessage, creds);
+    } catch (err) {
+      failedRecipients.push({
+        mobile: mobile,
+        error: String(err || "")
+      });
+      Logger.log("Notification extra recipient failed (" + mobile + "): " + err);
+    }
+  }
+
+  return {
+    statusCode: primaryResult.statusCode,
+    body: primaryResult.body,
+    recipients: {
+      ownerMobile: resolved.ownerMobile,
+      groupIds: resolved.groupIds,
+      extraMobiles: resolved.extraMobiles,
+      failedRecipients: failedRecipients
+    }
+  };
+}
+
+function sendMessageRequest_(receiverMobileNo, recipientIds, waMessage, creds) {
   var payload = {
-    receiverMobileNo: SIDVIN_NOTIFICATION_CONFIG.OWNER_MOBILE,
-    recipientIds: [SIDVIN_NOTIFICATION_CONFIG.OWNER_GROUP_ID],
+    receiverMobileNo: String(receiverMobileNo || "").trim(),
+    recipientIds: Array.isArray(recipientIds) ? recipientIds : [],
     message: [String(waMessage)]
   };
 
@@ -570,7 +652,7 @@ function sendMessage_(waMessage) {
   var response = UrlFetchApp.fetch(SIDVIN_NOTIFICATION_CONFIG.API_URL, options);
   var statusCode = response.getResponseCode();
   var body = response.getContentText();
-  Logger.log("Notification status: " + statusCode + " body: " + body);
+  Logger.log("Notification status: " + statusCode + " body: " + body + " receiver: " + payload.receiverMobileNo);
 
   if (statusCode < 200 || statusCode >= 300) {
     throw new Error("Message API failed: " + statusCode + " - " + body);
@@ -579,10 +661,83 @@ function sendMessage_(waMessage) {
   return { statusCode: statusCode, body: body };
 }
 
+function resolveNotificationRecipients_(payload) {
+  var ownerMobile = normalizeRecipientMobile_(SIDVIN_NOTIFICATION_CONFIG.OWNER_MOBILE);
+  if (!isFilled_(ownerMobile)) {
+    throw new Error("Missing OWNER_MOBILE in SIDVIN_NOTIFICATION_CONFIG.");
+  }
+
+  var groupIds = [];
+  if (isFilled_(SIDVIN_NOTIFICATION_CONFIG.OWNER_GROUP_ID)) {
+    groupIds.push(String(SIDVIN_NOTIFICATION_CONFIG.OWNER_GROUP_ID).trim());
+  }
+
+  var extrasRaw = [];
+  extrasRaw = extrasRaw.concat(extractContactMobiles_(payload.propertyContactPersons));
+  extrasRaw = extrasRaw.concat(extractContactMobiles_(payload.brandContactPersons));
+  extrasRaw = extrasRaw.concat(extractContactMobiles_(payload.contactPersonsJson || payload.contactPersons));
+  extrasRaw.push(payload.propertyContactMobile);
+  extrasRaw.push(payload.brandContactMobile);
+  extrasRaw.push(payload.mobile);
+
+  var seen = {};
+  var extraMobiles = [];
+  seen[ownerMobile] = true;
+  for (var i = 0; i < extrasRaw.length; i++) {
+    var normalized = normalizeRecipientMobile_(extrasRaw[i]);
+    if (!isFilled_(normalized) || seen[normalized]) continue;
+    seen[normalized] = true;
+    extraMobiles.push(normalized);
+  }
+
+  return {
+    ownerMobile: ownerMobile,
+    groupIds: groupIds,
+    extraMobiles: extraMobiles
+  };
+}
+
+function extractContactMobiles_(contactsValue) {
+  var contacts = toContactArray_(contactsValue);
+  var mobiles = [];
+  for (var i = 0; i < contacts.length; i++) {
+    var c = contacts[i] || {};
+    mobiles.push(c.mobile || c.phone || "");
+  }
+  return mobiles;
+}
+
+function toContactArray_(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      var parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      return [];
+    }
+  }
+  return [];
+}
+
+function normalizeRecipientMobile_(value) {
+  if (!isFilled_(value)) return "";
+  var digits = String(value).replace(/\D+/g, "");
+  if (!digits) return "";
+  if (digits.length === 12 && digits.indexOf("91") === 0) {
+    return digits.substring(2);
+  }
+  if (digits.length > 10) {
+    return digits.substring(digits.length - 10);
+  }
+  return digits;
+}
+
 function notifySidvinOwner_(eventType, payload) {
   var message = buildSidvinNotificationMessage_(eventType, payload || {});
   try {
-    var result = sendMessage_(message);
+    var result = sendMessage_(message, payload || {});
     writeNotificationAudit_("NOTIFY_SUCCESS", {
       eventType: eventType,
       proposalId: payload && payload.proposalId ? payload.proposalId : "",
@@ -942,6 +1097,20 @@ function firstContactSafe_(value) {
     name: first.name || first.contactPersonName || "",
     mobile: first.mobile || first.phone || ""
   };
+}
+
+function toContactArraySafe_(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      var parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      return [];
+    }
+  }
+  return [];
 }
 
 function joinParts_(parts, separator) {
