@@ -210,6 +210,12 @@ const normalizeVisit = (v: any): Visit => ({
   ...v,
   scheduledDate: fromSheetDate(v.scheduledDate),
   scheduledTime: normalizeTimeValue(v.scheduledTime),
+  meetingType:
+    v.meetingType === 'Physical' || v.meetingType === 'Virtual'
+      ? v.meetingType
+      : null,
+  meetingAgenda: toCleanString(v.meetingAgenda),
+  meetingLink: toCleanString(v.meetingLink || v.virtualMeetingLink || v.link) || null,
   visitDate: fromSheetDate(v.visitDate),
 });
 const normalizeFollowUp = (f: any): FollowUp => ({
@@ -504,6 +510,7 @@ export const addVisit = async (newVisit: Omit<Visit, 'id'>, updatedBy = 'System'
     ...newVisit,
     scheduledDate: toSheetDate(newVisit.scheduledDate),
     visitDate: toSheetDate(newVisit.visitDate),
+    meetingLink: toCleanString(newVisit.meetingLink) || null,
   };
   const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.visits, data: payload, updatedBy });
   return normalizeVisit(res.data);
@@ -513,6 +520,7 @@ export const updateVisit = async (updatedVisit: Visit, updatedBy = 'System'): Pr
     ...updatedVisit,
     scheduledDate: toSheetDate(updatedVisit.scheduledDate),
     visitDate: toSheetDate(updatedVisit.visitDate),
+    meetingLink: toCleanString(updatedVisit.meetingLink) || null,
   };
   const res: any = await postJson({ action: 'update', entity: ENTITY_MAP.visits, id: updatedVisit.id, data: payload, updatedBy });
   return normalizeVisit(res.data);

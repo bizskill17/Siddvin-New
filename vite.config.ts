@@ -49,7 +49,8 @@ export default defineConfig(({ mode }) => {
     return {
       server: {
         port: 3000,
-        host: '0.0.0.0',
+        // Bind IPv6 any-address so both localhost (::1) and 127.0.0.1 work on Windows
+        host: '::',
       },
       plugins: [react(), appsScriptDevProxy()],
       define: {

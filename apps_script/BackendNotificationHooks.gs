@@ -15,6 +15,7 @@ function tryNotifyMutation_(action, entity, savedData, updatedBy, previousData) 
 
 function notifyMutation_(action, entity, savedData, updatedBy, previousData) {
   var payload = buildBaseNotificationPayload_(entity, savedData, updatedBy);
+  payload.mutationAction = action;
 
   if (entity === "Properties") {
     notifySidvinOwner_(SidvinNotificationEvent.PROPERTY_UPDATE, payload);
@@ -26,19 +27,10 @@ function notifyMutation_(action, entity, savedData, updatedBy, previousData) {
     return;
   }
 
-  if (entity === "CompanyMaster" || entity === "CategoryMaster") {
-    payload.list = entity === "CompanyMaster" ? "Company Master" : "Category Master";
-    notifySidvinOwner_(SidvinNotificationEvent.MASTER_UPDATE, payload);
-    return;
-  }
-
-  if (entity === "SidvinTeam" || entity === "SidvinTeamMembers" || entity === "Sidvin Team Members") {
-    notifySidvinOwner_(SidvinNotificationEvent.TEAM_UPDATE, payload);
-    return;
-  }
-
   if (entity === "Proposals") {
-    notifySidvinOwner_(SidvinNotificationEvent.PROPOSAL_UPDATED, payload);
+    if (String(action || "").toLowerCase() === "create") {
+      notifySidvinOwner_(SidvinNotificationEvent.PROPOSAL_UPDATED, payload);
+    }
     if (isFilled_(savedData.invoiceNo) || isFilled_(savedData.invoiceDate) || isFilled_(savedData.invoiceAmount)) {
       notifySidvinOwner_(SidvinNotificationEvent.SUCCESS_STORY_BILLED, payload);
     }
@@ -47,11 +39,8 @@ function notifyMutation_(action, entity, savedData, updatedBy, previousData) {
 
   if (entity === "FollowUps") {
     var status = String(savedData.status || "").trim().toLowerCase();
-    if (status === "cancel proposal") {
-      notifySidvinOwner_(SidvinNotificationEvent.PROPOSAL_CANCELLED, payload);
-    } else {
-      notifySidvinOwner_(SidvinNotificationEvent.FOLLOW_UP_DONE, payload);
-    }
+    if (status !== "follow up again") return;
+    notifySidvinOwner_(SidvinNotificationEvent.FOLLOW_UP_DONE, payload);
     return;
   }
 
@@ -62,19 +51,6 @@ function notifyMutation_(action, entity, savedData, updatedBy, previousData) {
 
   if (entity === "TermSheets") {
     notifySidvinOwner_(SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED, payload);
-
-    if (
-      isFilled_(savedData.ac) ||
-      isFilled_(savedData.electricalPanel) ||
-      isFilled_(savedData.fireFightingSystem) ||
-      isFilled_(savedData.flooring) ||
-      isFilled_(savedData.powerLoad) ||
-      isFilled_(savedData.dgBackup)
-    ) {
-      notifySidvinOwner_(SidvinNotificationEvent.TECHNICAL_SPECS_FINALIZED, payload);
-    }
-
-    emitDepositAndReceiptNotifications_(payload, previousData, savedData, action);
     return;
   }
 }
@@ -86,6 +62,8 @@ function buildBaseNotificationPayload_(entity, savedData, updatedBy) {
   var context = resolveContext_(entity, savedData);
   payload.propertyAddress = payload.propertyAddress || context.propertyAddress;
   payload.brandName = payload.brandName || context.brandName;
+  payload.companyName = payload.companyName || context.companyName;
+  payload.ownerName = payload.ownerName || context.ownerName;
   payload.serialNo = payload.serialNo || context.serialNo;
   payload.propertyContactPersons = payload.propertyContactPersons || context.propertyContactPersons;
   payload.brandContactPersons = payload.brandContactPersons || context.brandContactPersons;
@@ -100,6 +78,9 @@ function buildBaseNotificationPayload_(entity, savedData, updatedBy) {
   }
   if (!isFilled_(payload.brandContactMobile) && isFilled_(context.brandContactMobile)) {
     payload.brandContactMobile = context.brandContactMobile;
+  }
+  if (!isFilled_(payload.brandContactDesignation) && isFilled_(context.brandContactDesignation)) {
+    payload.brandContactDesignation = context.brandContactDesignation;
   }
 
   if (!isFilled_(payload.contactPersonName) || !isFilled_(payload.mobile)) {
@@ -134,6 +115,8 @@ function resolveContext_(entity, savedData) {
   var out = {
     propertyAddress: "",
     brandName: "",
+    companyName: "",
+    ownerName: "",
     serialNo: "",
     proposalDate: "",
     proposalSender: "",
@@ -143,17 +126,27 @@ function resolveContext_(entity, savedData) {
     propertyContactName: "",
     propertyContactMobile: "",
     brandContactName: "",
-    brandContactMobile: ""
+    brandContactMobile: "",
+    brandContactDesignation: ""
   };
 
   if (entity === "Proposals") {
     var proposalCtx = getProposalContextByProposalId_(savedData.id, savedData.propertyId, savedData.brandId);
     out.propertyAddress = proposalCtx.propertyAddress;
     out.brandName = proposalCtx.brandName;
+    out.companyName = proposalCtx.companyName;
+    out.ownerName = proposalCtx.ownerName;
     out.serialNo = savedData.serialNo || proposalCtx.serialNo;
-    out.proposalDate = savedData.proposalDate;
-    out.proposalSender = savedData.proposalSender;
-    out.brandRemarks = savedData.brandRemarks;
+    out.proposalDate = savedData.proposalDate || proposalCtx.proposalDate;
+    out.proposalSender = savedData.proposalSender || proposalCtx.proposalSender;
+    out.brandRemarks = savedData.brandRemarks || proposalCtx.brandRemarks;
+    out.propertyContactPersons = proposalCtx.propertyContactPersons;
+    out.brandContactPersons = proposalCtx.brandContactPersons;
+    out.propertyContactName = proposalCtx.propertyContactName;
+    out.propertyContactMobile = proposalCtx.propertyContactMobile;
+    out.brandContactName = proposalCtx.brandContactName;
+    out.brandContactMobile = proposalCtx.brandContactMobile;
+    out.brandContactDesignation = proposalCtx.brandContactDesignation;
     return out;
   }
 
@@ -163,10 +156,19 @@ function resolveContext_(entity, savedData) {
     var proposalContext = getProposalContextByProposalId_(proposalId);
     out.propertyAddress = proposalContext.propertyAddress;
     out.brandName = proposalContext.brandName;
+    out.companyName = proposalContext.companyName;
+    out.ownerName = proposalContext.ownerName;
     out.serialNo = proposalContext.serialNo;
     out.proposalDate = proposalContext.proposalDate;
     out.proposalSender = proposalContext.proposalSender;
     out.brandRemarks = proposalContext.brandRemarks;
+    out.propertyContactPersons = proposalContext.propertyContactPersons;
+    out.brandContactPersons = proposalContext.brandContactPersons;
+    out.propertyContactName = proposalContext.propertyContactName;
+    out.propertyContactMobile = proposalContext.propertyContactMobile;
+    out.brandContactName = proposalContext.brandContactName;
+    out.brandContactMobile = proposalContext.brandContactMobile;
+    out.brandContactDesignation = proposalContext.brandContactDesignation;
     return out;
   }
 
@@ -177,6 +179,8 @@ function getProposalContextByProposalId_(proposalId, proposalPropertyId, proposa
   var out = {
     propertyAddress: "",
     brandName: "",
+    companyName: "",
+    ownerName: "",
     serialNo: "",
     proposalDate: "",
     proposalSender: "",
@@ -186,7 +190,8 @@ function getProposalContextByProposalId_(proposalId, proposalPropertyId, proposa
     propertyContactName: "",
     propertyContactMobile: "",
     brandContactName: "",
-    brandContactMobile: ""
+    brandContactMobile: "",
+    brandContactDesignation: ""
   };
 
   var proposal = null;
@@ -202,11 +207,15 @@ function getProposalContextByProposalId_(proposalId, proposalPropertyId, proposa
     out.proposalDate = proposal.proposalDate || "";
     out.proposalSender = proposal.proposalSender || "";
     out.brandRemarks = proposal.brandRemarks || "";
+    out.companyName = proposal.companyName || "";
+    out.ownerName = proposal.ownerName || "";
+    out.propertyAddress = proposal.propertyAddress || out.propertyAddress;
+    out.brandName = proposal.brandName || out.brandName;
   }
 
   if (isFilled_(propertyId)) {
     var property = getById_("Properties", propertyId);
-    out.propertyAddress = property && property.address ? property.address : "";
+    out.propertyAddress = (property && (property.address || property.propertyAddress)) || out.propertyAddress;
     var propertyContacts = toContactArraySafe_(property && (property.contactPersonsJson || property.contactPersons));
     out.propertyContactPersons = propertyContacts;
     var propertyContact = firstContactSafe_(propertyContacts);
@@ -214,17 +223,26 @@ function getProposalContextByProposalId_(proposalId, proposalPropertyId, proposa
       out.propertyContactName = propertyContact.name;
       out.propertyContactMobile = propertyContact.mobile;
     }
+    if (!isFilled_(out.ownerName)) {
+      out.ownerName =
+        (property && (property.ownerName || property.contactPersonName || property.propertyContactName)) ||
+        (propertyContact ? propertyContact.name : "");
+    }
   }
 
   if (isFilled_(brandId)) {
     var brand = getById_("Brands", brandId);
-    out.brandName = brand && brand.name ? brand.name : "";
+    out.brandName = (brand && (brand.name || brand.brandName)) || out.brandName;
+    out.companyName = (brand && (brand.companyName || brand.company)) || out.companyName;
     var brandContacts = toContactArraySafe_(brand && (brand.contactPersonsJson || brand.contactPersons));
     out.brandContactPersons = brandContacts;
     var brandContact = firstContactSafe_(brandContacts);
     if (brandContact) {
       out.brandContactName = brandContact.name;
       out.brandContactMobile = brandContact.mobile;
+    }
+    if (!isFilled_(out.brandContactDesignation)) {
+      out.brandContactDesignation = firstContactDesignationSafe_(brandContacts) || (brand && brand.designation) || "";
     }
   }
 
@@ -378,6 +396,13 @@ function firstContactSafe_(value) {
     name: c.name || c.contactPersonName || "",
     mobile: c.mobile || c.phone || ""
   };
+}
+
+function firstContactDesignationSafe_(value) {
+  var list = toContactArraySafe_(value);
+  if (!list.length) return "";
+  var c = list[0] || {};
+  return c.designation || "";
 }
 
 function toContactArraySafe_(value) {

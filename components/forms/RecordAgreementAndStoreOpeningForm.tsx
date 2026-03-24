@@ -54,9 +54,7 @@ const RecordAgreementAndStoreOpeningForm: React.FC<RecordAgreementAndStoreOpenin
         <Button type="button" variant="primary" onClick={onCancel}>Back</Button>
       </div>
 
-      <DateInput id="leaseAgreementPrepared" label="Lease Agreement Prepared" value={leaseAgreementPrepared || ''} onChange={(e) => setLeaseAgreementPrepared(e.target.value || null)} />
       <LongTextInput id="leaseAgreementRemarks" label="Lease Agreement Remarks" value={leaseAgreementRemarks} onChange={(e) => setLeaseAgreementRemarks(e.target.value)} />
-      <DateInput id="leaseAgreementSigned" label="Lease Agreement Signed" value={leaseAgreementSigned || ''} onChange={(e) => setLeaseAgreementSigned(e.target.value || null)} />
       <DateInput id="leaseAgreementRegistered" label="Lease Agreement Registered" value={leaseAgreementRegistered || ''} onChange={(e) => setLeaseAgreementRegistered(e.target.value || null)} />
       <DateInput id="storeOpeningDate" label="Store Opening Date" value={storeOpeningDate || ''} onChange={(e) => setStoreOpeningDate(e.target.value || null)} />
       <Input id="updatedByDisplay" label="Updated By" value={currentUserName} readOnly />

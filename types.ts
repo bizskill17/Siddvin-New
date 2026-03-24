@@ -103,7 +103,7 @@ export interface FollowUp extends AuditFields {
   proposalId: string;
   followUpDate: string | null;
   remarks: string;
-  status: 'Follow Up Again' | 'Schedule Visit' | 'Cancel Proposal' | 'Pending Details & Documentation';
+  status: 'Follow Up Again' | 'Schedule Visit' | 'Update' | 'Cancel Proposal' | 'Pending Details & Documentation';
   nextFollowUpDate: string | null;
   nextFollowUpTime: string | null;
   plannedVisitDate: string | null;
@@ -115,6 +115,9 @@ export interface Visit extends AuditFields {
   proposalId: string;
   scheduledDate: string | null;
   scheduledTime: string | null;
+  meetingType: 'Physical' | 'Virtual' | null;
+  meetingAgenda: string;
+  meetingLink: string | null;
   visitDate: string | null;
   developerAttendees: string;
   brandAttendees: string;
@@ -170,4 +173,3 @@ export interface TermSheetAgreement extends AuditFields {
   powerLoad: string;
   dgBackup: string;
 }
-

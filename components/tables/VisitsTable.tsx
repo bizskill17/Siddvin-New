@@ -19,6 +19,8 @@ const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete , to
     const text = [
       formatDateDisplay(visit.scheduledDate),
       visit.scheduledTime || '',
+      visit.meetingType || '',
+      visit.meetingAgenda || '',
       formatDateDisplay(visit.visitDate),
       visit.developerAttendees,
       visit.brandAttendees,
@@ -45,11 +47,13 @@ const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete , to
           onClick={() =>
             exportRowsToCsv(
               'visits',
-              ['No.', 'Scheduled Date', 'Scheduled Time', 'Visit Date', 'Developer Attendees', 'Brand Attendees', 'Sidvin Attendees', 'Visit Outcome'],
+              ['No.', 'Scheduled Date', 'Scheduled Time', 'Meeting Type', 'Meeting Agenda', 'Visit Date', 'Developer Attendees', 'Brand Attendees', 'Sidvin Attendees', 'Visit Outcome'],
               visibleVisits.map((v, i) => [
                 i + 1,
                 formatDateDisplay(v.scheduledDate),
                 v.scheduledTime || 'N/A',
+                v.meetingType || 'N/A',
+                v.meetingAgenda || 'N/A',
                 formatDateDisplay(v.visitDate),
                 v.developerAttendees || 'N/A',
                 v.brandAttendees || 'N/A',
@@ -74,6 +78,12 @@ const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete , to
             </th>
             <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
               Scheduled Time
+            </th>
+            <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
+              Meeting Type
+            </th>
+            <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
+              Meeting Agenda
             </th>
             <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
               Visit Date
@@ -103,6 +113,8 @@ const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete , to
               </td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{formatDateDisplay(visit.scheduledDate)}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{visit.scheduledTime || 'N/A'}</td>
+              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{visit.meetingType || 'N/A'}</td>
+              <td className="px-3 py-2.5 text-sm text-black">{visit.meetingAgenda || 'N/A'}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{formatDateDisplay(visit.visitDate)}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{visit.developerAttendees || 'N/A'}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{visit.brandAttendees || 'N/A'}</td>

@@ -48,12 +48,7 @@ function sendMessage_(waMessage, notificationPayload) {
 
   var creds = getMessageAutosenderCredentials_();
   var resolved = resolveNotificationRecipients_(notificationPayload || {});
-  var primaryResult = sendMessageRequest_(
-    resolved.ownerMobile,
-    resolved.groupIds,
-    waMessage,
-    creds
-  );
+  var primaryResult = sendOwnerAndGroupWithFallback_(resolved, waMessage, creds);
 
   var failedRecipients = [];
   for (var i = 0; i < resolved.extraMobiles.length; i++) {
@@ -81,9 +76,174 @@ function sendMessage_(waMessage, notificationPayload) {
   };
 }
 
+function sendMessageToMobiles_(mobiles, waMessage, creds) {
+  var list = Array.isArray(mobiles) ? mobiles : [];
+  var failed = [];
+  for (var i = 0; i < list.length; i++) {
+    try {
+      sendMessageRequest_(list[i], [], waMessage, creds);
+    } catch (err) {
+      failed.push({
+        mobile: list[i],
+        error: String(err || "")
+      });
+      Logger.log("Notification recipient failed (" + list[i] + "): " + err);
+    }
+  }
+  return failed;
+}
+
+function splitPropertyAndBrandMessage_(combinedMessage) {
+  var message = String(combinedMessage || "");
+  if (!isFilled_(message)) return { propertyMessage: "", brandMessage: "" };
+  var marker = "\n\nDear Mr.";
+  var idx = message.indexOf(marker);
+  if (idx < 0) return { propertyMessage: message, brandMessage: "" };
+  return {
+    propertyMessage: message.substring(0, idx),
+    brandMessage: "Dear Mr." + message.substring(idx + marker.length)
+  };
+}
+
+function sendSplitMessagesByAudience_(payload, propertyMessage, brandMessage) {
+  var safePayload = payload || {};
+  var creds = getMessageAutosenderCredentials_();
+  var resolved = resolveNotificationRecipients_(safePayload);
+  var failedRecipients = [];
+  var ownerCombinedMessage = joinMessageSections_([propertyMessage, brandMessage]);
+  var ownerResult = null;
+
+  if (isFilled_(propertyMessage)) {
+    ownerResult = sendOwnerAndGroupWithFallback_(resolved, propertyMessage, creds);
+  }
+  if (isFilled_(brandMessage)) {
+    var brandOwnerResult = sendOwnerAndGroupWithFallback_(resolved, brandMessage, creds);
+    if (!ownerResult) ownerResult = brandOwnerResult;
+  }
+  if (!ownerResult && isFilled_(ownerCombinedMessage)) {
+    ownerResult = sendOwnerAndGroupWithFallback_(resolved, ownerCombinedMessage, creds);
+  }
+
+  if (isFilled_(propertyMessage)) {
+    failedRecipients = failedRecipients.concat(sendMessageToMobiles_(resolved.propertyMobiles, propertyMessage, creds));
+  }
+  if (isFilled_(brandMessage)) {
+    failedRecipients = failedRecipients.concat(sendMessageToMobiles_(resolved.brandMobiles, brandMessage, creds));
+  }
+  if (isFilled_(ownerCombinedMessage)) {
+    failedRecipients = failedRecipients.concat(sendMessageToMobiles_(resolved.otherMobiles, ownerCombinedMessage, creds));
+  }
+
+  return {
+    statusCode: ownerResult ? ownerResult.statusCode : 200,
+    body: ownerResult ? ownerResult.body : "No owner/group message sent",
+    recipients: {
+      ownerMobile: resolved.ownerMobile,
+      groupIds: resolved.groupIds,
+      propertyMobiles: resolved.propertyMobiles,
+      brandMobiles: resolved.brandMobiles,
+      otherMobiles: resolved.otherMobiles,
+      failedRecipients: failedRecipients
+    }
+  };
+}
+
+function buildProposalOwnerCompactMessage_(payload) {
+  var propertyAddress = valueOrFallback_(payload.propertyAddress, "propertyAddress");
+  var brandName = valueOrFallback_(payload.brandName, "brandName");
+  var proposalDate = valueOrFallback_(payload.proposalDate, "proposalDate");
+  var proposalSender = valueOrFallback_(payload.proposalSender, "proposalSender");
+  var brandRemarks = valueOrFallback_(payload.brandRemarks, "brandRemarks");
+  var updatedBy = valueOrFallback_(payload.updatedBy, "updatedBy");
+
+  return joinMessageLines_([
+    "Dear Sir,",
+    "",
+    "Property: *" + propertyAddress + "*",
+    "Brand: *" + brandName + "*",
+    "Proposal Date: *" + proposalDate + "*",
+    "Proposal Sender: *" + proposalSender + "*",
+    "Brand Remarks: *" + brandRemarks + "*",
+    "Update By: *" + updatedBy + "*",
+    ""
+  ].concat(buildSignatureLines_()));
+}
+
+function notifyProposalUpdated_(payload) {
+  var safePayload = payload || {};
+  var creds = getMessageAutosenderCredentials_();
+  var resolved = resolveNotificationRecipients_(safePayload);
+
+  var failedRecipients = [];
+  var propertyMessage = buildProposalPropertyMessage_(safePayload);
+  var brandMessage = buildProposalBrandMessage_(safePayload);
+
+  // Also deliver both proposal messages to owner mobile + owner group.
+  if (isFilled_(propertyMessage)) {
+    sendOwnerAndGroupWithFallback_(resolved, propertyMessage, creds);
+  }
+  if (isFilled_(brandMessage)) {
+    sendOwnerAndGroupWithFallback_(resolved, brandMessage, creds);
+  }
+
+  failedRecipients = failedRecipients.concat(sendMessageToMobiles_(resolved.propertyMobiles, propertyMessage, creds));
+  failedRecipients = failedRecipients.concat(sendMessageToMobiles_(resolved.brandMobiles, brandMessage, creds));
+
+  return {
+    statusCode: 200,
+    body: "Proposal templates sent to property/brand contacts",
+    recipients: {
+      propertyMobiles: resolved.propertyMobiles,
+      brandMobiles: resolved.brandMobiles,
+      failedRecipients: failedRecipients
+    }
+  };
+}
+
 function notifySidvinOwner_(eventType, payload) {
-  var message = buildSidvinNotificationMessage_(eventType, payload || {});
-  return sendMessage_(message, payload || {});
+  payload = payload || {};
+  if (eventType === SidvinNotificationEvent.PROPOSAL_UPDATED) {
+    return notifyProposalUpdated_(payload);
+  }
+  if (
+    eventType === SidvinNotificationEvent.VISIT_UPDATE ||
+    eventType === SidvinNotificationEvent.FOLLOW_UP_DONE ||
+    eventType === SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED ||
+    eventType === SidvinNotificationEvent.SUCCESS_STORY_BILLED
+  ) {
+    if (eventType === SidvinNotificationEvent.FOLLOW_UP_DONE) {
+      var guardedFollowUpStatus = String(payload.status || "").trim().toLowerCase();
+      if (guardedFollowUpStatus !== "follow up again") {
+        return { skipped: true, reason: "Follow-up notifications are enabled only for Follow Up Again status." };
+      }
+    }
+    var combined = buildSidvinNotificationMessage_(eventType, payload);
+    if (!isFilled_(combined)) {
+      return { skipped: true, reason: "Template-only mode: event not in approved templates." };
+    }
+    var split = splitPropertyAndBrandMessage_(combined);
+    var propertyMessage = split.propertyMessage;
+    var brandMessage = split.brandMessage;
+
+    if (eventType === SidvinNotificationEvent.FOLLOW_UP_DONE) {
+      var followUpStatus = String(payload.status || "").trim().toLowerCase();
+      if (followUpStatus === "follow up again") {
+        brandMessage = "";
+      }
+    }
+
+    if (eventType === SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED) {
+      // Per latest rule: no pending terms/agreement message to brand contact.
+      brandMessage = "";
+    }
+
+    return sendSplitMessagesByAudience_(payload, propertyMessage, brandMessage);
+  }
+  var message = buildSidvinNotificationMessage_(eventType, payload);
+  if (!isFilled_(message)) {
+    return { skipped: true, reason: "Template-only mode: event not in approved templates." };
+  }
+  return sendMessage_(message, payload);
 }
 
 /**
@@ -108,6 +268,7 @@ function notifySidvinFromMutation_(mutation) {
   var updatedBy = mutation.updatedBy || data.updatedBy || "System";
   var base = copyObject_(data);
   base.updatedBy = updatedBy;
+  base.mutationAction = mutation.action;
 
   if (isFilled_(mutation.propertyAddress) && !isFilled_(base.propertyAddress)) {
     base.propertyAddress = mutation.propertyAddress;
@@ -122,42 +283,28 @@ function notifySidvinFromMutation_(mutation) {
     case "Brands":
       return notifySidvinOwner_(SidvinNotificationEvent.BRAND_UPDATE, base);
     case "CompanyMaster":
-      base.list = "Company Master";
-      if (!isFilled_(base.name) && isFilled_(data.value)) base.name = data.value;
-      return notifySidvinOwner_(SidvinNotificationEvent.MASTER_UPDATE, base);
     case "CategoryMaster":
-      base.list = "Category Master";
-      if (!isFilled_(base.name) && isFilled_(data.value)) base.name = data.value;
-      return notifySidvinOwner_(SidvinNotificationEvent.MASTER_UPDATE, base);
     case "SidvinTeam":
     case "SidvinTeamMembers":
     case "Sidvin Team Members":
-      return notifySidvinOwner_(SidvinNotificationEvent.TEAM_UPDATE, base);
+      return null;
     case "Proposals":
-      notifySidvinOwner_(SidvinNotificationEvent.PROPOSAL_UPDATED, base);
+      if (String(mutation.action || "").toLowerCase() === "create") {
+        notifySidvinOwner_(SidvinNotificationEvent.PROPOSAL_UPDATED, base);
+      }
       if (isFilled_(base.invoiceNo) || isFilled_(base.invoiceDate) || isFilled_(base.invoiceAmount)) {
         notifySidvinOwner_(SidvinNotificationEvent.SUCCESS_STORY_BILLED, base);
       }
       return true;
     case "FollowUps":
-      if (String(base.status || "").toLowerCase() === "cancel proposal") {
-        return notifySidvinOwner_(SidvinNotificationEvent.PROPOSAL_CANCELLED, base);
+      if (String(base.status || "").trim().toLowerCase() !== "follow up again") {
+        return null;
       }
       return notifySidvinOwner_(SidvinNotificationEvent.FOLLOW_UP_DONE, base);
     case "Visits":
       return notifySidvinOwner_(SidvinNotificationEvent.VISIT_UPDATE, base);
     case "TermSheets":
       notifySidvinOwner_(SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED, base);
-      if (
-        isFilled_(base.ac) ||
-        isFilled_(base.electricalPanel) ||
-        isFilled_(base.fireFightingSystem) ||
-        isFilled_(base.flooring) ||
-        isFilled_(base.powerLoad) ||
-        isFilled_(base.dgBackup)
-      ) {
-        notifySidvinOwner_(SidvinNotificationEvent.TECHNICAL_SPECS_FINALIZED, base);
-      }
       return true;
     default:
       return null;
@@ -165,145 +312,465 @@ function notifySidvinFromMutation_(mutation) {
 }
 
 function buildSidvinNotificationMessage_(eventType, payload) {
-  var lines = [];
-  var title = getNotificationTitle_(eventType);
-  lines.push("[Sidvin Notification] " + title);
-
+  payload = payload || {};
   switch (eventType) {
     case SidvinNotificationEvent.PROPERTY_UPDATE:
-      addLine_(lines, "Address", payload.address);
-      addLine_(lines, "Proposed Rent", payload.proposedRent);
-      addLine_(lines, "Proposed Area", payload.proposedArea);
-      addLine_(lines, "Floors", payload.noOfFloors);
-      addLine_(lines, "Frontage", payload.frontage);
-      addLine_(lines, "Maps Link", payload.googleMapsLink);
-      addLine_(lines, "Contact", formatContact_(payload));
-      addLine_(lines, "Property Fee Status", payload.propertyFeeStatus);
-      addLine_(lines, "Paper Signing Date", payload.propertyFeePaperSigningDate);
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
+      return buildPropertyRegistrationMessage_(payload);
     case SidvinNotificationEvent.BRAND_UPDATE:
-      addLine_(lines, "Brand Name", payload.name);
-      addLine_(lines, "Company Name", payload.companyName);
-      addLine_(lines, "Category", payload.category);
-      addLine_(lines, "Service Fee Agreed", payload.serviceFeeAgreed);
-      addLine_(lines, "Assigned Rep", payload.assignedRep);
-      addLine_(lines, "Contact", formatContact_(payload));
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
-    case SidvinNotificationEvent.MASTER_UPDATE:
-      addLine_(lines, "List", payload.list);
-      addLine_(lines, "New Entry", payload.name);
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
-    case SidvinNotificationEvent.TEAM_UPDATE:
-      addLine_(lines, "Staff Name", payload.name);
-      addLine_(lines, "Designation", payload.designation);
-      addLine_(lines, "Role", payload.role);
-      addLine_(lines, "Action By", payload.updatedBy || payload.adminName);
-      break;
-
+      return buildBrandPersonMessage_(payload);
     case SidvinNotificationEvent.PROPOSAL_UPDATED:
-      addLine_(lines, "Property", payload.propertyAddress);
-      addLine_(lines, "Brand", payload.brandName);
-      addLine_(lines, "Serial No", payload.serialNo);
-      addLine_(lines, "Proposal Date", payload.proposalDate);
-      addLine_(lines, "Proposal Sender", payload.proposalSender);
-      addLine_(lines, "Brand Remarks", payload.brandRemarks);
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
-    case SidvinNotificationEvent.FOLLOW_UP_DONE:
-      addLine_(lines, "Property", payload.propertyAddress);
-      addLine_(lines, "Brand", payload.brandName);
-      addLine_(lines, "Follow Up Date", payload.followUpDate);
-      addLine_(lines, "Status", payload.status);
-      addLine_(lines, "Remarks", payload.remarks);
-      addLine_(lines, "Next Follow Up Date", joinParts_([payload.nextFollowUpDate, payload.nextFollowUpTime], " "));
-      addLine_(lines, "Planned Visit Date", payload.plannedVisitDate);
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
-    case SidvinNotificationEvent.PROPOSAL_CANCELLED:
-      addLine_(lines, "Property", payload.propertyAddress);
-      addLine_(lines, "Brand", payload.brandName);
-      addLine_(lines, "Cancellation Reason", payload.cancelRemarks);
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
+      return buildProposalMessage_(payload);
     case SidvinNotificationEvent.VISIT_UPDATE:
-      addLine_(lines, "Property", payload.propertyAddress);
-      addLine_(lines, "Brand", payload.brandName);
-      addLine_(lines, "Status", payload.status || deriveVisitStatus_(payload));
-      addLine_(lines, "Date", payload.visitDate || payload.scheduledDate);
-      addLine_(lines, "Visit Outcome", payload.visitOutcome);
-      addLine_(lines, "Attendance", joinParts_([payload.sidvinAttendees, payload.brandAttendees, payload.developerAttendees], " / "));
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
+      return buildVisitMessage_(payload, deriveVisitStatus_(payload));
+    case SidvinNotificationEvent.FOLLOW_UP_DONE:
+      return buildFollowUpMeetingMessage_(payload);
     case SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED:
-      addLine_(lines, "Property", payload.propertyAddress);
-      addLine_(lines, "Brand", payload.brandName);
-      addLine_(lines, "Current Stage", payload.currentStage || deriveTermsStage_(payload));
-      addLine_(lines, "Signing Date", payload.signingDate);
-      addLine_(lines, "Finalization Date", payload.finalizationDate);
-      addLine_(lines, "Rent Commencement", payload.rentCommencementDate);
-      addLine_(lines, "Handover Date", payload.handoverDate);
-      addLine_(lines, "Agreement Registration Date", payload.agreementRegistrationDate);
-      addLine_(lines, "Planned Store Opening", payload.plannedOpeningDate);
-      addLine_(lines, "Actual Store Opening", payload.storeOpeningDate);
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
-    case SidvinNotificationEvent.TECHNICAL_SPECS_FINALIZED:
-      addLine_(lines, "Property", payload.propertyAddress);
-      addLine_(lines, "Brand", payload.brandName);
-      addLine_(lines, "AC", payload.ac);
-      addLine_(lines, "Electrical Panel", payload.electricalPanel);
-      addLine_(lines, "Fire Safety", payload.fireFightingSystem);
-      addLine_(lines, "Flooring", payload.flooring);
-      addLine_(lines, "Power Load", payload.powerLoad);
-      addLine_(lines, "DG Backup", payload.dgBackup);
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
-    case SidvinNotificationEvent.DEPOSIT_UPDATE:
-      addLine_(lines, "Property", payload.propertyAddress);
-      addLine_(lines, "Brand", payload.brandName);
-      addLine_(lines, "Stage Name", payload.stageName);
-      addLine_(lines, "Amount Due", payload.amount);
-      addLine_(lines, "Total Received Amount", payload.receivedAmount);
-      addLine_(lines, "Latest Receipt Date", payload.receiptDate);
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
-    case SidvinNotificationEvent.RECEIPT_UPDATE:
-      addLine_(lines, "Property", payload.propertyAddress);
-      addLine_(lines, "Brand", payload.brandName);
-      addLine_(lines, "Deposit Stage", payload.stageName);
-      addLine_(lines, "Receipt Amount", payload.receiptAmount);
-      addLine_(lines, "Receipt Date", payload.receiptDate);
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
+      return buildPendingTermsAgreementMessage_(payload);
     case SidvinNotificationEvent.SUCCESS_STORY_BILLED:
-      addLine_(lines, "Property", payload.propertyAddress);
-      addLine_(lines, "Brand", payload.brandName);
-      addLine_(lines, "Invoice Status", "Billed");
-      addLine_(lines, "Invoice No", payload.invoiceNo);
-      addLine_(lines, "Invoice Date", payload.invoiceDate);
-      addLine_(lines, "Invoice Amount", payload.invoiceAmount);
-      addLine_(lines, "Log By", payload.updatedBy);
-      break;
-
+      return buildDealClosedMessage_(payload);
+    case SidvinNotificationEvent.PROPOSAL_CANCELLED:
+      return "";
+    case SidvinNotificationEvent.MASTER_UPDATE:
+      return "";
+    case SidvinNotificationEvent.TEAM_UPDATE:
+      return "";
+    case SidvinNotificationEvent.TECHNICAL_SPECS_FINALIZED:
+      return "";
+    case SidvinNotificationEvent.DEPOSIT_UPDATE:
+      return "";
+    case SidvinNotificationEvent.RECEIPT_UPDATE:
+      return "";
     default:
-      throw new Error("Unsupported eventType: " + eventType);
+      return "";
+  }
+}
+
+function buildPropertyRegistrationMessage_(payload) {
+  var visitDoneDate = valueOrFallback_(payload.visitDate || payload.createdAt, "date");
+  var propertyName = valueOrFallback_(payload.propertyAddress || payload.address || payload.propertyName, "propertyName");
+  return joinMessageLines_([
+    "Dear Sir,",
+    "",
+    "Property (*" + propertyName + "*)",
+    "",
+    "The site visit to your property was done on *" + visitDoneDate + "*. Thank you for registering your property with us. We assure you the best services from our end. Hope to have a good relation with you. Welcome on board.",
+    ""
+  ].concat(buildSignatureLines_()));
+}
+
+function buildBrandPersonMessage_(payload) {
+  var brandContact = resolveBrandContactName_(payload);
+  var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
+  var companyName = valueOrFallback_(payload.companyName, "companyName");
+  var designation = valueOrFallback_(resolveBrandDesignation_(payload), "designation");
+
+  return joinMessageLines_([
+    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "",
+    "Brand Name: *" + brandName + "*",
+    "Company Name: *" + companyName + "*",
+    "Designation: *" + designation + "*",
+    "",
+    "Thank you for giving us the opportunity to join hands with you. We shall be sending you property proposals, knowledge info and regular updates through email and WhatsApp messages.",
+    ""
+  ].concat(buildSignatureLines_()));
+}
+
+function buildProposalMessage_(payload) {
+  return joinMessageSections_([
+    buildProposalPropertyMessage_(payload),
+    buildProposalBrandMessage_(payload)
+  ]);
+}
+
+function buildProposalPropertyMessage_(payload) {
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+  var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
+  var companyName = valueOrFallback_(payload.companyName, "companyName");
+  var proposalDate = valueOrFallback_(payload.proposalDate, "date");
+  var trackingLink = valueOrFallback_(resolveTrackingLink_(payload), "trackingLink");
+
+  return joinMessageLines_([
+    "Dear Sir,",
+    "",
+    "We have proposed your property *" + address + "* to *" + brandName + "* of *" + companyName + "* on *" + proposalDate + "*. Next process is the site visit of *" + brandName + "* - *" + companyName + "*. For live tracking, please visit the link *" + trackingLink + "*.",
+    ""
+  ].concat(buildSignatureLines_()));
+}
+
+function buildProposalBrandMessage_(payload) {
+  var brandContact = resolveBrandContactName_(payload);
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+  var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
+  var companyName = valueOrFallback_(payload.companyName, "companyName");
+  var ownerName = valueOrFallback_(resolveOwnerName_(payload), "ownerName");
+  var designation = valueOrFallback_(resolveBrandDesignation_(payload), "designation");
+
+  return joinMessageLines_([
+    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "",
+    "Brand Name: *" + brandName + "*",
+    "Company Name: *" + companyName + "*",
+    "Designation: *" + designation + "*",
+    "",
+    "This is to inform you that we have proposed a commercial property *" + address + "* which belongs to *" + ownerName + "*. Please review and send us your valuable feedback.",
+    ""
+  ].concat(buildSignatureLines_()));
+}
+
+function buildVisitMessage_(payload, status) {
+  var visitStatus = String(status || "").toLowerCase() === "completed" ? "completed" : "scheduled";
+  var brandContact = resolveBrandContactName_(payload);
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+  var ownerName = valueOrFallback_(resolveOwnerName_(payload), "ownerName");
+  var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
+  var companyName = valueOrFallback_(payload.companyName, "companyName");
+  var dateValue = valueOrFallback_(payload.visitDate || payload.scheduledDate, "date");
+  var ownerPresent = valueOrFallback_(payload.propertyContactName || payload.contactPersonName, "ownerSidePerson");
+
+  var propertyLine = visitStatus === "completed"
+    ? "This is to inform you that the site visit for your property was completed by *" + brandName + "* - *" + companyName + "* on *" + dateValue + "*. Mr. *" + ownerPresent + "* from your side was present. We will keep you posted on further updates."
+    : "This is to inform you that a site visit is arranged for your property on *" + dateValue + "* with *" + brandName + "* - *" + companyName + "*. Please keep yourself/team available for the same.";
+
+  var brandLine = visitStatus === "completed"
+    ? "Thank you for taking the time to visit the property *" + address + "* of *" + ownerName + "* and sharing your insights. We look forward to coordinate on the next steps."
+    : "This is to inform you that the site visit of the property *" + address + "* which belongs to *" + ownerName + "* has been scheduled on *" + dateValue + "*.";
+
+  var propertySection = joinMessageLines_([
+    "Dear Sir,",
+    "",
+    "Property (*" + address + "*)",
+    "",
+    propertyLine,
+    ""
+  ].concat(buildSignatureLines_()));
+
+  var brandSection = joinMessageLines_([
+    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "",
+    "Brand Name: *" + brandName + "*",
+    "Company Name: *" + companyName + "*",
+    "",
+    brandLine,
+    ""
+  ].concat(buildSignatureLines_()));
+
+  return joinMessageSections_([propertySection, brandSection]);
+}
+
+function buildFollowUpMeetingMessage_(payload) {
+  var remarks = String(payload.remarks || "").toLowerCase();
+  var status = String(payload.status || "").toLowerCase();
+  if (status === "schedule visit" || status === "update") {
+    return buildClientMeetingMessage_(payload);
+  }
+  var isPendingTerms = status.indexOf("pending terms") >= 0 || remarks.indexOf("pending terms") >= 0 || remarks.indexOf("agreement") >= 0;
+  if (isPendingTerms) return buildPendingTermsAgreementMessage_(payload);
+  if (isVirtualMeetingType_(payload)) return buildVirtualMeetingMessage_(payload);
+  return buildClientMeetingMessage_(payload);
+}
+
+function buildClientMeetingMessage_(payload) {
+  var brandContact = resolveBrandContactName_(payload);
+  var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
+  var companyName = valueOrFallback_(payload.companyName, "companyName");
+  var ownerName = valueOrFallback_(resolveOwnerName_(payload), "ownerName");
+  var brandPerson = valueOrFallback_(brandContact, "brandRep");
+  var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "date");
+  var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "time");
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+
+  var propertySection = joinMessageLines_([
+    "Dear Sir,",
+    "",
+    "Property (*" + address + "*)",
+    "",
+    "A meeting has been scheduled with Mr. *" + brandPerson + "* from *" + brandName + "* - *" + companyName + "* on *" + dateValue + "* at *" + timeValue + "*. Please keep yourself available.",
+    ""
+  ].concat(buildSignatureLines_()));
+
+  var brandSection = joinMessageLines_([
+    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "",
+    "Brand Name: *" + brandName + "*",
+    "Company Name: *" + companyName + "*",
+    "",
+    "A meeting has been scheduled with Mr. *" + ownerName + "*, owner of *" + address + "*, on *" + dateValue + "* at *" + timeValue + "*. Please keep yourself available.",
+    ""
+  ].concat(buildSignatureLines_()));
+
+  return joinMessageSections_([propertySection, brandSection]);
+}
+
+function buildVirtualMeetingMessage_(payload) {
+  var brandContact = resolveBrandContactName_(payload);
+  var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
+  var companyName = valueOrFallback_(payload.companyName, "companyName");
+  var ownerName = valueOrFallback_(resolveOwnerName_(payload), "ownerName");
+  var brandPerson = valueOrFallback_(brandContact, "brandRep");
+  var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "date");
+  var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "time");
+  var linkValue = valueOrFallback_(resolveMeetingLink_(payload), "link");
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+
+  var propertySection = joinMessageLines_([
+    "Dear Sir,",
+    "",
+    "Property (*" + address + "*)",
+    "",
+    "A virtual meeting has been scheduled with Mr. *" + brandPerson + "* of *" + brandName + "* on *" + dateValue + "* at *" + timeValue + "*. Please make a note of the timing and join the meeting via *" + linkValue + "*.",
+    ""
+  ].concat(buildSignatureLines_()));
+
+  var brandSection = joinMessageLines_([
+    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "",
+    "Brand Name: *" + brandName + "*",
+    "Company Name: *" + companyName + "*",
+    "",
+    "It is to inform you that a zoom meeting has been scheduled with owner *" + ownerName + "* of *" + address + "* on *" + dateValue + "* at *" + timeValue + "*. Please make a note of the timing and join the meeting via *" + linkValue + "*.",
+    ""
+  ].concat(buildSignatureLines_()));
+
+  return joinMessageSections_([propertySection, brandSection]);
+}
+
+function buildPendingTermsAgreementMessage_(payload) {
+  var brandContact = resolveBrandContactName_(payload);
+  var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
+  var companyName = valueOrFallback_(payload.companyName, "companyName");
+  var ownerName = valueOrFallback_(resolveOwnerName_(payload), "ownerName");
+  var brandPerson = valueOrFallback_(brandContact, "brandRep");
+  var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "date");
+  var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "time");
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+
+  var propertySection = joinMessageLines_([
+    "Dear Sir,",
+    "",
+    "Property (*" + address + "*)",
+    "",
+    "A meeting with Mr. *" + brandPerson + "* of *" + brandName + "* of *" + companyName + "* is scheduled on *" + dateValue + "* at *" + timeValue + "* to discuss the pending terms/agreement. Please be available for the same.",
+    ""
+  ].concat(buildSignatureLines_()));
+
+  var brandSection = joinMessageLines_([
+    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "",
+    "Brand Name: *" + brandName + "*",
+    "Company Name: *" + companyName + "*",
+    "",
+    "It is to inform you that the finalization of the pending terms/agreement is scheduled with *" + ownerName + "* of *" + address + "* on *" + dateValue + "* at *" + timeValue + "*. Please be available for discussion.",
+    ""
+  ].concat(buildSignatureLines_()));
+
+  return joinMessageSections_([propertySection, brandSection]);
+}
+
+function buildDealClosedMessage_(payload) {
+  var brandContact = resolveBrandContactName_(payload);
+  var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
+  var companyName = valueOrFallback_(payload.companyName, "companyName");
+
+  var propertySection = joinMessageLines_([
+    "Dear Sir,",
+    "",
+    "Property (*" + valueOrFallback_(payload.propertyAddress || payload.address, "address") + "*)",
+    "",
+    "We are extending our heartiest congratulations on successful completion of the lease deal with *" + brandName + "* - *" + companyName + "*. Thank you for trusting us and giving us the opportunity to work with you. Please remember us in all future endeavors.",
+    ""
+  ].concat(buildSignatureLines_()));
+
+  var brandSection = joinMessageLines_([
+    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "",
+    "Brand Name: *" + brandName + "*",
+    "Company Name: *" + companyName + "*",
+    "",
+    "Congratulations on successful completion of the lease deal. Your efforts and collaborations made this possible. Thank you for trusting us and giving us the opportunity to work with you. Please remember us in all future endeavors.",
+    ""
+  ].concat(buildSignatureLines_()));
+
+  return joinMessageSections_([propertySection, brandSection]);
+}
+
+function buildCompactNotification_(title, fields) {
+  var lines = [title];
+  for (var i = 0; i < fields.length; i++) {
+    var label = fields[i][0];
+    var value = fields[i][1];
+    if (!isFilled_(value)) continue;
+    lines.push(label + ": " + stringifyValue_(value));
+  }
+  return joinMessageLines_(lines);
+}
+
+function buildSignatureLines_() {
+  return [
+    "Best Regards.",
+    "",
+    "*Team Siddvin RLT*",
+    "Result- driven commercial real estate agency of N.E India led by *Mr. Vikaas D Goenka*"
+  ];
+}
+
+function joinMessageSections_(sections) {
+  return (sections || []).filter(function (s) { return isFilled_(s); }).join("\n\n");
+}
+
+function joinMessageLines_(lines) {
+  return (lines || [])
+    .filter(function (line) { return line !== null && line !== undefined; })
+    .map(function (line) { return String(line); })
+    .join("\n");
+}
+
+function slot_(value, label) {
+  if (isFilled_(value)) return stringifyValue_(value);
+  return "<" + String(label || "value") + ">";
+}
+
+function slotToken_(value, token) {
+  if (isFilled_(value)) return stringifyValue_(value);
+  return "{" + String(token || "value") + "}";
+}
+
+function valueOrFallback_(value, token) {
+  if (isFilled_(value)) {
+    var tokenText = String(token || "");
+    if (/date/i.test(tokenText)) {
+      return formatDateForMessage_(value);
+    }
+    return stringifyValue_(value);
+  }
+  return "N/A";
+}
+
+function formatDateForMessage_(value) {
+  if (!isFilled_(value)) return "N/A";
+  if (Object.prototype.toString.call(value) === "[object Date]") {
+    var tzDate = Session.getScriptTimeZone() || "Asia/Kolkata";
+    return Utilities.formatDate(value, tzDate, "dd/MM/yyyy");
   }
 
-  return lines.join("\n");
+  var raw = String(value).trim();
+  if (!raw) return "N/A";
+
+  var m = raw.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+  if (m) return m[1] + "/" + m[2] + "/" + m[3];
+
+  m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s].*)?$/);
+  if (m) return m[3] + "/" + m[2] + "/" + m[1];
+
+  m = raw.match(/^(\d{4})\/(\d{2})\/(\d{2})(?:[T\s].*)?$/);
+  if (m) return m[3] + "/" + m[2] + "/" + m[1];
+
+  var parsed = new Date(raw);
+  if (!isNaN(parsed.getTime())) {
+    var tz = Session.getScriptTimeZone() || "Asia/Kolkata";
+    return Utilities.formatDate(parsed, tz, "dd/MM/yyyy");
+  }
+
+  return raw;
+}
+
+function resolvePropertyContactName_(payload) {
+  return (
+    payload.propertyContactName ||
+    payload.propertyContactPersonName ||
+    payload.contactPersonName ||
+    firstContactName_(payload.propertyContactPersons) ||
+    firstContactName_(payload.contactPersonsJson || payload.contactPersons)
+  );
+}
+
+function resolveBrandContactName_(payload) {
+  return (
+    payload.brandContactName ||
+    payload.brandContactPersonName ||
+    firstContactName_(payload.brandContactPersons) ||
+    firstContactName_(payload.contactPersonsJson || payload.contactPersons)
+  );
+}
+
+function resolveBrandDesignation_(payload) {
+  return (
+    payload.brandContactDesignation ||
+    payload.designation ||
+    firstContactDesignation_(payload.brandContactPersons) ||
+    firstContactDesignation_(payload.contactPersonsJson || payload.contactPersons)
+  );
+}
+
+function resolveOwnerName_(payload) {
+  return (
+    payload.ownerName ||
+    payload.owner ||
+    payload.propertyOwnerName ||
+    payload.propertyContactName ||
+    payload.contactPersonName ||
+    firstContactName_(payload.propertyContactPersons) ||
+    firstContactName_(payload.contactPersonsJson || payload.contactPersons)
+  );
+}
+
+function resolveMeetingDate_(payload) {
+  return (
+    payload.meetingDate ||
+    payload.nextFollowUpDate ||
+    payload.followUpDate ||
+    payload.finalizationDate ||
+    payload.agreementDate ||
+    payload.scheduledDate ||
+    payload.visitDate ||
+    payload.proposalDate
+  );
+}
+
+function resolveMeetingTime_(payload) {
+  return (
+    payload.meetingTime ||
+    payload.nextFollowUpTime ||
+    payload.followUpTime ||
+    payload.scheduledTime ||
+    payload.scheduled_time ||
+    payload.visitTime ||
+    payload.time
+  );
+}
+
+function resolveMeetingLink_(payload) {
+  return payload.meetingLink || payload.zoomLink || payload.virtualMeetingLink || payload.link;
+}
+
+function resolveTrackingLink_(payload) {
+  return payload.liveTrackingLink || payload.trackingLink || payload.proposalTrackingLink || payload.googleMapsLink || "https://sidvin-workflow.vercel.app/";
+}
+
+function isVirtualMeetingType_(payload) {
+  var mt = String(
+    (payload && (
+      payload.meetingType ||
+      payload.meeting_type ||
+      payload.typeOfMeeting ||
+      payload.meetingMode
+    )) || ""
+  ).trim().toLowerCase();
+  return mt === "virtual";
+}
+
+function firstContactName_(contactsValue) {
+  var list = toContactArray_(contactsValue);
+  if (!list.length) return "";
+  var first = list[0] || {};
+  return first.name || first.contactPersonName || "";
+}
+
+function firstContactDesignation_(contactsValue) {
+  var list = toContactArray_(contactsValue);
+  if (!list.length) return "";
+  var first = list[0] || {};
+  return first.designation || "";
 }
 
 function getNotificationTitle_(eventType) {
@@ -419,7 +886,54 @@ function sendMessageRequest_(receiverMobileNo, recipientIds, waMessage, creds) {
   return { statusCode: statusCode, body: body };
 }
 
+function sendOwnerAndGroupWithFallback_(resolved, waMessage, creds) {
+  var combinedErr = "";
+  var ownerErr = "";
+  var groupErr = "";
+
+  try {
+    return sendMessageRequest_(
+      resolved.ownerMobile,
+      resolved.groupIds,
+      waMessage,
+      creds
+    );
+  } catch (errCombined) {
+    combinedErr = String(errCombined || "");
+    Logger.log("Owner+group combined send failed: " + combinedErr);
+  }
+
+  var ownerResult = null;
+  var groupResult = null;
+  try {
+    ownerResult = sendMessageRequest_(resolved.ownerMobile, [], waMessage, creds);
+  } catch (errOwner) {
+    ownerErr = String(errOwner || "");
+    Logger.log("Owner-only send failed: " + ownerErr);
+  }
+
+  if (resolved.groupIds && resolved.groupIds.length) {
+    try {
+      groupResult = sendMessageRequest_(resolved.ownerMobile, resolved.groupIds, waMessage, creds);
+    } catch (errGroup) {
+      groupErr = String(errGroup || "");
+      Logger.log("Group-only send failed: " + groupErr);
+    }
+  }
+
+  if (ownerResult || groupResult) {
+    return ownerResult || groupResult;
+  }
+
+  throw new Error(
+    "Owner/group delivery failed. combined=" + combinedErr +
+    " owner=" + ownerErr +
+    " group=" + groupErr
+  );
+}
+
 function resolveNotificationRecipients_(payload) {
+  payload = payload || {};
   var ownerMobile = normalizeRecipientMobile_(SIDVIN_NOTIFICATION_CONFIG.OWNER_MOBILE);
   if (!isFilled_(ownerMobile)) {
     throw new Error("Missing OWNER_MOBILE in SIDVIN_NOTIFICATION_CONFIG.");
@@ -430,29 +944,60 @@ function resolveNotificationRecipients_(payload) {
     groupIds.push(String(SIDVIN_NOTIFICATION_CONFIG.OWNER_GROUP_ID).trim());
   }
 
-  var extrasRaw = [];
-  extrasRaw = extrasRaw.concat(extractContactMobiles_(payload.propertyContactPersons));
-  extrasRaw = extrasRaw.concat(extractContactMobiles_(payload.brandContactPersons));
-  extrasRaw = extrasRaw.concat(extractContactMobiles_(payload.contactPersonsJson || payload.contactPersons));
-  extrasRaw.push(payload.propertyContactMobile);
-  extrasRaw.push(payload.brandContactMobile);
-  extrasRaw.push(payload.mobile);
+  var propertyRaw = [];
+  propertyRaw = propertyRaw.concat(extractContactMobiles_(payload.propertyContactPersonsJson || payload.propertyContactPersons));
+  propertyRaw = propertyRaw.concat(extractContactMobiles_(payload.propertyContacts));
+  propertyRaw.push(payload.propertyContactMobile);
+  propertyRaw.push(payload.propertyContactPersonMobile);
+  propertyRaw.push(payload.propertyContactPhone);
+  propertyRaw.push(payload.ownerMobile);
+  propertyRaw = propertyRaw.concat(extractMobilesFromText_(payload.propertyContactMobiles));
+
+  var brandRaw = [];
+  brandRaw = brandRaw.concat(extractContactMobiles_(payload.brandContactPersonsJson || payload.brandContactPersons));
+  brandRaw = brandRaw.concat(extractContactMobiles_(payload.brandContacts));
+  brandRaw.push(payload.brandContactMobile);
+  brandRaw.push(payload.brandContactPersonMobile);
+  brandRaw.push(payload.brandContactPhone);
+  brandRaw.push(payload.brandMobile);
+  brandRaw = brandRaw.concat(extractMobilesFromText_(payload.brandContactMobiles));
+
+  var otherRaw = [];
+  otherRaw = otherRaw.concat(extractContactMobiles_(payload.contactPersonsJson || payload.contactPersons));
+  otherRaw = otherRaw.concat(extractContactMobiles_(payload.contacts));
+  otherRaw.push(payload.contactMobile);
+  otherRaw.push(payload.mobile);
+  otherRaw = otherRaw.concat(extractMobilesFromText_(payload.additionalRecipientMobiles));
 
   var seen = {};
-  var extraMobiles = [];
   seen[ownerMobile] = true;
-  for (var i = 0; i < extrasRaw.length; i++) {
-    var normalized = normalizeRecipientMobile_(extrasRaw[i]);
-    if (!isFilled_(normalized) || seen[normalized]) continue;
-    seen[normalized] = true;
-    extraMobiles.push(normalized);
-  }
+
+  var propertyMobiles = uniqueNormalizedMobiles_(propertyRaw, seen);
+  var brandMobiles = uniqueNormalizedMobiles_(brandRaw, seen);
+  var otherMobiles = uniqueNormalizedMobiles_(otherRaw, seen);
+  var extraMobiles = propertyMobiles.concat(brandMobiles).concat(otherMobiles);
 
   return {
     ownerMobile: ownerMobile,
     groupIds: groupIds,
-    extraMobiles: extraMobiles
+    extraMobiles: extraMobiles,
+    propertyMobiles: propertyMobiles,
+    brandMobiles: brandMobiles,
+    otherMobiles: otherMobiles
   };
+}
+
+function uniqueNormalizedMobiles_(values, seen) {
+  var out = [];
+  var localSeen = seen || {};
+  var list = values || [];
+  for (var i = 0; i < list.length; i++) {
+    var normalized = normalizeRecipientMobile_(list[i]);
+    if (!isFilled_(normalized) || localSeen[normalized]) continue;
+    localSeen[normalized] = true;
+    out.push(normalized);
+  }
+  return out;
 }
 
 function extractContactMobiles_(contactsValue) {
@@ -460,9 +1005,31 @@ function extractContactMobiles_(contactsValue) {
   var mobiles = [];
   for (var i = 0; i < contacts.length; i++) {
     var c = contacts[i] || {};
-    mobiles.push(c.mobile || c.phone || "");
+    mobiles.push(
+      c.mobile ||
+      c.phone ||
+      c.contactMobile ||
+      c.whatsapp ||
+      c.whatsApp ||
+      c.phoneNumber ||
+      ""
+    );
+    mobiles = mobiles.concat(extractMobilesFromText_(c.mobileNumbers || c.phones || c.contactMobiles));
   }
   return mobiles;
+}
+
+function extractMobilesFromText_(value) {
+  if (!isFilled_(value)) return [];
+  if (Array.isArray(value)) {
+    var out = [];
+    for (var i = 0; i < value.length; i++) {
+      out = out.concat(extractMobilesFromText_(value[i]));
+    }
+    return out;
+  }
+  var matches = String(value).match(/\+?\d[\d\s\-()]{8,}\d/g);
+  return matches ? matches : [];
 }
 
 function toContactArray_(value) {

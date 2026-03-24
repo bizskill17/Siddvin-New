@@ -3,6 +3,7 @@ import { Visit, SidvinTeamMember } from '../../types';
 import Input from '../common/Input';
 import DateInput from '../common/DateInput';
 import LongTextInput from '../common/LongTextInput';
+import SelectInput from '../common/SelectInput';
 import Button from '../common/Button';
 import MultiSelectInput from '../common/MultiSelectInput';
 
@@ -22,6 +23,9 @@ const EditVisitForm: React.FC<EditVisitFormProps> = ({ proposalId, initialData, 
           proposalId: initialData.proposalId,
           scheduledDate: initialData.scheduledDate,
           scheduledTime: initialData.scheduledTime,
+          meetingType: initialData.meetingType,
+          meetingAgenda: initialData.meetingAgenda || '',
+          meetingLink: initialData.meetingLink || null,
           visitDate: initialData.visitDate,
           developerAttendees: initialData.developerAttendees,
           brandAttendees: initialData.brandAttendees,
@@ -32,6 +36,9 @@ const EditVisitForm: React.FC<EditVisitFormProps> = ({ proposalId, initialData, 
           proposalId,
           scheduledDate: null,
           scheduledTime: null,
+          meetingType: 'Physical',
+          meetingAgenda: '',
+          meetingLink: null,
           visitDate: null,
           developerAttendees: '',
           brandAttendees: '',
@@ -46,6 +53,9 @@ const EditVisitForm: React.FC<EditVisitFormProps> = ({ proposalId, initialData, 
         proposalId: initialData.proposalId,
         scheduledDate: initialData.scheduledDate,
         scheduledTime: initialData.scheduledTime,
+        meetingType: initialData.meetingType,
+        meetingAgenda: initialData.meetingAgenda || '',
+        meetingLink: initialData.meetingLink || null,
         visitDate: initialData.visitDate,
         developerAttendees: initialData.developerAttendees,
         brandAttendees: initialData.brandAttendees,
@@ -55,9 +65,18 @@ const EditVisitForm: React.FC<EditVisitFormProps> = ({ proposalId, initialData, 
     }
   }, [initialData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
+    setFormData((prev) => {
+      if (id === 'meetingType') {
+        return {
+          ...prev,
+          meetingType: value as Visit['meetingType'],
+          meetingLink: value === 'Virtual' ? prev.meetingLink : null,
+        };
+      }
+      return { ...prev, [id]: value };
+    });
   };
 
   const handleSidvinAttendeesChange = (selectedNames: string[]) => {
@@ -79,7 +98,28 @@ const EditVisitForm: React.FC<EditVisitFormProps> = ({ proposalId, initialData, 
       </div>
 
       <DateInput id="scheduledDate" label="Scheduled Date" value={formData.scheduledDate || ''} onChange={handleChange} required />
-      <Input id="scheduledTime" label="Scheduled Time" value={formData.scheduledTime || ''} onChange={handleChange} type="time" />
+      <Input id="scheduledTime" label="Scheduled Time" value={formData.scheduledTime || ''} onChange={handleChange} type="time" required />
+      <SelectInput
+        id="meetingType"
+        label="Meeting Type"
+        value={formData.meetingType || ''}
+        onChange={handleChange}
+        options={[
+          { value: 'Physical', label: 'Physical' },
+          { value: 'Virtual', label: 'Virtual' },
+        ]}
+      />
+      {formData.meetingType === 'Virtual' && (
+        <Input
+          id="meetingLink"
+          label="Meeting Link"
+          value={formData.meetingLink || ''}
+          onChange={handleChange}
+          placeholder="https://..."
+          required
+        />
+      )}
+      <LongTextInput id="meetingAgenda" label="Meeting Agenda" value={formData.meetingAgenda || ''} onChange={handleChange} />
       <Input id="developerAttendees" label="Developer Attendees" value={formData.developerAttendees} onChange={handleChange} />
       <Input id="brandAttendees" label="Brand Attendees" value={formData.brandAttendees} onChange={handleChange} />
       <MultiSelectInput id="sidvinAttendees" label="Sidvin Attendees" options={sidvinTeamOptions} value={formData.sidvinAttendees ? formData.sidvinAttendees.split(', ').filter(Boolean) : []} onChange={handleSidvinAttendeesChange} placeholder="Select Sidvin Team Members" />

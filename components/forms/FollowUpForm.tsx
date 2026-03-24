@@ -94,6 +94,7 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
     { value: 'Follow Up Again', label: 'Follow Up Again' },
     { value: 'Pending Details & Documentation', label: 'Pending Details & Documentation' },
     { value: 'Schedule Visit', label: 'Schedule Visit' },
+    { value: 'Update', label: 'Update' },
     { value: 'Cancel Proposal', label: 'Cancel Proposal' },
   ];
 

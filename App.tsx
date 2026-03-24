@@ -458,6 +458,8 @@ const App: React.FC = () => {
   const handleScheduleVisit = async (newVisitData: Omit<Visit, 'id' | 'visitDate' | 'visitOutcome' | 'developerAttendees' | 'brandAttendees' | 'sidvinAttendees' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
     const newVisit: Omit<Visit, 'id'> = {
       ...newVisitData,
+      meetingType: newVisitData.meetingType || 'Physical',
+      meetingAgenda: newVisitData.meetingAgenda || '',
       visitDate: null,
       visitOutcome: '',
       developerAttendees: '',
@@ -619,12 +621,10 @@ const App: React.FC = () => {
     setDeleteError(null);
     setShowDeleteConfirm(true);
     setDeleteCallback(() => async () => {
-      const isTeamMemberDelete = type === 'teamMember';
       try {
-        if (isTeamMemberDelete) {
-          setSavingMessage('Deleting Team Member...');
-          setIsSaving(true);
-        }
+        const label = (name || type || 'item').toString();
+        setSavingMessage(`Deleting ${label}...`);
+        setIsSaving(true);
         let success = false;
         switch (type) {
           case 'property': success = await dataService.deleteProperty(id); break;
@@ -646,9 +646,7 @@ const App: React.FC = () => {
       } catch (error: any) {
         setDeleteError(error.message || `An error occurred while deleting ${type}.`);
       } finally {
-        if (isTeamMemberDelete) {
-          setIsSaving(false);
-        }
+        setIsSaving(false);
       }
     });
   };

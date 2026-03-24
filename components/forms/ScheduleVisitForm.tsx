@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Visit } from '../../types';
 import Input from '../common/Input';
 import DateInput from '../common/DateInput';
+import LongTextInput from '../common/LongTextInput';
+import SelectInput from '../common/SelectInput';
 import Button from '../common/Button';
 
 interface ScheduleVisitFormProps {
@@ -16,11 +18,23 @@ const ScheduleVisitForm: React.FC<ScheduleVisitFormProps> = ({ proposalId, onSub
     proposalId,
     scheduledDate: null,
     scheduledTime: null,
+    meetingType: 'Physical',
+    meetingAgenda: '',
+    meetingLink: null,
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
+    setFormData((prev) => {
+      if (id === 'meetingType') {
+        return {
+          ...prev,
+          meetingType: value as Visit['meetingType'],
+          meetingLink: value === 'Virtual' ? prev.meetingLink : null,
+        };
+      }
+      return { ...prev, [id]: value };
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -36,7 +50,29 @@ const ScheduleVisitForm: React.FC<ScheduleVisitFormProps> = ({ proposalId, onSub
       </div>
 
       <DateInput id="scheduledDate" label="Scheduled Date" value={formData.scheduledDate || ''} onChange={handleChange} required />
-      <Input id="scheduledTime" label="Scheduled Time" value={formData.scheduledTime || ''} onChange={handleChange} type="time" />
+      <Input id="scheduledTime" label="Scheduled Time" value={formData.scheduledTime || ''} onChange={handleChange} type="time" required />
+      <SelectInput
+        id="meetingType"
+        label="Meeting Type"
+        value={formData.meetingType || ''}
+        onChange={handleChange}
+        options={[
+          { value: 'Physical', label: 'Physical' },
+          { value: 'Virtual', label: 'Virtual' },
+        ]}
+        required
+      />
+      {formData.meetingType === 'Virtual' && (
+        <Input
+          id="meetingLink"
+          label="Meeting Link"
+          value={formData.meetingLink || ''}
+          onChange={handleChange}
+          placeholder="https://..."
+          required
+        />
+      )}
+      <LongTextInput id="meetingAgenda" label="Meeting Agenda" value={formData.meetingAgenda || ''} onChange={handleChange} />
       <Input id="updatedByDisplay" label="Updated By" value={currentUserName} readOnly />
 
       <div className="flex justify-end gap-3 mt-6">
