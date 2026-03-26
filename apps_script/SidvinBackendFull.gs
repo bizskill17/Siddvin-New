@@ -1459,8 +1459,12 @@ function buildSignatureLines_() {
   return [
     "Best Regards.",
     "",
-    "*Team Siddvin RLT*",
-    "Result- driven commercial real estate agency of N.E India led by *Mr. Vikaas D Goenka*"
+    "*Siddvin RLT*",
+    "Founder: *Mr. Vikaas D Goenka*",
+    "Call: 9117706555",
+    "www.sidvinrlt.com",
+    "",
+    "Instagram: https://www.instagram.com/realtorvikasgoenka"
   ];
 }
 
