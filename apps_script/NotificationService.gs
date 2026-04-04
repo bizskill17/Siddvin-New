@@ -96,6 +96,9 @@ function sendMessageToMobiles_(mobiles, waMessage, creds) {
 function splitPropertyAndBrandMessage_(combinedMessage) {
   var message = String(combinedMessage || "");
   if (!isFilled_(message)) return { propertyMessage: "", brandMessage: "" };
+  if (message.indexOf("Dear Mr.") === 0) {
+    return { propertyMessage: "", brandMessage: message };
+  }
   var marker = "\n\nDear Mr.";
   var idx = message.indexOf(marker);
   if (idx < 0) return { propertyMessage: message, brandMessage: "" };
@@ -346,14 +349,12 @@ function buildSidvinNotificationMessage_(eventType, payload) {
 }
 
 function buildPropertyRegistrationMessage_(payload) {
-  var visitDoneDate = valueOrFallback_(payload.visitDate || payload.createdAt, "date");
-  var propertyName = valueOrFallback_(payload.propertyAddress || payload.address || payload.propertyName, "propertyName");
+  var visitDoneDate = valueOrFallback_(payload.visitDate || payload.createdAt, "Date");
+  var propertyName = valueOrFallback_(payload.propertyName || payload.propertyAddress || payload.address, "propertyName");
   return joinMessageLines_([
     "Dear Sir,",
     "",
-    "Property (*" + propertyName + "*)",
-    "",
-    "The site visit to your property was done on *" + visitDoneDate + "*. Thank you for registering your property with us. We assure you the best services from our end. Hope to have a good relation with you. Welcome on board.",
+    "Thank you for registering your property at  *" + propertyName + "* with us. A site visit to your property was conducted on *" + visitDoneDate + "*. We look forward to a long-term association with you.",
     ""
   ].concat(buildSignatureLines_()));
 }
@@ -361,17 +362,11 @@ function buildPropertyRegistrationMessage_(payload) {
 function buildBrandPersonMessage_(payload) {
   var brandContact = resolveBrandContactName_(payload);
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
-  var companyName = valueOrFallback_(payload.companyName, "companyName");
-  var designation = valueOrFallback_(resolveBrandDesignation_(payload), "designation");
 
   return joinMessageLines_([
     "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
-    "Brand Name: *" + brandName + "*",
-    "Company Name: *" + companyName + "*",
-    "Designation: *" + designation + "*",
-    "",
-    "Thank you for giving us the opportunity to join hands with you. We shall be sending you property proposals, knowledge info and regular updates through email and WhatsApp messages.",
+    "Thank you for trusting us for your commercial property requirements for the brand *" + brandName + "*. We will be sharing property proposals at the earliest.",
     ""
   ].concat(buildSignatureLines_()));
 }
@@ -384,36 +379,27 @@ function buildProposalMessage_(payload) {
 }
 
 function buildProposalPropertyMessage_(payload) {
-  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
-  var companyName = valueOrFallback_(payload.companyName, "companyName");
-  var proposalDate = valueOrFallback_(payload.proposalDate, "date");
-  var trackingLink = valueOrFallback_(resolveTrackingLink_(payload), "trackingLink");
+  var proposalDate = valueOrFallback_(payload.proposalDate, "Date");
 
   return joinMessageLines_([
     "Dear Sir,",
     "",
-    "We have proposed your property *" + address + "* to *" + brandName + "* of *" + companyName + "* on *" + proposalDate + "*. Next process is the site visit of *" + brandName + "* - *" + companyName + "*. For live tracking, please visit the link *" + trackingLink + "*.",
+    "We have proposed your property at " + address + " to " + brandName + " on " + proposalDate + ". We are awaiting a site visit from the company soon. The details of the site visit shall be updated soon.",
     ""
   ].concat(buildSignatureLines_()));
 }
 
 function buildProposalBrandMessage_(payload) {
   var brandContact = resolveBrandContactName_(payload);
-  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
-  var companyName = valueOrFallback_(payload.companyName, "companyName");
-  var ownerName = valueOrFallback_(resolveOwnerName_(payload), "ownerName");
-  var designation = valueOrFallback_(resolveBrandDesignation_(payload), "designation");
 
   return joinMessageLines_([
     "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
-    "Brand Name: *" + brandName + "*",
-    "Company Name: *" + companyName + "*",
-    "Designation: *" + designation + "*",
-    "",
-    "This is to inform you that we have proposed a commercial property *" + address + "* which belongs to *" + ownerName + "*. Please review and send us your valuable feedback.",
+    "We have sent a property proposal for brand " + brandName + " at location " + address + " via email. Kindly review and share your feedback.",
     ""
   ].concat(buildSignatureLines_()));
 }
@@ -421,25 +407,20 @@ function buildProposalBrandMessage_(payload) {
 function buildVisitMessage_(payload, status) {
   var visitStatus = String(status || "").toLowerCase() === "completed" ? "completed" : "scheduled";
   var brandContact = resolveBrandContactName_(payload);
-  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
-  var ownerName = valueOrFallback_(resolveOwnerName_(payload), "ownerName");
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
-  var companyName = valueOrFallback_(payload.companyName, "companyName");
-  var dateValue = valueOrFallback_(payload.visitDate || payload.scheduledDate, "date");
-  var ownerPresent = valueOrFallback_(payload.propertyContactName || payload.contactPersonName, "ownerSidePerson");
+  var dateValue = valueOrFallback_(payload.visitDate || payload.scheduledDate, "Date");
 
   var propertyLine = visitStatus === "completed"
-    ? "This is to inform you that the site visit for your property was completed by *" + brandName + "* - *" + companyName + "* on *" + dateValue + "*. Mr. *" + ownerPresent + "* from your side was present. We will keep you posted on further updates."
-    : "This is to inform you that a site visit is arranged for your property on *" + dateValue + "* with *" + brandName + "* - *" + companyName + "*. Please keep yourself/team available for the same.";
+    ? "The site visit for your property located at " + address + " has been completed on " + dateValue + " by the brand " + brandName + " We will keep you updated."
+    : "A site visit for your property located at " + address + " is scheduled on " + dateValue + " with " + brandName + ". Kindly ensure your availability (or your team's availability) for the same.";
 
   var brandLine = visitStatus === "completed"
-    ? "Thank you for taking the time to visit the property *" + address + "* of *" + ownerName + "* and sharing your insights. We look forward to coordinate on the next steps."
-    : "This is to inform you that the site visit of the property *" + address + "* which belongs to *" + ownerName + "* has been scheduled on *" + dateValue + "*.";
+    ? "Thank you for visiting the property for " + brandName + " located at " + address + " and sharing your insights.\nKindly let us know how can we take this deal further."
+    : "A site visit has been confirmed for the property located at " + address + " for the brand " + brandName + " on " + dateValue + ".";
 
   var propertySection = joinMessageLines_([
     "Dear Sir,",
-    "",
-    "Property (*" + address + "*)",
     "",
     propertyLine,
     ""
@@ -447,9 +428,6 @@ function buildVisitMessage_(payload, status) {
 
   var brandSection = joinMessageLines_([
     "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
-    "",
-    "Brand Name: *" + brandName + "*",
-    "Company Name: *" + companyName + "*",
     "",
     brandLine,
     ""
@@ -473,29 +451,21 @@ function buildFollowUpMeetingMessage_(payload) {
 function buildClientMeetingMessage_(payload) {
   var brandContact = resolveBrandContactName_(payload);
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
-  var companyName = valueOrFallback_(payload.companyName, "companyName");
-  var ownerName = valueOrFallback_(resolveOwnerName_(payload), "ownerName");
-  var brandPerson = valueOrFallback_(brandContact, "brandRep");
-  var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "date");
-  var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "time");
-  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+  var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "Date");
+  var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "Time");
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
 
   var propertySection = joinMessageLines_([
     "Dear Sir,",
     "",
-    "Property (*" + address + "*)",
-    "",
-    "A meeting has been scheduled with Mr. *" + brandPerson + "* from *" + brandName + "* - *" + companyName + "* on *" + dateValue + "* at *" + timeValue + "*. Please keep yourself available.",
+    "A meeting has been scheduled with the officials of " + brandName + " on " + dateValue + " at " + timeValue + " for your property located at " + address + ". The meeting place shall be updated shortly.",
     ""
   ].concat(buildSignatureLines_()));
 
   var brandSection = joinMessageLines_([
     "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
-    "Brand Name: *" + brandName + "*",
-    "Company Name: *" + companyName + "*",
-    "",
-    "A meeting has been scheduled with Mr. *" + ownerName + "*, owner of *" + address + "*, on *" + dateValue + "* at *" + timeValue + "*. Please keep yourself available.",
+    "A meeting has been scheduled with the property owner of the property located at " + address + " for " + brandName + " on " + dateValue + " at " + timeValue + ". The meeting place shall be updated shortly.",
     ""
   ].concat(buildSignatureLines_()));
 
@@ -505,30 +475,22 @@ function buildClientMeetingMessage_(payload) {
 function buildVirtualMeetingMessage_(payload) {
   var brandContact = resolveBrandContactName_(payload);
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
-  var companyName = valueOrFallback_(payload.companyName, "companyName");
-  var ownerName = valueOrFallback_(resolveOwnerName_(payload), "ownerName");
-  var brandPerson = valueOrFallback_(brandContact, "brandRep");
-  var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "date");
-  var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "time");
-  var linkValue = valueOrFallback_(resolveMeetingLink_(payload), "link");
-  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+  var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "Date");
+  var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "Time");
+  var linkValue = valueOrFallback_(resolveMeetingLink_(payload), "Link");
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
 
   var propertySection = joinMessageLines_([
     "Dear Sir,",
     "",
-    "Property (*" + address + "*)",
-    "",
-    "A virtual meeting has been scheduled with Mr. *" + brandPerson + "* of *" + brandName + "* on *" + dateValue + "* at *" + timeValue + "*. Please make a note of the timing and join the meeting via *" + linkValue + "*.",
+    "A virtual meeting with the officials of " + brandName + " for your property located at " + address + " is scheduled on " + dateValue + " at " + timeValue + ". Please join via " + linkValue + ".",
     ""
   ].concat(buildSignatureLines_()));
 
   var brandSection = joinMessageLines_([
     "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
-    "Brand Name: *" + brandName + "*",
-    "Company Name: *" + companyName + "*",
-    "",
-    "It is to inform you that a zoom meeting has been scheduled with owner *" + ownerName + "* of *" + address + "* on *" + dateValue + "* at *" + timeValue + "*. Please make a note of the timing and join the meeting via *" + linkValue + "*.",
+    "A virtual meeting with the owner of the property located at " + address + " for your brand " + brandName + " is scheduled on " + dateValue + " at " + timeValue + ". Please join via " + linkValue + ".",
     ""
   ].concat(buildSignatureLines_()));
 
@@ -538,29 +500,21 @@ function buildVirtualMeetingMessage_(payload) {
 function buildPendingTermsAgreementMessage_(payload) {
   var brandContact = resolveBrandContactName_(payload);
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
-  var companyName = valueOrFallback_(payload.companyName, "companyName");
-  var ownerName = valueOrFallback_(resolveOwnerName_(payload), "ownerName");
-  var brandPerson = valueOrFallback_(brandContact, "brandRep");
-  var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "date");
-  var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "time");
-  var address = valueOrFallback_(payload.propertyAddress || payload.address, "address");
+  var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "Date");
+  var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "Time");
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
 
   var propertySection = joinMessageLines_([
     "Dear Sir,",
     "",
-    "Property (*" + address + "*)",
-    "",
-    "A meeting with Mr. *" + brandPerson + "* of *" + brandName + "* of *" + companyName + "* is scheduled on *" + dateValue + "* at *" + timeValue + "* to discuss the pending terms/agreement. Please be available for the same.",
+    "A meeting with the officials of the brand " + brandName + " is scheduled on " + dateValue + " at " + timeValue + " to finalize pending terms and conditions. Please be available. The meeting place shall be updated shortly",
     ""
   ].concat(buildSignatureLines_()));
 
   var brandSection = joinMessageLines_([
     "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
-    "Brand Name: *" + brandName + "*",
-    "Company Name: *" + companyName + "*",
-    "",
-    "It is to inform you that the finalization of the pending terms/agreement is scheduled with *" + ownerName + "* of *" + address + "* on *" + dateValue + "* at *" + timeValue + "*. Please be available for discussion.",
+    "A meeting is being scheduled  with the owner of the property located at *" + address + "* for your brand " + brandName + " is scheduled on " + dateValue + " at " + timeValue + ". The meeting place shall be updated shortly.",
     ""
   ].concat(buildSignatureLines_()));
 
@@ -570,24 +524,21 @@ function buildPendingTermsAgreementMessage_(payload) {
 function buildDealClosedMessage_(payload) {
   var brandContact = resolveBrandContactName_(payload);
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
-  var companyName = valueOrFallback_(payload.companyName, "companyName");
+  var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
 
   var propertySection = joinMessageLines_([
     "Dear Sir,",
     "",
-    "Property (*" + valueOrFallback_(payload.propertyAddress || payload.address, "address") + "*)",
+    "Congratulations on successful completion of the lease deal for your property located at *" + address + "* with the brand " + brandName + ". Thank you for trusting us.",
     "",
-    "We are extending our heartiest congratulations on successful completion of the lease deal with *" + brandName + "* - *" + companyName + "*. Thank you for trusting us and giving us the opportunity to work with you. Please remember us in all future endeavors.",
+    "We look forward for more business in future.",
     ""
   ].concat(buildSignatureLines_()));
 
   var brandSection = joinMessageLines_([
     "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
-    "Brand Name: *" + brandName + "*",
-    "Company Name: *" + companyName + "*",
-    "",
-    "Congratulations on successful completion of the lease deal. Your efforts and collaborations made this possible. Thank you for trusting us and giving us the opportunity to work with you. Please remember us in all future endeavors.",
+    "Congratulations on successful deal closure for your brand " + brandName + " in the property at *" + address + "*. We look forward for more business in future.",
     ""
   ].concat(buildSignatureLines_()));
 
@@ -611,10 +562,7 @@ function buildSignatureLines_() {
     "",
     "*Siddvin RLT*",
     "Founder: *Mr. Vikaas D Goenka*",
-    "Call: 9117706555",
-    "www.sidvinrlt.com",
-    "",
-    "Instagram: https://www.instagram.com/realtorvikasgoenka"
+    "Call: +91 9117706555"
   ];
 }
 
@@ -647,7 +595,7 @@ function valueOrFallback_(value, token) {
     }
     return stringifyValue_(value);
   }
-  return "N/A";
+  return slotToken_(value, token);
 }
 
 function formatDateForMessage_(value) {
