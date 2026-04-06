@@ -822,7 +822,7 @@ const App: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-3">
           <div className="h-10 w-10 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin" />
-          <p className="text-sm text-gray-600">Connecting to Google Sheet...</p>
+              <p className="text-sm text-gray-600">Loading...</p>
         </div>
       </div>
     );
