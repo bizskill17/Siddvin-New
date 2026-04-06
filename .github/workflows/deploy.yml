@@ -25,13 +25,13 @@ jobs:
         run: npm run build
 
       - name: Deploy to Hostinger (FTP root = public_html)
-        uses: SamKirkland/FTP-Deploy-Action@v4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: 147.93.92.210
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ vars.FTP_PORT || '21' }}
-          protocol: ${{ vars.FTP_PROTOCOL || 'ftp' }}
+          port: 21
+          protocol: ftp
           local-dir: dist/
-          server-dir: ${{ vars.FTP_SERVER_DIR || './' }}
-          dangerous-clean-slate: ${{ vars.FTP_CLEAN_SLATE == 'true' }}
+          server-dir: ./
+          dangerous-clean-slate: true
