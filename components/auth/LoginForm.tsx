@@ -39,7 +39,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin, onSwitchToP
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
 	        <div className="flex justify-center">
 	          <img
-	            src="https://ibb.co/mr76VRXL"
+	            src="https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg"
 	            alt="Sidvin Logo"
 	            className="h-20 w-auto object-contain"
 	          />
