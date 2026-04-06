@@ -958,7 +958,7 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-	              <img src="https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg" alt="Sidvin Logo" className="h-12 w-auto object-contain" />
+	              <img src="https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg" alt="Sidvin Logo" className="h-16 md:h-20 w-auto object-contain" />
             </div>
           </div>
           {renderContent()}

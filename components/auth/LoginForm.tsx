@@ -41,7 +41,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin, onSwitchToP
 	          <img
 	            src="https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg"
 	            alt="Sidvin Logo"
-	            className="h-20 w-auto object-contain"
+	            className="h-24 w-auto object-contain"
 	          />
 	        </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
