@@ -24,10 +24,17 @@ jobs:
       - name: Build Vite app
         run: npm run build
 
+      - name: Validate FTP config
+        run: |
+          if [ -z "${{ secrets.FTP_SERVER }}" ] && [ -z "${{ vars.FTP_SERVER }}" ]; then
+            echo "Missing FTP_SERVER. Add it as a repo Secret (recommended) or Variable."
+            exit 1
+          fi
+
       - name: Deploy to Hostinger (FTP root = public_html)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          server: ${{ secrets.FTP_SERVER || vars.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: ${{ vars.FTP_PORT || '21' }}
