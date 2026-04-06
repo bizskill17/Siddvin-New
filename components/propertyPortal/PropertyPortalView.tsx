@@ -316,7 +316,7 @@ const PropertyPortalView: React.FC<PropertyPortalViewProps> = ({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-2.5">
           <div className="grid grid-cols-[56px_1fr] items-start gap-3">
             <div className="flex justify-start">
-	              <img src="https://i.ibb.co/tTxn8nGC/Whats-App-Image-2026-04-06-at-4-10-03-PM.jpg" alt="Sidvin Logo" className="h-12 w-auto object-contain" />
+	              <img src="https://ibb.co/mr76VRXL" alt="Sidvin Logo" className="h-12 w-auto object-contain" />
             </div>
             <div className="flex flex-col">
               <h1 className="portal-heading text-2xl font-bold text-[#7a5916] text-center">Property Dashboard</h1>
