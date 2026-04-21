@@ -128,6 +128,9 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
     setFormData((prev) => ({
       ...prev,
       contactPersons: [...prev.contactPersons, { id: Math.random().toString(36).substring(2, 9), name: '', designation: '', mobile: '', email: '', salutation: '' }],
+    }));
+  };
+
   const removeContactPerson = (index: number) => {
     setFormData((prev) => ({ ...prev, contactPersons: prev.contactPersons.filter((_, i) => i !== index) }));
   };
