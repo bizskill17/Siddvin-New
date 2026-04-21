@@ -6,6 +6,7 @@ export interface ContactPerson {
   designation: string;
   mobile: string;
   email: string;
+  salutation?: string;
 }
 
 export interface AuditFields {

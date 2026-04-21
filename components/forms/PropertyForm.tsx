@@ -47,7 +47,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       : {
         address: '',
         googleMapsLink: null,
-        contactPersons: [{ id: Math.random().toString(36).substring(2, 9), name: '', designation: '', mobile: '', email: '' }],
+        contactPersons: [{ id: Math.random().toString(36).substring(2, 9), name: '', designation: '', mobile: '', email: '', salutation: '' }],
         proposedRent: null,
         proposedArea: null,
         frontage: '',
@@ -127,10 +127,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
   const addContactPerson = () => {
     setFormData((prev) => ({
       ...prev,
-      contactPersons: [...prev.contactPersons, { id: Math.random().toString(36).substring(2, 9), name: '', designation: '', mobile: '', email: '' }],
-    }));
-  };
-
+      contactPersons: [...prev.contactPersons, { id: Math.random().toString(36).substring(2, 9), name: '', designation: '', mobile: '', email: '', salutation: '' }],
   const removeContactPerson = (index: number) => {
     setFormData((prev) => ({ ...prev, contactPersons: prev.contactPersons.filter((_, i) => i !== index) }));
   };
@@ -179,6 +176,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       {formData.contactPersons.map((contact, index) => (
         <div key={contact.id} className="p-4 border border-gray-200 rounded-md mb-4 bg-[#ece8e3]">
           <h4 className="font-medium text-gray-700 mb-2">Contact #{index + 1}</h4>
+          <SelectInput id="salutation" label="Salutation" options={[{ value: 'Sir', label: 'Sir' }, { value: 'Madam', label: 'Madam' }]} value={contact.salutation || ''} onChange={(e) => handleContactChange(index, e)} required />
           <Input id="name" label="Name" value={contact.name} onChange={(e) => handleContactChange(index, e)} required />
           <Input id="designation" label="Designation" value={contact.designation} onChange={(e) => handleContactChange(index, e)} required />
           <Input id="mobile" label="Mobile" value={contact.mobile} onChange={(e) => handleContactChange(index, e)} type="tel" required />
