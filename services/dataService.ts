@@ -378,7 +378,14 @@ export const updateProperty = async (updatedProperty: Property, updatedBy = 'Sys
     propertyPhotosJson: updatedProperty.propertyPhotos || [],
     drawingsJson: updatedProperty.drawings || [],
   };
-  const res: any = await postJson({ action: 'update', entity: ENTITY_MAP.properties, id: updatedProperty.id, data: payload, updatedBy });
+  const res: any = await postJson({
+    action: 'update',
+    entity: ENTITY_MAP.properties,
+    id: updatedProperty.id,
+    data: payload,
+    updatedBy,
+    suppressNotification: true,
+  });
   return normalizeProperty(res.data);
 };
 export const deleteProperty = async (id: string): Promise<boolean> => {

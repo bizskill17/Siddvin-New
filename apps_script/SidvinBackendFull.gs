@@ -46,6 +46,7 @@ function doPost(e) {
     var action = String(body.action || "").trim();
     var entity = body.entity;
     var updatedBy = body.updatedBy || "System";
+    var suppressNotification = !!body.suppressNotification;
 
     // Keep Visits sheet schema aligned with frontend payloads.
     if (entity === "Visits") {
@@ -54,7 +55,9 @@ function doPost(e) {
 
     if (action === "create") {
       var created = backendCreate_(entity, body.data || {}, updatedBy);
-      tryNotifyMutation_(action, entity, created, updatedBy, null);
+      if (!suppressNotification) {
+        tryNotifyMutation_(action, entity, created, updatedBy, null);
+      }
       return json_({ ok: true, data: created });
     }
 
@@ -64,7 +67,9 @@ function doPost(e) {
         previous = backendGetById_(entity, body.id);
       }
       var updated = backendUpdate_(entity, body.id, body.data || {}, updatedBy);
-      tryNotifyMutation_(action, entity, updated, updatedBy, previous);
+      if (!suppressNotification) {
+        tryNotifyMutation_(action, entity, updated, updatedBy, previous);
+      }
       return json_({ ok: true, data: updated });
     }
 
@@ -75,7 +80,9 @@ function doPost(e) {
         previousByProposalId = oldRows && oldRows.length ? oldRows[0] : null;
       }
       var upserted = backendUpsertByProposalId_(entity, body.proposalId, body.data || {}, updatedBy);
-      tryNotifyMutation_(action, entity, upserted, updatedBy, previousByProposalId);
+      if (!suppressNotification) {
+        tryNotifyMutation_(action, entity, upserted, updatedBy, previousByProposalId);
+      }
       return json_({ ok: true, data: upserted });
     }
 
@@ -1201,8 +1208,9 @@ function buildSidvinNotificationMessage_(eventType, payload) {
 function buildPropertyRegistrationMessage_(payload) {
   var visitDoneDate = valueOrFallback_(payload.visitDate || payload.createdAt, "Date");
   var propertyName = valueOrFallback_(payload.propertyName || payload.propertyAddress || payload.address, "propertyName");
+  var salutation = resolvePropertyOwnerSalutation_(payload);
   return joinMessageLines_([
-    "Dear Sir,",
+    "Dear " + salutation + ",",
     "",
     "Thank you for registering your property at  *" + propertyName + "* with us. A site visit to your property was conducted on *" + visitDoneDate + "*. We look forward to a long-term association with you.",
     ""
@@ -1212,9 +1220,10 @@ function buildPropertyRegistrationMessage_(payload) {
 function buildBrandPersonMessage_(payload) {
   var brandContact = resolveBrandContactName_(payload);
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
+  var salutation = resolveBrandContactSalutation_(payload);
 
   return joinMessageLines_([
-    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "Dear " + salutation + " *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
     "Thank you for trusting us for your commercial property requirements for the brand *" + brandName + "*. We will be sharing property proposals at the earliest.",
     ""
@@ -1232,9 +1241,10 @@ function buildProposalPropertyMessage_(payload) {
   var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
   var proposalDate = valueOrFallback_(payload.proposalDate, "Date");
+  var salutation = resolvePropertyOwnerSalutation_(payload);
 
   return joinMessageLines_([
-    "Dear Sir,",
+    "Dear " + salutation + ",",
     "",
     "We have proposed your property at " + address + " to " + brandName + " on " + proposalDate + ". We are awaiting a site visit from the company soon. The details of the site visit shall be updated soon.",
     ""
@@ -1245,9 +1255,10 @@ function buildProposalBrandMessage_(payload) {
   var brandContact = resolveBrandContactName_(payload);
   var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
+  var salutation = resolveBrandContactSalutation_(payload);
 
   return joinMessageLines_([
-    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "Dear " + salutation + " *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
     "We have sent a property proposal for brand " + brandName + " at location " + address + " via email. Kindly review and share your feedback.",
     ""
@@ -1260,6 +1271,8 @@ function buildVisitMessage_(payload, status) {
   var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
   var dateValue = valueOrFallback_(payload.visitDate || payload.scheduledDate, "Date");
+  var propertySalutation = resolvePropertyOwnerSalutation_(payload);
+  var brandSalutation = resolveBrandContactSalutation_(payload);
 
   var propertyLine = visitStatus === "completed"
     ? "The site visit for your property located at " + address + " has been completed on " + dateValue + " by the brand " + brandName + " We will keep you updated."
@@ -1270,14 +1283,14 @@ function buildVisitMessage_(payload, status) {
     : "A site visit has been confirmed for the property located at " + address + " for the brand " + brandName + " on " + dateValue + ".";
 
   var propertySection = joinMessageLines_([
-    "Dear Sir,",
+    "Dear " + propertySalutation + ",",
     "",
     propertyLine,
     ""
   ].concat(buildSignatureLines_()));
 
   var brandSection = joinMessageLines_([
-    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "Dear " + brandSalutation + " *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
     brandLine,
     ""
@@ -1304,16 +1317,18 @@ function buildClientMeetingMessage_(payload) {
   var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "Date");
   var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "Time");
   var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
+  var propertySalutation = resolvePropertyOwnerSalutation_(payload);
+  var brandSalutation = resolveBrandContactSalutation_(payload);
 
   var propertySection = joinMessageLines_([
-    "Dear Sir,",
+    "Dear " + propertySalutation + ",",
     "",
     "A meeting has been scheduled with the officials of " + brandName + " on " + dateValue + " at " + timeValue + " for your property located at " + address + ". The meeting place shall be updated shortly.",
     ""
   ].concat(buildSignatureLines_()));
 
   var brandSection = joinMessageLines_([
-    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "Dear " + brandSalutation + " *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
     "A meeting has been scheduled with the property owner of the property located at " + address + " for " + brandName + " on " + dateValue + " at " + timeValue + ". The meeting place shall be updated shortly.",
     ""
@@ -1329,16 +1344,18 @@ function buildVirtualMeetingMessage_(payload) {
   var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "Time");
   var linkValue = valueOrFallback_(resolveMeetingLink_(payload), "Link");
   var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
+  var propertySalutation = resolvePropertyOwnerSalutation_(payload);
+  var brandSalutation = resolveBrandContactSalutation_(payload);
 
   var propertySection = joinMessageLines_([
-    "Dear Sir,",
+    "Dear " + propertySalutation + ",",
     "",
     "A virtual meeting with the officials of " + brandName + " for your property located at " + address + " is scheduled on " + dateValue + " at " + timeValue + ". Please join via " + linkValue + ".",
     ""
   ].concat(buildSignatureLines_()));
 
   var brandSection = joinMessageLines_([
-    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "Dear " + brandSalutation + " *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
     "A virtual meeting with the owner of the property located at " + address + " for your brand " + brandName + " is scheduled on " + dateValue + " at " + timeValue + ". Please join via " + linkValue + ".",
     ""
@@ -1353,16 +1370,18 @@ function buildPendingTermsAgreementMessage_(payload) {
   var dateValue = valueOrFallback_(resolveMeetingDate_(payload), "Date");
   var timeValue = valueOrFallback_(resolveMeetingTime_(payload), "Time");
   var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
+  var propertySalutation = resolvePropertyOwnerSalutation_(payload);
+  var brandSalutation = resolveBrandContactSalutation_(payload);
 
   var propertySection = joinMessageLines_([
-    "Dear Sir,",
+    "Dear " + propertySalutation + ",",
     "",
     "A meeting with the officials of the brand " + brandName + " is scheduled on " + dateValue + " at " + timeValue + " to finalize pending terms and conditions. Please be available. The meeting place shall be updated shortly",
     ""
   ].concat(buildSignatureLines_()));
 
   var brandSection = joinMessageLines_([
-    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "Dear " + brandSalutation + " *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
     "A meeting is being scheduled  with the owner of the property located at *" + address + "* for your brand " + brandName + " is scheduled on " + dateValue + " at " + timeValue + ". The meeting place shall be updated shortly.",
     ""
@@ -1375,9 +1394,11 @@ function buildDealClosedMessage_(payload) {
   var brandContact = resolveBrandContactName_(payload);
   var brandName = valueOrFallback_(payload.brandName || payload.name, "brandName");
   var address = valueOrFallback_(payload.propertyAddress || payload.address, "propertyAddress");
+  var propertySalutation = resolvePropertyOwnerSalutation_(payload);
+  var brandSalutation = resolveBrandContactSalutation_(payload);
 
   var propertySection = joinMessageLines_([
-    "Dear Sir,",
+    "Dear " + propertySalutation + ",",
     "",
     "Congratulations on successful completion of the lease deal for your property located at *" + address + "* with the brand " + brandName + ". Thank you for trusting us.",
     "",
@@ -1386,7 +1407,7 @@ function buildDealClosedMessage_(payload) {
   ].concat(buildSignatureLines_()));
 
   var brandSection = joinMessageLines_([
-    "Dear Mr. *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
+    "Dear " + brandSalutation + " *" + valueOrFallback_(brandContact, "brandContactName") + "*,",
     "",
     "Congratulations on successful deal closure for your brand " + brandName + " in the property at *" + address + "*. We look forward for more business in future.",
     ""
@@ -1543,6 +1564,38 @@ function resolveMeetingTime_(payload) {
 
 function resolveMeetingLink_(payload) {
   return payload.meetingLink || payload.zoomLink || payload.virtualMeetingLink || payload.link;
+}
+
+function resolvePropertyOwnerSalutation_(payload) {
+  var contacts = toContactArraySafe_(payload && (payload.contactPersonsJson || payload.contactPersons));
+  if (contacts.length > 0 && isFilled_(contacts[0].salutation)) {
+    return contacts[0].salutation;
+  }
+  return "Sir";
+}
+
+function resolveBrandContactSalutation_(payload) {
+  var contacts = toContactArraySafe_(payload && (payload.brandContactPersonsJson || payload.brandContactPersons));
+  if (contacts.length > 0 && isFilled_(contacts[0].salutation)) {
+    return contacts[0].salutation;
+  }
+  return "Sir";
+}
+
+function resolvePropertyOwnerSalutation_(payload) {
+  var contacts = toContactArraySafe_(payload && (payload.contactPersonsJson || payload.contactPersons));
+  if (contacts.length > 0 && isFilled_(contacts[0].salutation)) {
+    return contacts[0].salutation;
+  }
+  return "Sir";
+}
+
+function resolveBrandContactSalutation_(payload) {
+  var contacts = toContactArraySafe_(payload && (payload.brandContactPersonsJson || payload.brandContactPersons));
+  if (contacts.length > 0 && isFilled_(contacts[0].salutation)) {
+    return contacts[0].salutation;
+  }
+  return "Sir";
 }
 
 function resolveTrackingLink_(payload) {

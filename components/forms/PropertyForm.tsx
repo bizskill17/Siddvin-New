@@ -3,6 +3,7 @@ import { Property, ContactPerson, UserRole } from '../../types';
 import Input from '../common/Input';
 import LongTextInput from '../common/LongTextInput';
 import CheckboxInput from '../common/CheckboxInput';
+import SelectInput from '../common/SelectInput';
 import Button from '../common/Button';
 
 interface PropertyFormProps {
