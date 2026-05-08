@@ -18,12 +18,18 @@ function notifyMutation_(action, entity, savedData, updatedBy, previousData) {
   payload.mutationAction = action;
 
   if (entity === "Properties") {
-    notifySidvinOwner_(SidvinNotificationEvent.PROPERTY_UPDATE, payload);
+    var act = String(action || "").trim().toLowerCase();
+    if (act === "create") {
+      notifySidvinOwner_(SidvinNotificationEvent.PROPERTY_UPDATE, payload);
+    }
     return;
   }
 
   if (entity === "Brands") {
-    notifySidvinOwner_(SidvinNotificationEvent.BRAND_UPDATE, payload);
+    var actBrand = String(action || "").trim().toLowerCase();
+    if (actBrand === "create") {
+      notifySidvinOwner_(SidvinNotificationEvent.BRAND_UPDATE, payload);
+    }
     return;
   }
 
@@ -51,6 +57,7 @@ function notifyMutation_(action, entity, savedData, updatedBy, previousData) {
 
   if (entity === "TermSheets") {
     notifySidvinOwner_(SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED, payload);
+    emitDepositAndReceiptNotifications_(payload, previousData, savedData, String(action || "").trim().toLowerCase());
     return;
   }
 }
@@ -299,23 +306,36 @@ function emitNewReceipts_(basePayload, oldStage, newStage) {
   var newReceipts = toReceiptArray_(newStage && newStage.receipts);
   if (!newReceipts.length) return;
 
-  var oldIds = {};
+  var oldByKey = {};
   for (var i = 0; i < oldReceipts.length; i++) {
-    var oldId = String(oldReceipts[i] && oldReceipts[i].id || "");
-    if (oldId) oldIds[oldId] = true;
+    var oldR = oldReceipts[i] || {};
+    var oldKey = String(oldR.id || i);
+    oldByKey[oldKey] = oldR;
   }
 
   for (var j = 0; j < newReceipts.length; j++) {
     var r = newReceipts[j] || {};
     var rid = String(r.id || "");
-    var isNew = !rid || !oldIds[rid];
-    if (!isNew) continue;
+    var key = rid || String(j);
+    var oldReceipt = oldByKey[key] || null;
+    var isNew = !oldReceipt;
+    var isUpdated = !!oldReceipt && receiptChanged_(oldReceipt, r);
+    if (!isNew && !isUpdated) continue;
 
     var payload = mergeStagePayload_(basePayload, newStage);
     payload.receiptAmount = r.receiptAmount;
     payload.receiptDate = r.receiptDate || newStage.receiptDate;
     notifySidvinOwner_(SidvinNotificationEvent.RECEIPT_UPDATE, payload);
   }
+}
+
+function receiptChanged_(oldReceipt, newReceipt) {
+  oldReceipt = oldReceipt || {};
+  newReceipt = newReceipt || {};
+  return (
+    String(oldReceipt.receiptDate || "") !== String(newReceipt.receiptDate || "") ||
+    Number(oldReceipt.receiptAmount || 0) !== Number(newReceipt.receiptAmount || 0)
+  );
 }
 
 function mergeStagePayload_(basePayload, stage) {
