@@ -135,14 +135,42 @@ const toSheetDate = (value: any): string => {
   return v;
 };
 
-const normalizeTimeValue = (value: any): string | null => {
-  if (value === null || value === undefined || value === '') return null;
+const toSheetTime = (value: any): string => {
+  if (value === null || value === undefined || value === '') return '';
   const v = String(value);
   if (/^\d{2}:\d{2}$/.test(v)) return v;
+  if (/^\d{2}:\d{2}:\d{2}$/.test(v)) return v.substring(0, 5);
   const parsed = new Date(v);
   if (!Number.isNaN(parsed.getTime())) {
     const hh = String(parsed.getHours()).padStart(2, '0');
     const mm = String(parsed.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+  return v;
+};
+
+const normalizeTimeValue = (value: any): string | null => {
+  if (value === null || value === undefined || value === '') return null;
+  const v = String(value);
+  
+  // 1. If it matches HH:mm, return it
+  if (/^\d{2}:\d{2}$/.test(v)) return v;
+  
+  // 2. If it matches HH:mm:ss, return HH:mm
+  if (/^\d{2}:\d{2}:\d{2}$/.test(v)) return v.substring(0, 5);
+
+  const parsed = new Date(v);
+  if (!Number.isNaN(parsed.getTime())) {
+    const hh = String(parsed.getHours()).padStart(2, '0');
+    const mm = String(parsed.getMinutes()).padStart(2, '0');
+    
+    // Detect the 1899 timezone bug (IST +05:21)
+    // If it's year 1899 and the time is 05:21, it means the backend 
+    // sent a date-only string "1899-12-30" which has no time info.
+    if (parsed.getFullYear() === 1899 && hh === '05' && mm === '21') {
+      return null;
+    }
+    
     return `${hh}:${mm}`;
   }
   return v;
@@ -485,7 +513,7 @@ export const addFollowUp = async (newFollowUp: Omit<FollowUp, 'id'>, updatedBy =
     ...newFollowUp,
     followUpDate: toSheetDate(newFollowUp.followUpDate),
     nextFollowUpDate: toSheetDate(newFollowUp.nextFollowUpDate),
-    nextFollowUpTime: newFollowUp.nextFollowUpTime || '',
+    nextFollowUpTime: toSheetTime(newFollowUp.nextFollowUpTime),
     plannedVisitDate: toSheetDate(newFollowUp.plannedVisitDate),
   };
   const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.followUps, data: payload, updatedBy });
@@ -496,7 +524,7 @@ export const updateFollowUp = async (updatedFollowUp: FollowUp, updatedBy = 'Sys
     ...updatedFollowUp,
     followUpDate: toSheetDate(updatedFollowUp.followUpDate),
     nextFollowUpDate: toSheetDate(updatedFollowUp.nextFollowUpDate),
-    nextFollowUpTime: updatedFollowUp.nextFollowUpTime || '',
+    nextFollowUpTime: toSheetTime(updatedFollowUp.nextFollowUpTime),
     plannedVisitDate: toSheetDate(updatedFollowUp.plannedVisitDate),
   };
   const res: any = await postJson({ action: 'update', entity: ENTITY_MAP.followUps, id: updatedFollowUp.id, data: payload, updatedBy });
@@ -516,6 +544,7 @@ export const addVisit = async (newVisit: Omit<Visit, 'id'>, updatedBy = 'System'
   const payload = {
     ...newVisit,
     scheduledDate: toSheetDate(newVisit.scheduledDate),
+    scheduledTime: toSheetTime(newVisit.scheduledTime),
     visitDate: toSheetDate(newVisit.visitDate),
     meetingLink: toCleanString(newVisit.meetingLink) || null,
   };
@@ -526,6 +555,7 @@ export const updateVisit = async (updatedVisit: Visit, updatedBy = 'System'): Pr
   const payload = {
     ...updatedVisit,
     scheduledDate: toSheetDate(updatedVisit.scheduledDate),
+    scheduledTime: toSheetTime(updatedVisit.scheduledTime),
     visitDate: toSheetDate(updatedVisit.visitDate),
     meetingLink: toCleanString(updatedVisit.meetingLink) || null,
   };

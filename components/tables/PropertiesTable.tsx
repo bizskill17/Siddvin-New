@@ -107,8 +107,8 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
               <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                 {`P-${property.serialNo || index + 1}`}
               </td>
-              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{property.address}</td>
-              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">
+              <td className="whitespace-normal break-words max-w-[200px] px-3 py-2.5 text-sm text-black">{property.address}</td>
+              <td className="whitespace-normal px-3 py-2.5 text-sm text-black">
                 {property.contactPersons[0]?.name || 'N/A'}
                 {property.contactPersons.length > 1 && ` (+${property.contactPersons.length - 1} more)`}
               </td>
@@ -119,9 +119,9 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">
                 {property.proposedArea !== null ? `${property.proposedArea} sqft` : 'N/A'}
               </td>
-              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{resolveStatus(property)}</td>
-              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{property.serviceFeeProposed}</td>
-              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{property.notes}</td>
+              <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{resolveStatus(property)}</td>
+              <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{property.serviceFeeProposed}</td>
+              <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{property.notes}</td>
               <td className="relative whitespace-nowrap py-2.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <div className="flex justify-end space-x-2">
                   {onEdit && (

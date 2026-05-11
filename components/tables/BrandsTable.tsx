@@ -102,16 +102,16 @@ const BrandsTable: React.FC<BrandsTableProps> = ({ brands, onEdit, onDelete , to
                     'N/A'
                   )}
                 </td>
-                <td className="whitespace-nowrap px-3 py-2.5 text-sm font-medium text-gray-900">
+                <td className="whitespace-normal px-3 py-2.5 text-sm font-medium text-gray-900">
                   {brand.name}
                 </td>
-                <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">
+                <td className="whitespace-normal px-3 py-2.5 text-sm text-black">
                   {brand.contactPersons[0]?.name || 'N/A'}
                   {brand.contactPersons.length > 1 && ` (+${brand.contactPersons.length - 1} more)`}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{brand.contactPersons[0]?.mobile || 'N/A'}</td>
-                <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{brand.serviceFeeAgreed}</td>
-                <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{brand.assignedRep}</td>
+                <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{brand.serviceFeeAgreed}</td>
+                <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{brand.assignedRep}</td>
                 <td className="relative whitespace-nowrap py-2.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                   <div className="flex justify-end space-x-2">
                     {onEdit && (

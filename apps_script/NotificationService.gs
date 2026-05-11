@@ -228,6 +228,8 @@ function notifySidvinOwner_(eventType, payload) {
   payload = payload || {};
   if (
     eventType === SidvinNotificationEvent.PROPOSAL_CANCELLED ||
+    eventType === SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED ||
+    eventType === SidvinNotificationEvent.AGREEMENT_STORE_OPENING_UPDATED ||
     eventType === SidvinNotificationEvent.DEPOSIT_UPDATE ||
     eventType === SidvinNotificationEvent.RECEIPT_UPDATE ||
     eventType === SidvinNotificationEvent.SUCCESS_STORY_BILLED
@@ -236,6 +238,22 @@ function notifySidvinOwner_(eventType, payload) {
     if (!isFilled_(ownerOnlyMessage)) {
       return { skipped: true, reason: "Template-only mode: event not in approved templates." };
     }
+    if (eventType === SidvinNotificationEvent.SUCCESS_STORY_BILLED) {
+      var splitOwner = splitPropertyAndBrandMessage_(ownerOnlyMessage);
+      var ownerPropertyMessage = splitOwner.propertyMessage;
+      var ownerBrandMessage = splitOwner.brandMessage;
+      var result = null;
+
+      if (isFilled_(ownerPropertyMessage)) {
+        result = sendOwnerGroupOnly_(payload, ownerPropertyMessage);
+      }
+      if (isFilled_(ownerBrandMessage)) {
+        var brandResult = sendOwnerGroupOnly_(payload, ownerBrandMessage);
+        if (!result) result = brandResult;
+      }
+      return result || sendOwnerGroupOnly_(payload, ownerOnlyMessage);
+    }
+
     return sendOwnerGroupOnly_(payload, ownerOnlyMessage);
   }
   if (eventType === SidvinNotificationEvent.PROPOSAL_UPDATED) {

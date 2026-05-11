@@ -56,10 +56,45 @@ function notifyMutation_(action, entity, savedData, updatedBy, previousData) {
   }
 
   if (entity === "TermSheets") {
-    notifySidvinOwner_(SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED, payload);
     emitDepositAndReceiptNotifications_(payload, previousData, savedData, String(action || "").trim().toLowerCase());
+
+    // Send Terms/Agreement message only when agreement-related fields change.
+    if (!hasTermsAgreementDetailsChange_(previousData, savedData)) return;
+
+    notifySidvinOwner_(SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED, payload);
     return;
   }
+}
+
+function hasTermsAgreementDetailsChange_(previousData, currentData) {
+  if (!currentData) return false;
+
+  var fields = [
+    "terms",
+    "leaseAgreementRemarks",
+    "finalizationDate",
+    "preparationDate",
+    "signingDate",
+    "agreementDate",
+    "agreementRegistrationDate",
+    "storeOpeningDate"
+  ];
+
+  if (!previousData) {
+    for (var i = 0; i < fields.length; i++) {
+      if (isFilled_(currentData[fields[i]])) return true;
+    }
+    return false;
+  }
+
+  for (var j = 0; j < fields.length; j++) {
+    var field = fields[j];
+    var oldVal = String(previousData[field] || "").trim();
+    var newVal = String(currentData[field] || "").trim();
+    if (oldVal !== newVal) return true;
+  }
+
+  return false;
 }
 
 function buildBaseNotificationPayload_(entity, savedData, updatedBy) {

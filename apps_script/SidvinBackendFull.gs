@@ -218,14 +218,20 @@ function notifyMutation_(action, entity, savedData, updatedBy, previousData) {
   }
 
   if (entity === "TermSheets") {
+    // Deposit/Receipt notifications are derived from changes inside depositStagesJson.
+    emitDepositAndReceiptNotifications_(payload, previousData, savedData, String(action || "").trim().toLowerCase());
+
+    // Send Terms/Agreement message only when agreement-related fields change.
+    var hasAgreementChange =
+      hasAgreementStoreOpeningChange_(previousData, savedData) ||
+      hasTermsAgreementDetailsChange_(previousData, savedData);
+    if (!hasAgreementChange) return;
+
     if (hasAgreementStoreOpeningChange_(previousData, savedData)) {
       notifySidvinOwner_(SidvinNotificationEvent.AGREEMENT_STORE_OPENING_UPDATED, payload);
     } else {
       notifySidvinOwner_(SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED, payload);
     }
-
-    // Deposit/Receipt notifications are derived from changes inside depositStagesJson.
-    emitDepositAndReceiptNotifications_(payload, previousData, savedData, String(action || "").trim().toLowerCase());
     return;
   }
 }
@@ -672,6 +678,37 @@ function hasAgreementStoreOpeningChange_(previousData, currentData) {
 
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
+    var oldVal = String(previousData[field] || "").trim();
+    var newVal = String(currentData[field] || "").trim();
+    if (oldVal !== newVal) return true;
+  }
+
+  return false;
+}
+
+function hasTermsAgreementDetailsChange_(previousData, currentData) {
+  if (!currentData) return false;
+
+  var fields = [
+    "terms",
+    "leaseAgreementRemarks",
+    "finalizationDate",
+    "preparationDate",
+    "signingDate",
+    "agreementDate",
+    "agreementRegistrationDate",
+    "storeOpeningDate"
+  ];
+
+  if (!previousData) {
+    for (var i = 0; i < fields.length; i++) {
+      if (isFilled_(currentData[fields[i]])) return true;
+    }
+    return false;
+  }
+
+  for (var j = 0; j < fields.length; j++) {
+    var field = fields[j];
     var oldVal = String(previousData[field] || "").trim();
     var newVal = String(currentData[field] || "").trim();
     if (oldVal !== newVal) return true;
@@ -1137,6 +1174,8 @@ function notifySidvinOwner_(eventType, payload) {
     var result;
     if (
       eventType === SidvinNotificationEvent.PROPOSAL_CANCELLED ||
+      eventType === SidvinNotificationEvent.TERMS_AGREEMENT_UPDATED ||
+      eventType === SidvinNotificationEvent.AGREEMENT_STORE_OPENING_UPDATED ||
       eventType === SidvinNotificationEvent.DEPOSIT_UPDATE ||
       eventType === SidvinNotificationEvent.RECEIPT_UPDATE ||
       eventType === SidvinNotificationEvent.SUCCESS_STORY_BILLED
@@ -1150,7 +1189,23 @@ function notifySidvinOwner_(eventType, payload) {
         });
         return { skipped: true, reason: "Template-only mode: event not in approved templates." };
       }
-      result = sendOwnerGroupOnly_(payload, ownerOnlyMessage);
+      if (eventType === SidvinNotificationEvent.SUCCESS_STORY_BILLED) {
+        var splitOwner = splitPropertyAndBrandMessage_(ownerOnlyMessage);
+        var ownerPropertyMessage = splitOwner.propertyMessage;
+        var ownerBrandMessage = splitOwner.brandMessage;
+        if (isFilled_(ownerPropertyMessage)) {
+          result = sendOwnerGroupOnly_(payload, ownerPropertyMessage);
+        }
+        if (isFilled_(ownerBrandMessage)) {
+          var brandResult = sendOwnerGroupOnly_(payload, ownerBrandMessage);
+          if (!result) result = brandResult;
+        }
+        if (!result) {
+          result = sendOwnerGroupOnly_(payload, ownerOnlyMessage);
+        }
+      } else {
+        result = sendOwnerGroupOnly_(payload, ownerOnlyMessage);
+      }
       writeNotificationAudit_("NOTIFY_SUCCESS", {
         eventType: eventType,
         proposalId: payload && payload.proposalId ? payload.proposalId : "",
@@ -2262,7 +2317,23 @@ function normalizeSheetCell_(value) {
   if (value === null || value === undefined) return "";
   if (Object.prototype.toString.call(value) === "[object Date]") {
     var tz = Session.getScriptTimeZone() || "Asia/Kolkata";
-    return Utilities.formatDate(value, tz, "yyyy-MM-dd");
+    var year = value.getFullYear();
+    var hours = value.getHours();
+    var minutes = value.getMinutes();
+    var seconds = value.getSeconds();
+
+    // If it's a time-only field from Sheets, it usually has year 1899.
+    if (year === 1899 || year === 1900) {
+      return Utilities.formatDate(value, tz, "HH:mm");
+    }
+    
+    // If it's a pure date (midnight).
+    if (hours === 0 && minutes === 0 && seconds === 0) {
+      return Utilities.formatDate(value, tz, "yyyy-MM-dd");
+    }
+    
+    // Otherwise, it's a full Date-Time.
+    return Utilities.formatDate(value, tz, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
   }
   if (typeof value !== "string") return value;
 

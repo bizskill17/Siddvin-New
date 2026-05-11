@@ -140,16 +140,16 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
                 <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                   {`Q-${proposal.serialNo || index + 1}`}
                 </td>
-                <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">
+                <td className="whitespace-normal break-words max-w-[200px] px-3 py-2.5 text-sm text-black">
                   {getPropertyName(proposal.propertyId)}
                 </td>
-                <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">
+                <td className="whitespace-normal px-3 py-2.5 text-sm text-black">
                   {getBrandName(proposal.brandId)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">
                   {formatDateDisplay(proposal.proposalDate)}
                 </td>
-                <td className="px-3 py-2.5 text-sm text-black">
+                <td className="whitespace-normal px-3 py-2.5 text-sm text-black">
                   <StageBadge stage={proposal.currentStage} />
                   {proposal.currentStage === CurrentStageEnum.PendingForDeposit && (
                     <div className="mt-1 text-xs text-black">{getPendingDepositLabel(proposal.id)}</div>

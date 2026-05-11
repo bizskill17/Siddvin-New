@@ -279,11 +279,11 @@ const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
                   <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                     {`Q-${row.proposal.serialNo || ''}`}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{row.propertyAddress}</td>
-                  <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{row.brandName}</td>
+                  <td className="whitespace-normal break-words max-w-[200px] px-3 py-2.5 text-sm text-black">{row.propertyAddress}</td>
+                  <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{row.brandName}</td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{row.totalDeposit.toLocaleString()}</td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{row.depositReceived.toLocaleString()}</td>
-                  <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{row.nextDepositName}</td>
+                  <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{row.nextDepositName}</td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{row.nextDepositAmount.toLocaleString()}</td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-sm text-center">
                     <Button size="sm" variant="primary" onClick={() => handleUpdateReceipt(row)}>

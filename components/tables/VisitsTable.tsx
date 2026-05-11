@@ -113,13 +113,13 @@ const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete , to
               </td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{formatDateDisplay(visit.scheduledDate)}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{visit.scheduledTime || 'N/A'}</td>
-              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{visit.meetingType || 'N/A'}</td>
-              <td className="px-3 py-2.5 text-sm text-black">{visit.meetingAgenda || 'N/A'}</td>
+              <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{visit.meetingType || 'N/A'}</td>
+              <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{visit.meetingAgenda || 'N/A'}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{formatDateDisplay(visit.visitDate)}</td>
-              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{visit.developerAttendees || 'N/A'}</td>
-              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{visit.brandAttendees || 'N/A'}</td>
-              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{visit.sidvinAttendees || 'N/A'}</td>
-              <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">{visit.visitOutcome || 'N/A'}</td>
+              <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{visit.developerAttendees || 'N/A'}</td>
+              <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{visit.brandAttendees || 'N/A'}</td>
+              <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{visit.sidvinAttendees || 'N/A'}</td>
+              <td className="whitespace-normal px-3 py-2.5 text-sm text-black">{visit.visitOutcome || 'N/A'}</td>
               <td className="relative whitespace-nowrap py-2.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <div className="flex justify-end space-x-2">
                   {onEdit && (
