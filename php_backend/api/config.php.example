@@ -1,0 +1,17 @@
+<?php
+// Copy to config.php and fill with your Hostinger DB credentials.
+
+return [
+  'db' => [
+    'host' => 'srv2057.hstgr.io',
+    'port' => 3306,
+    'name' => 'u380752258_sidvin',
+    'user' => 'u380752258_sidvin',
+    'pass' => 'YOUR_DB_PASSWORD_HERE',
+  ],
+
+  // For security, in production set this to your website domain.
+  // Example: 'https://proposal.bizskilledu.com'
+  'cors_origin' => '*',
+];
+

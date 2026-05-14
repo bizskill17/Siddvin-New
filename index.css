@@ -1,0 +1,15 @@
+/* Global shared styles */
+
+:root {
+  --portal-title-font: 'Fraunces', Georgia, serif;
+  --portal-body-font: 'Manrope', sans-serif;
+}
+
+.property-portal {
+  font-family: var(--portal-body-font);
+}
+
+.property-portal .portal-heading {
+  font-family: var(--portal-title-font);
+  letter-spacing: -0.01em;
+}
