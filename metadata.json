@@ -1,5 +1,0 @@
-{
-  "name": "Sidvin Proposal Workflow",
-  "description": "An application to manage the workflow of property proposals, tracking stages from new proposals to store opening and pending fees, based on a normalized data model.",
-  "requestFramePermissions": []
-}
