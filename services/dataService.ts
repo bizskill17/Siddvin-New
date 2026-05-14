@@ -14,7 +14,8 @@ import {
 const DEFAULT_DEV_BACKEND_URL = 'http://localhost:4000/api';
 export const BACKEND_URL =
   (import.meta.env.VITE_BACKEND_URL as string | undefined)?.trim() ||
-  (import.meta.env.DEV ? DEFAULT_DEV_BACKEND_URL : '/api');
+  // Use the actual PHP entrypoint to avoid redirects like `/api` -> `/api/` which can break POST bodies.
+  (import.meta.env.DEV ? DEFAULT_DEV_BACKEND_URL : '/api/index.php');
 
 type EntityName =
   | 'Properties'
