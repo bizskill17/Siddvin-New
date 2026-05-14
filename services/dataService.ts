@@ -9,12 +9,12 @@ import {
   FollowUp,
 } from '../types';
 
-const PROD_BACKEND_URL = 'https://script.google.com/macros/s/AKfycby0NHNUflCQ0YhpLMK9byMFKEuOQnxkKFs3HyKJB2HCxO1QT-ZKqz7U13lsgKsBhdG6Yg/exec';
-const DEV_PROXY_BACKEND_URL = '/gas';
-
+// Backend API base URL (Node + MySQL). This replaces the old Google Apps Script backend.
+// Set `VITE_BACKEND_URL` in your environment for production, e.g. `https://proposal.bizskilledu.com/api`.
+const DEFAULT_DEV_BACKEND_URL = 'http://localhost:4000/api';
 export const BACKEND_URL =
   (import.meta.env.VITE_BACKEND_URL as string | undefined)?.trim() ||
-  (import.meta.env.DEV ? DEV_PROXY_BACKEND_URL : PROD_BACKEND_URL);
+  (import.meta.env.DEV ? DEFAULT_DEV_BACKEND_URL : '/api');
 
 type EntityName =
   | 'Properties'

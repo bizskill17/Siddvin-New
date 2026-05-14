@@ -98,7 +98,7 @@ const App: React.FC = () => {
   const [editingFollowUp, setEditingFollowUp] = useState<FollowUp | null>(null);
 
   const [selectedStageFilter, setSelectedStageFilter] = useState<CurrentStageEnum | 'All'>('All');
-  const [selectedPropertyTaskFilter, setSelectedPropertyTaskFilter] = useState<PropertyTaskStatus>('Pending Property Files');
+  const [selectedPropertyTaskFilter, setSelectedPropertyTaskFilter] = useState<PropertyTaskStatus | 'All'>('All');
 
   const [propertyReturnView, setPropertyReturnView] = useState<'properties' | 'propertyFeeFollowUp'>('properties');
 
@@ -289,7 +289,7 @@ const App: React.FC = () => {
 
   const handlePropertyTaskView = (status: PropertyTaskStatus) => {
     setSelectedPropertyTaskFilter(status);
-    handleViewChange('propertyFeeFollowUp');
+    handleViewChange('properties');
   };
 
   const handleAddPropertyView = () => {
@@ -298,7 +298,7 @@ const App: React.FC = () => {
   };
 
   const handleEditPropertyView = (property: Property, returnView: 'properties' | 'propertyFeeFollowUp') => {
-    setPropertyReturnView(returnView);
+    setPropertyReturnView('properties'); // Always return to unified view
     setEditingProperty(property);
     setCurrentView('editProperty');
   };
@@ -687,25 +687,26 @@ const App: React.FC = () => {
         return <DashboardView proposals={proposals} visits={visits} properties={properties} brands={brands} onStageClick={(stage) => { setSelectedStageFilter(stage); handleViewChange('proposals'); }} />;
       case 'properties':
         return (
-          <>
-            {renderPageHeader('Property', {
+          <div className="space-y-6">
+            {renderPageHeader('Properties', {
               onBack: () => handleViewChange('dashboard'),
               backLabel: 'Back to Dashboard',
             })}
-            <PropertiesTable properties={properties} onEdit={(p) => handleEditPropertyView(p, 'properties')} onDelete={(id) => handleDeleteClick(id, 'property')} getStatusLabel={(property) => getPropertyTaskLabel(getPropertyTaskStatus(property))} toolbarInline toolbarActions={<Button onClick={handleAddPropertyView}>Add New Property</Button>} />
-          </>
+
+            <PropertiesTable 
+              properties={selectedPropertyTaskFilter === 'All' ? properties : properties.filter(p => getPropertyTaskStatus(p) === selectedPropertyTaskFilter)} 
+              onEdit={(p) => handleEditPropertyView(p, 'properties')} 
+              onDelete={(id) => handleDeleteClick(id, 'property')} 
+              getStatusLabel={(property) => getPropertyTaskLabel(getPropertyTaskStatus(property))} 
+              toolbarInline 
+              toolbarActions={<Button onClick={handleAddPropertyView}>Add New Property</Button>} 
+            />
+          </div>
         );
       case 'propertyFeeFollowUp':
-        const visiblePendingPropertyTasks = properties.filter((p) => getPropertyTaskStatus(p) === selectedPropertyTaskFilter);
-        return (
-          <>
-            {renderPageHeader(getPropertyTaskLabel(selectedPropertyTaskFilter), {
-              onBack: () => handleViewChange('properties'),
-              backLabel: 'Back to Properties',
-            })}
-            <PropertiesTable properties={visiblePendingPropertyTasks} onEdit={(p) => handleEditPropertyView(p, 'propertyFeeFollowUp')} getStatusLabel={(property) => getPropertyTaskLabel(getPropertyTaskStatus(property))} toolbarInline />
-          </>
-        );
+        // Redirect to properties view with the selected filter
+        handleViewChange('properties');
+        return null;
       case 'pendingDeposit':
         return (
           <>
@@ -897,13 +898,13 @@ const App: React.FC = () => {
           <li><SectionToggle label="Property" isOpen={expandedSections.propertyTasks} onClick={() => toggleSection('propertyTasks')} /></li>
           {expandedSections.propertyTasks && (
             <>
-              <li><NavLink label={`Properties (${properties.length})`} onClick={() => handleViewChange('properties')} isActive={currentView === 'properties'} isSubItem /></li>
+              <li><NavLink label={`Properties (${properties.length})`} onClick={() => { handleViewChange('properties'); setSelectedPropertyTaskFilter('All'); }} isActive={currentView === 'properties' && selectedPropertyTaskFilter === 'All'} isSubItem /></li>
               {propertyTaskStatuses.map((status) => (
                 <li key={status}>
                   <NavLink
                     label={`${getPropertyTaskLabel(status)} (${propertyTaskCounts[status] || 0})`}
                     onClick={() => handlePropertyTaskView(status)}
-                    isActive={currentView === 'propertyFeeFollowUp' && selectedPropertyTaskFilter === status}
+                    isActive={currentView === 'properties' && selectedPropertyTaskFilter === status}
                     isSubItem
                   />
                 </li>
@@ -929,7 +930,7 @@ const App: React.FC = () => {
       </nav>
 
       <div className="flex-grow flex flex-col min-h-screen">
-        <main className="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-grow p-2 sm:p-4 overflow-y-auto">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
             <div className="flex items-center gap-3">
               <button

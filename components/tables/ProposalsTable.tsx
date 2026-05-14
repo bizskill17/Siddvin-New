@@ -114,22 +114,22 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
         <table id="proposals-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
           <thead className="bg-orange-700 text-white">
             <tr>
-              <th scope="col" className="py-2.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6 border-b border-black">
+              <th scope="col" className="w-24 py-2.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6 border-b border-black">
                 Proposal Code
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
+              <th scope="col" className="min-w-[350px] px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
                 Property Address
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
+              <th scope="col" className="w-40 px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
                 Brand Name
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
+              <th scope="col" className="w-32 px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
                 Proposal Date
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
+              <th scope="col" className="w-64 px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
                 Current Stage
               </th>
-              <th scope="col" className="relative py-2.5 pl-3 pr-4 sm:pr-6 border-b border-black">
+              <th scope="col" className="w-20 relative py-2.5 pl-3 pr-4 sm:pr-6 border-b border-black">
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
@@ -137,19 +137,19 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
           <tbody className="divide-y divide-gray-200 bg-[#ece8e3]">
             {visibleProposals.map((proposal, index) => (
               <tr key={proposal.id}>
-                <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                <td className="w-24 whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                   {`Q-${proposal.serialNo || index + 1}`}
                 </td>
-                <td className="whitespace-normal break-words max-w-[200px] px-3 py-2.5 text-sm text-black">
+                <td className="min-w-[400px] whitespace-normal break-words px-3 py-2.5 text-sm text-black">
                   {getPropertyName(proposal.propertyId)}
                 </td>
-                <td className="whitespace-normal px-3 py-2.5 text-sm text-black">
+                <td className="w-40 whitespace-normal break-words px-3 py-2.5 text-sm text-black">
                   {getBrandName(proposal.brandId)}
                 </td>
-                <td className="whitespace-nowrap px-3 py-2.5 text-sm text-black">
+                <td className="w-32 whitespace-nowrap px-3 py-2.5 text-sm text-black">
                   {formatDateDisplay(proposal.proposalDate)}
                 </td>
-                <td className="whitespace-normal px-3 py-2.5 text-sm text-black">
+                <td className="w-64 whitespace-normal px-3 py-2.5 text-sm text-black">
                   <StageBadge stage={proposal.currentStage} />
                   {proposal.currentStage === CurrentStageEnum.PendingForDeposit && (
                     <div className="mt-1 text-xs text-black">{getPendingDepositLabel(proposal.id)}</div>
@@ -161,26 +161,33 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
                       <div className="mt-1 text-xs text-black">
                         <div>Next: {formatDateDisplay(latestFollowUp.nextFollowUpDate || latestFollowUp.followUpDate)}</div>
                         {latestFollowUp.nextFollowUpTime && <div>Time: {latestFollowUp.nextFollowUpTime}</div>}
-                        <div className="truncate max-w-[260px]" title={latestFollowUp.remarks || 'N/A'}>
+                        <div className="truncate max-w-[240px]" title={latestFollowUp.remarks || 'N/A'}>
                           Remarks: {latestFollowUp.remarks || 'N/A'}
                         </div>
                       </div>
                     );
                   })()}
                 </td>
-                <td className="relative whitespace-nowrap py-2.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="secondary" size="sm" onClick={() => onViewDetails(proposal.id)}>
-                      View
+                <td className="w-20 relative whitespace-nowrap py-2.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                  <div className="flex justify-end space-x-1">
+                    <Button variant="secondary" size="sm" onClick={() => onViewDetails(proposal.id)} title="View Detail" className="p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      </svg>
                     </Button>
                     {onEdit && (
-                      <Button variant="primary" size="sm" onClick={() => onEdit(proposal)}>
-                        Edit
+                      <Button variant="primary" size="sm" onClick={() => onEdit(proposal)} title="Edit" className="p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
                       </Button>
                     )}
                     {onDelete && (
-                      <Button variant="danger" size="sm" onClick={() => onDelete(proposal.id)}>
-                        Delete
+                      <Button variant="danger" size="sm" onClick={() => onDelete(proposal.id)} title="Delete" className="p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
                       </Button>
                     )}
                   </div>

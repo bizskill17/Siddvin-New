@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -27,20 +27,33 @@ jobs:
       - name: Validate FTP config
         run: |
           if [ -z "${{ secrets.FTP_SERVER }}" ] && [ -z "${{ vars.FTP_SERVER }}" ]; then
-            echo "Missing FTP_SERVER. Add it as a repo Secret (recommended) or Variable."
+            echo "Missing FTP_SERVER. Add it in Settings -> Secrets and variables -> Actions -> Variables (or Secrets)."
+            exit 1
+          fi
+          if [ -z "${{ secrets.FTP_USERNAME }}" ]; then
+            echo "Missing FTP_USERNAME secret."
+            exit 1
+          fi
+          if [ -z "${{ secrets.FTP_PASSWORD }}" ]; then
+            echo "Missing FTP_PASSWORD secret."
             exit 1
           fi
 
-      - name: Deploy to Hostinger (FTP root = public_html)
+      - name: Deploy to Hostinger (FTP)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_SERVER || vars.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: ${{ vars.FTP_PORT || '21' }}
-          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
-          security: ${{ vars.FTP_SECURITY || 'strict' }}
+          # Hostinger usually works with plain FTP on port 21. If you enable FTPS, set FTP_PROTOCOL=ftps.
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftp' }}
+          # If using FTPS with a self-signed/unknown cert, set FTP_SECURITY=loose.
+          security: ${{ vars.FTP_SECURITY || 'loose' }}
           local-dir: dist/
+          # If your FTP account already lands inside public_html, keep this as './'.
+          # Otherwise set FTP_SERVER_DIR=public_html/
           server-dir: ${{ vars.FTP_SERVER_DIR || './' }}
           timeout: ${{ vars.FTP_TIMEOUT || '120000' }}
           dangerous-clean-slate: ${{ vars.FTP_CLEAN_SLATE == 'true' }}
+
