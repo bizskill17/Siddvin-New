@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type StageActionIconName = 'proposal' | 'followUp' | 'schedule' | 'visit' | 'terms' | 'agreement' | 'invoice';
+export type StageActionIconName = 'proposal' | 'followUp' | 'schedule' | 'visit' | 'terms' | 'agreement' | 'invoice' | 'photos' | 'mail' | 'negotiate' | 'mailCheck';
 
 /** One small outline icon per next-step action in the proposal lists. */
 const StageActionIcon: React.FC<{ name: StageActionIconName; className?: string }> = ({ name, className = 'w-4 h-4' }) => {
@@ -28,6 +28,14 @@ const StageActionIcon: React.FC<{ name: StageActionIconName; className?: string 
       return <svg {...common}><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></svg>;
     case 'agreement': // document with tick: agreement signed / store opened
       return <svg {...common}><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 15l2 2l4-4" /></svg>;
+    case 'photos': // picture: add property photos / files
+      return <svg {...common}><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10" r="1.5" /><path d="M21 16l-5-5l-9 8" /></svg>;
+    case 'mail': // envelope: send the service fee email
+      return <svg {...common}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6l9-6" /></svg>;
+    case 'negotiate': // two speech bubbles: negotiation
+      return <svg {...common}><path d="M4 15V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H7z" /><path d="M16 9h2a2 2 0 0 1 2 2v9l-3-3h-5a2 2 0 0 1-2-2v-2" /></svg>;
+    case 'mailCheck': // envelope with tick: acceptance email received
+      return <svg {...common}><path d="M12 19H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6" /><path d="M3 7l9 6l9-6M15 19l2 2l4-4" /></svg>;
     case 'invoice': // rupee: brand fees / invoice
     default:
       return <svg {...common}><path d="M7 5h10M7 9h10M7 5h3.5a4 4 0 0 1 0 8H7l7 6" /></svg>;

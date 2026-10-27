@@ -278,6 +278,27 @@ const App: React.FC = () => {
     return property.propertyFeeStatus as any;
   };
 
+  // Field to jump to when Edit Property is opened from the list's update icon.
+  const [propertyFocusField, setPropertyFocusField] = useState<string | undefined>(undefined);
+
+  /** The next step for a property at its current status (green update icon in the Properties list). */
+  const getPropertyUpdateAction = (property: Property): { label: string; icon: StageActionIconName; field: string } | null => {
+    switch (getPropertyTaskStatus(property)) {
+      case 'Pending Property Files':
+        return { label: 'Add property photos / files', icon: 'photos', field: 'propertyPhoto-0' };
+      case 'Pending Property Email':
+        return { label: 'Enter service fee email sent date', icon: 'mail', field: 'propertyFeeEmailSentDate' };
+      case 'Pending Negotiation':
+        return { label: 'Update negotiation / acceptance email date', icon: 'negotiate', field: 'propertyFeeAcceptanceEmailDate' };
+      case 'Pending Acceptance Email':
+        return { label: 'Enter acceptance email date', icon: 'mailCheck', field: 'propertyFeeAcceptanceEmailDate' };
+      case 'Pending MOU Signing':
+        return { label: 'Enter MOU signing date', icon: 'agreement', field: 'propertyFeePaperSigningDate' };
+      default:
+        return null;
+    }
+  };
+
   const getPropertyTaskLabel = (status: PropertyTaskStatus) => {
     if (status === 'Pending Property Email') return 'Pending Service Fee Email';
     if (status === 'Pending MOU Signing') return 'Pending MOU Signing';
@@ -343,7 +364,8 @@ const App: React.FC = () => {
     handleViewChange('addProperty');
   };
 
-  const handleEditPropertyView = (property: Property, returnView: 'properties' | 'propertyFeeFollowUp') => {
+  const handleEditPropertyView = (property: Property, returnView: 'properties' | 'propertyFeeFollowUp', focusField?: string) => {
+    setPropertyFocusField(focusField);
     setPropertyReturnView('properties'); // Always return to unified view
     setEditingProperty(property);
     setCurrentView('editProperty');
@@ -981,7 +1003,9 @@ const App: React.FC = () => {
 
             <PropertiesTable 
               properties={selectedPropertyTaskFilter === 'All' ? properties : properties.filter(p => getPropertyTaskStatus(p) === selectedPropertyTaskFilter)} 
-              onEdit={(p) => handleEditPropertyView(p, 'properties')} 
+              onEdit={(p) => handleEditPropertyView(p, 'properties')}
+              getUpdateAction={(p) => getPropertyUpdateAction(p)}
+              onUpdate={(p) => handleEditPropertyView(p, 'properties', getPropertyUpdateAction(p)?.field)} 
               onDelete={(id) => handleDeleteClick(id, 'property')} 
               getStatusLabel={(property) => getPropertyTaskLabel(getPropertyTaskStatus(property))} 
               toolbarInline 
@@ -1006,7 +1030,7 @@ const App: React.FC = () => {
       case 'addProperty':
         return <PropertyForm onSubmit={handleAddProperty} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} />;
       case 'editProperty':
-        return editingProperty ? <PropertyForm initialData={editingProperty} onSubmit={(payload) => handleUpdateProperty({ ...editingProperty, ...payload })} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} /> : <div className="text-center py-8">Property not found for editing.</div>;
+        return editingProperty ? <PropertyForm initialData={editingProperty} focusField={propertyFocusField} onSubmit={(payload) => handleUpdateProperty({ ...editingProperty, ...payload })} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} /> : <div className="text-center py-8">Property not found for editing.</div>;
       case 'companyMaster':
         return <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} onBack={() => handleViewChange('dashboard')} />;
       case 'whatsappTemplates':

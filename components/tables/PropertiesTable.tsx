@@ -1,5 +1,6 @@
 import React from 'react';
 import { Property } from '../../types';
+import StageActionIcon, { StageActionIconName } from '../common/StageActionIcon';
 import Button from '../common/Button';
 import ExportIconButton from '../common/ExportIconButton';
 import { downloadTableAsPdf, exportRowsToCsv } from '../common/exportUtils';
@@ -9,11 +10,14 @@ interface PropertiesTableProps {
   onEdit?: (property: Property) => void;
   onDelete?: (propertyId: string) => void; // New prop for delete
   getStatusLabel?: (property: Property) => string;
+  /** Next-step action for a row (label shown on hover + icon); null hides the update button. */
+  getUpdateAction?: (property: Property) => { label: string; icon: StageActionIconName } | null;
+  onUpdate?: (property: Property) => void;
   toolbarInline?: boolean;
   toolbarActions?: React.ReactNode;
 }
 
-const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, onDelete, getStatusLabel , toolbarInline = false, toolbarActions}) => {
+const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, onDelete, getStatusLabel, getUpdateAction, onUpdate, toolbarInline = false, toolbarActions}) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const resolveStatus = (property: Property) => (getStatusLabel ? getStatusLabel(property) : property.propertyFeeStatus);
   const visibleProperties = properties.filter((property) => {
@@ -93,7 +97,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
             <th scope="col" className="w-32 px-3 py-2.5 text-left text-sm font-semibold text-white border-b border-black">
               Notes
             </th>
-            <th scope="col" className="w-16 relative py-2.5 pl-3 pr-4 sm:pr-6 border-b border-black">
+            <th scope="col" className="w-24 relative py-2.5 pl-3 pr-4 sm:pr-6 border-b border-black">
               <span className="sr-only">Actions</span>
             </th>
           </tr>
@@ -119,8 +123,23 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
               <td className="w-32 whitespace-normal px-3 py-2.5 text-xs text-black">{resolveStatus(property)}</td>
               <td className="w-24 whitespace-normal px-3 py-2.5 text-xs text-black">{property.serviceFeeProposed}</td>
               <td className="w-32 whitespace-normal px-3 py-2.5 text-xs text-black leading-tight truncate hover:whitespace-normal transition-all">{property.notes}</td>
-              <td className="w-16 relative whitespace-nowrap py-2.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+              <td className="w-24 relative whitespace-nowrap py-2.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <div className="flex justify-end space-x-1">
+                  {onUpdate && getUpdateAction && (() => {
+                    const action = getUpdateAction(property);
+                    if (!action) return null;
+                    return (
+                      <Button
+                        size="sm"
+                        onClick={() => onUpdate(property)}
+                        title={action.label}
+                        aria-label={action.label}
+                        className="p-1 !bg-green-700 hover:!bg-green-800 focus:!ring-green-600"
+                      >
+                        <StageActionIcon name={action.icon} />
+                      </Button>
+                    );
+                  })()}
                   {onEdit && (
                     <Button variant="primary" size="sm" onClick={() => onEdit(property)} title="Edit" className="p-1">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">

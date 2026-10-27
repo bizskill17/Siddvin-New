@@ -7,6 +7,8 @@ import SelectInput from '../common/SelectInput';
 import Button from '../common/Button';
 
 interface PropertyFormProps {
+  /** id of a field to scroll to and focus when the form opens (from the list's update icon). */
+  focusField?: string;
   initialData?: Property;
   onSubmit: (property: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => void;
   onCancel: () => void;
@@ -14,7 +16,7 @@ interface PropertyFormProps {
   currentUserName: string;
 }
 
-const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCancel, currentUserRole, currentUserName }) => {
+const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCancel, currentUserRole, currentUserName, focusField }) => {
   const getPropertyFeeStageLabel = (status: string) =>
     status === 'Pending Property Email' ? 'Pending Service Fee Email' : status;
 
@@ -113,6 +115,17 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       });
     }
   }, [initialData]);
+
+  useEffect(() => {
+    if (!focusField) return;
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(focusField) as HTMLInputElement | null;
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus({ preventScroll: true });
+    }, 50);
+    return () => window.clearTimeout(t);
+  }, [focusField]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { id, value, type, checked } = e.target as HTMLInputElement;
