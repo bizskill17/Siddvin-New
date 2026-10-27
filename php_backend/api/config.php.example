@@ -10,8 +10,8 @@ return [
     'pass' => 'YOUR_DB_PASSWORD_HERE',
   ],
 
-  // For security, in production set this to your website domain.
-  // Example: 'https://proposal.bizskilledu.com'
-  'cors_origin' => '*',
+  // Which website may call this API from a browser. Set this to your domain.
+  // For local development with `npm run dev`, the Vite proxy makes this unnecessary.
+  'cors_origin' => 'https://proposal.bizskilledu.com',
 ];
 

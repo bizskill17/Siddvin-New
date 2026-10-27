@@ -7,15 +7,14 @@ import {
   CurrentStageEnum,
   SidvinTeamMember,
   FollowUp,
+  UserRole,
 } from '../types';
 
-// Backend API base URL (Node + MySQL). This replaces the old Google Apps Script backend.
-// Set `VITE_BACKEND_URL` in your environment for production, e.g. `https://proposal.bizskilledu.com/api`.
-const DEFAULT_DEV_BACKEND_URL = 'http://localhost:4000/api';
+// Backend API base URL (PHP + MySQL, see php_backend/).
+// In both development (via the Vite proxy) and production the API is served at /api/index.php.
+// Set `VITE_BACKEND_URL` only if the API lives on a different domain.
 export const BACKEND_URL =
-  (import.meta.env.VITE_BACKEND_URL as string | undefined)?.trim() ||
-  // Use the actual PHP entrypoint to avoid redirects like `/api` -> `/api/` which can break POST bodies.
-  (import.meta.env.DEV ? DEFAULT_DEV_BACKEND_URL : '/api/index.php');
+  (import.meta.env.VITE_BACKEND_URL as string | undefined)?.trim() || '/api/index.php';
 
 type EntityName =
   | 'Properties'
@@ -25,8 +24,6 @@ type EntityName =
   | 'FollowUps'
   | 'TermSheets'
   | 'SidvinTeam'
-  | 'SidvinTeamMembers'
-  | 'Sidvin Team Members'
   | 'CompanyMaster'
   | 'CategoryMaster';
 
@@ -42,47 +39,121 @@ const ENTITY_MAP = {
   categoryMaster: 'CategoryMaster',
 } as const;
 
+// ---------------------------------------------------------------------------
+// Session token
+// ---------------------------------------------------------------------------
+
+const TOKEN_KEY = 'sidvinAuthToken';
+
+const readToken = (): string => {
+  try {
+    return localStorage.getItem(TOKEN_KEY) || '';
+  } catch {
+    return '';
+  }
+};
+
+const writeToken = (token: string) => {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // Storage unavailable (private mode); the session will last until the tab closes.
+  }
+};
+
+let authToken = readToken();
+let onUnauthorized: (() => void) | null = null;
+
+/** Called whenever the API says the session is missing or expired. */
+export const setUnauthorizedHandler = (handler: (() => void) | null) => {
+  onUnauthorized = handler;
+};
+
+export const hasSessionToken = (): boolean => !!authToken;
+
+/** Thrown when the API rejects the request because the user isn't signed in. */
+export class UnauthorizedError extends Error {}
+
+const authHeaders = (): Record<string, string> => (authToken ? { 'X-Auth-Token': authToken } : {});
+
+const parseResponse = async (res: Response): Promise<any> => {
+  const raw = await res.text();
+  let json: any;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    const shortBody = raw.slice(0, 140).replace(/\s+/g, ' ').trim();
+    throw new Error(`The server returned an unexpected response (${res.status}). ${shortBody}`);
+  }
+  if (res.status === 401) {
+    authToken = '';
+    writeToken('');
+    if (onUnauthorized) onUnauthorized();
+    throw new UnauthorizedError(json?.error || 'Please sign in again.');
+  }
+  if (!res.ok || json?.ok === false) throw new Error(json?.error || `Request failed (${res.status}).`);
+  return json;
+};
+
 const qs = (params: Record<string, string>) => {
   const usp = new URLSearchParams(params);
   return `${BACKEND_URL}?${usp.toString()}`;
 };
 
 const getJson = async <T>(url: string): Promise<T> => {
-  const sep = url.includes('?') ? '&' : '?';
-  const noCacheUrl = `${url}${sep}_ts=${Date.now()}`;
-  const res = await fetch(noCacheUrl, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`Backend request failed: ${res.status}`);
-  const raw = await res.text();
-  let json: any;
-  try {
-    json = JSON.parse(raw);
-  } catch {
-    const shortBody = raw.slice(0, 140).replace(/\s+/g, ' ').trim();
-    throw new Error(`Backend returned non-JSON. Check Apps Script deployment/doGet. Response: ${shortBody}`);
-  }
-  if (json?.ok === false) throw new Error(json.error || 'Backend error');
-  return json;
+  const res = await fetch(url, { cache: 'no-store', headers: authHeaders() });
+  return parseResponse(res);
 };
 
 const postJson = async <T>(body: any): Promise<T> => {
   const res = await fetch(BACKEND_URL, {
     method: 'POST',
-    // Use text/plain to keep the request "simple" and avoid Apps Script CORS preflight issues.
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     cache: 'no-store',
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`Backend request failed: ${res.status}`);
-  const raw = await res.text();
-  let json: any;
+  return parseResponse(res);
+};
+
+export type SessionInfo =
+  | { kind: 'team'; user: { id: string; name: string; role: UserRole; email: string } }
+  | { kind: 'property'; property: { id: string; name: string } };
+
+const startSession = (res: any): SessionInfo => {
+  const { token, ...session } = res.data || {};
+  authToken = String(token || '');
+  writeToken(authToken);
+  return session as SessionInfo;
+};
+
+export const loginTeam = async (email: string, password: string): Promise<SessionInfo> =>
+  startSession(await postJson({ action: 'login', kind: 'team', email, password }));
+
+export const loginProperty = async (identifier: string, password: string): Promise<SessionInfo> =>
+  startSession(await postJson({ action: 'login', kind: 'property', identifier, password }));
+
+/** Returns the current session, or null if there is none / it expired. */
+export const getSession = async (): Promise<SessionInfo | null> => {
+  if (!authToken) return null;
   try {
-    json = JSON.parse(raw);
-  } catch {
-    const shortBody = raw.slice(0, 140).replace(/\s+/g, ' ').trim();
-    throw new Error(`Backend returned non-JSON. Check Apps Script deployment/doPost. Response: ${shortBody}`);
+    const res: any = await getJson(qs({ action: 'me' }));
+    return res.data as SessionInfo;
+  } catch (error) {
+    if (error instanceof UnauthorizedError) return null;
+    throw error;
   }
-  if (json?.ok === false) throw new Error(json.error || 'Backend error');
-  return json;
+};
+
+export const logout = async (): Promise<void> => {
+  try {
+    if (authToken) await postJson({ action: 'logout' });
+  } catch {
+    // Ignore network errors; the local token is cleared regardless.
+  } finally {
+    authToken = '';
+    writeToken('');
+  }
 };
 
 const cleanArray = <T>(v: any): T[] => (Array.isArray(v) ? v : []);
@@ -194,6 +265,8 @@ const derivePropertyFeeStatus = (p: any): Property['propertyFeeStatus'] => {
 
 const normalizeProperty = (p: any): Property => ({
   ...p,
+  // The API never returns passwords; this field is only used when submitting a new one.
+  password: '',
   serialNo: parseSerial(p.serialNo),
   proposedRent: p.proposedRent === null ? null : (p.proposedRent === '' || p.proposedRent === undefined ? null : Number(p.proposedRent)),
   proposedArea: p.proposedArea === null ? null : (p.proposedArea === '' || p.proposedArea === undefined ? null : Number(p.proposedArea)),
@@ -282,7 +355,8 @@ const normalizeMember = (m: any): SidvinTeamMember => ({
   mobile: toCleanString(m?.mobile),
   email: toCleanString(m?.email),
   role: toCleanString(m?.role) as SidvinTeamMember['role'],
-  password: toCleanString(m?.password),
+  // The API never returns passwords; this field is only used when submitting a new one.
+  password: '',
   createdAt: m?.createdAt ? String(m.createdAt) : undefined,
   updatedAt: m?.updatedAt ? String(m.updatedAt) : undefined,
   updatedBy: m?.updatedBy ? String(m.updatedBy) : undefined,
@@ -313,33 +387,6 @@ export const initializeDemoData = () => {
 const listEntity = async (entity: EntityName): Promise<any[]> => {
   const res: any = await getJson(qs({ action: 'list', entity }));
   return Array.isArray(res.data) ? res.data : [];
-};
-
-const listEntityWithFallback = async (entities: EntityName[]): Promise<any[]> => {
-  let lastError: any;
-  for (const entity of entities) {
-    try {
-      return await listEntity(entity);
-    } catch (error) {
-      lastError = error;
-    }
-  }
-  throw lastError || new Error('Unable to fetch entity.');
-};
-
-const postJsonWithEntityFallback = async <T>(
-  body: { entity: EntityName;[key: string]: any },
-  entities: EntityName[],
-): Promise<T> => {
-  let lastError: any;
-  for (const entity of entities) {
-    try {
-      return await postJson<T>({ ...body, entity });
-    } catch (error) {
-      lastError = error;
-    }
-  }
-  throw lastError || new Error('Unable to submit entity payload.');
 };
 
 export const calculateCurrentStage = (
@@ -438,30 +485,19 @@ export const deleteBrand = async (id: string): Promise<boolean> => {
   return !!res.ok;
 };
 
-const SIDVIN_TEAM_ENTITY_FALLBACKS: EntityName[] = ['SidvinTeam', 'SidvinTeamMembers', 'Sidvin Team Members'];
-
-export const getSidvinTeamMembers = async (): Promise<SidvinTeamMember[]> => (
-  await listEntityWithFallback(SIDVIN_TEAM_ENTITY_FALLBACKS)
-).map(normalizeMember);
+export const getSidvinTeamMembers = async (): Promise<SidvinTeamMember[]> =>
+  (await listEntity(ENTITY_MAP.sidvinTeam)).map(normalizeMember);
 export const addSidvinTeamMember = async (newMember: Omit<SidvinTeamMember, 'id'>, updatedBy = 'System'): Promise<SidvinTeamMember> => {
-  const res: any = await postJsonWithEntityFallback(
-    { action: 'create', entity: ENTITY_MAP.sidvinTeam, data: newMember, updatedBy },
-    SIDVIN_TEAM_ENTITY_FALLBACKS,
-  );
+  const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.sidvinTeam, data: newMember, updatedBy });
   return normalizeMember(res.data);
 };
 export const updateSidvinTeamMember = async (updatedMember: SidvinTeamMember, updatedBy = 'System'): Promise<SidvinTeamMember> => {
-  const res: any = await postJsonWithEntityFallback(
-    { action: 'update', entity: ENTITY_MAP.sidvinTeam, id: updatedMember.id, data: updatedMember, updatedBy },
-    SIDVIN_TEAM_ENTITY_FALLBACKS,
-  );
+  // An empty password means "keep the current one"; the server only replaces it when a new one is given.
+  const res: any = await postJson({ action: 'update', entity: ENTITY_MAP.sidvinTeam, id: updatedMember.id, data: updatedMember, updatedBy });
   return normalizeMember(res.data);
 };
 export const deleteSidvinTeamMember = async (id: string): Promise<boolean> => {
-  const res: any = await postJsonWithEntityFallback(
-    { action: 'delete', entity: ENTITY_MAP.sidvinTeam, id },
-    SIDVIN_TEAM_ENTITY_FALLBACKS,
-  );
+  const res: any = await postJson({ action: 'delete', entity: ENTITY_MAP.sidvinTeam, id });
   return !!res.ok;
 };
 
@@ -613,10 +649,10 @@ export const updateStoreOpeningDate = async (
   return addOrUpdateTermSheet(updated, updatedBy);
 };
 export const deleteTermSheet = async (_proposalId: string): Promise<boolean> => {
-  throw new Error('TermSheet delete is not supported by current backend. Add a deleteByProposalId action in Apps Script.');
+  throw new Error('TermSheet delete is not supported by current backend. Deleting term sheets is not supported yet.');
 };
 
-export const getCompanyMasterOptions = async (): Promise<MasterOptionItem[]> => (await listEntity(ENTITY_MAP.companyMaster as EntityName)).map(normalizeMasterOption);
+export const getCompanyMasterOptions = async (): Promise<MasterOptionItem[]> => (await listEntity(ENTITY_MAP.companyMaster)).map(normalizeMasterOption);
 export const addCompanyMasterOption = async (name: string, updatedBy = 'System'): Promise<MasterOptionItem> => {
   const payload = { name };
   const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.companyMaster, data: payload, updatedBy });
@@ -627,7 +663,7 @@ export const deleteCompanyMasterOption = async (id: string): Promise<boolean> =>
   return !!res.ok;
 };
 
-export const getCategoryMasterOptions = async (): Promise<MasterOptionItem[]> => (await listEntity(ENTITY_MAP.categoryMaster as EntityName)).map(normalizeMasterOption);
+export const getCategoryMasterOptions = async (): Promise<MasterOptionItem[]> => (await listEntity(ENTITY_MAP.categoryMaster)).map(normalizeMasterOption);
 export const addCategoryMasterOption = async (name: string, updatedBy = 'System'): Promise<MasterOptionItem> => {
   const payload = { name };
   const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.categoryMaster, data: payload, updatedBy });

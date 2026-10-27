@@ -1,20 +1,34 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Sidvin Proposal Workflow
 
-# Run and deploy your AI Studio app
+Internal app for tracking property proposals from first contact through visits, term sheets, agreements, store opening and fees. It also has a read-only **Property Portal** where a property owner can sign in and see activity for their own property.
 
-This contains everything you need to run your app locally.
+- **Frontend:** React + TypeScript, built with Vite (`App.tsx`, `components/`, `services/dataService.ts`)
+- **Backend:** PHP + MySQL API in `php_backend/api/`, hosted on Hostinger
+- **Deploy:** pushing to `main` runs `.github/workflows/deploy.yml`, which builds the app and uploads it plus the PHP API over FTP
 
-View your app in AI Studio: https://ai.studio/apps/3f5c1741-7dbd-4e7c-8a6a-57746932356e
+## Sign-in and security
 
-## Run Locally
+- Passwords are checked by the API, never in the browser, and are stored as hashes.
+  Existing plain-text passwords still work and are upgraded to a hash the first time each person signs in.
+- After signing in, the browser holds a session token (sent as `X-Auth-Token`). Every API call requires it.
+- Team members can read and change everything. A property session can only read data about its own property and cannot change anything.
+- The API never returns passwords. When editing a team member or property, leave the password blank to keep the current one.
 
-**Prerequisites:**  Node.js
+## Run locally
 
+Prerequisites: Node.js 20+, PHP 8 with `pdo_mysql`, and access to a MySQL database.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. Install dependencies: `npm install`
+2. Create the API config: copy `php_backend/api/config.php.example` to `php_backend/api/config.php` and fill in your database details. (This file is git-ignored.)
+3. If the database is new, run `php_backend/schema.sql` against it.
+4. Start the API: `npm run api` (serves on http://localhost:8000)
+5. In another terminal, start the app: `npm run dev` (http://localhost:3000; `/api` is proxied to the PHP server)
+
+## Deploy
+
+See `php_backend/README_HOSTINGER.md` for first-time server setup. After that, pushing to `main` deploys automatically. `api/config.php` on the server is never overwritten by a deploy.
+
+## Other files
+
+- `tools/generate_sidvin_template_messages_docx.py` builds `Sidvin_Template_Messages.docx`
+- `create_doc.py` and `sidvin_message_plan.md.resolved` hold the owner-notification plan

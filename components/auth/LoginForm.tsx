@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { SidvinTeamMember } from '../../types';
 import Button from '../common/Button';
+import { loginTeam, SessionInfo } from '../../services/dataService';
 
 interface LoginFormProps {
-  teamMembers: SidvinTeamMember[];
-  onLogin: (userId: string) => void;
+  onLogin: (session: SessionInfo) => void;
   onSwitchToPropertyPortal?: () => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin, onSwitchToPropertyPortal }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToPropertyPortal }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -22,15 +22,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin, onSwitchToP
       return;
     }
 
-    const matchedUser = teamMembers.find(
-      (m) => String(m.email ?? '').trim().toLowerCase() === email.trim().toLowerCase() &&
-        String(m.password ?? '').trim() === password.trim()
-    );
-
-    if (matchedUser) {
-      onLogin(matchedUser.id);
-    } else {
-      setError('Invalid email or password.');
+    setIsSubmitting(true);
+    try {
+      // The password is checked on the server; the browser never sees stored passwords.
+      const session = await loginTeam(email.trim(), password);
+      onLogin(session);
+    } catch (err: any) {
+      setError(err?.message || 'Unable to sign in. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -101,8 +101,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ teamMembers, onLogin, onSwitchToP
             </div>
 
             <div>
-              <Button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
-                Sign in
+              <Button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500" disabled={isSubmitting}>
+                {isSubmitting ? 'Signing in...' : 'Sign in'}
               </Button>
             </div>
             {onSwitchToPropertyPortal && (

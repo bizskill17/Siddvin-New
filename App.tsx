@@ -107,10 +107,9 @@ const App: React.FC = () => {
   const [deleteCallback, setDeleteCallback] = useState<(() => void) | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const [activeUserId, setActiveUserId] = useState<string>(localStorage.getItem('sidvinActiveUserId') || '');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem('sidvinActiveUserId'));
+  // The signed-in session comes from the server (see dataService.getSession); nothing here is trusted from localStorage.
+  const [session, setSession] = useState<dataService.SessionInfo | null>(null);
   const [portalMode, setPortalMode] = useState<PortalMode>(localStorage.getItem('sidvinPortalMode') === 'property' ? 'property' : 'team');
-  const [propertyPortalSessionId, setPropertyPortalSessionId] = useState<string>(localStorage.getItem('sidvinPropertyPortalId') || '');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('Submitting...');
@@ -122,17 +121,31 @@ const App: React.FC = () => {
     masterData: false,
   });
 
-  const fetchData = useCallback(async () => {
+  const clearData = () => {
+    setProperties([]);
+    setBrands([]);
+    setVisits([]);
+    setTermSheetAgreements([]);
+    setSidvinTeamMembers([]);
+    setFollowUps([]);
+    setProposals([]);
+    setCompanyMasterOptions([]);
+    setCategoryMasterOptions([]);
+  };
+
+  const fetchData = useCallback(async (kind: dataService.SessionInfo['kind']) => {
+    // Property sessions can only read data about their own property; the server enforces this.
+    const isTeam = kind === 'team';
     const [props, brs, vsts, terms, team, fus, prs, companies, categories] = await Promise.all([
       dataService.getProperties(),
       dataService.getBrands(),
       dataService.getVisits(),
       dataService.getTermSheetAgreements(),
-      dataService.getSidvinTeamMembers(),
+      isTeam ? dataService.getSidvinTeamMembers() : Promise.resolve([]),
       dataService.getFollowUps(),
       dataService.getProposals(),
-      dataService.getCompanyMasterOptions(),
-      dataService.getCategoryMasterOptions(),
+      isTeam ? dataService.getCompanyMasterOptions() : Promise.resolve([]),
+      isTeam ? dataService.getCategoryMasterOptions() : Promise.resolve([]),
     ]);
 
     const calculated = prs.map((p) => ({
@@ -149,49 +162,77 @@ const App: React.FC = () => {
     setProposals(calculated);
     setCompanyMasterOptions(companies);
     setCategoryMasterOptions(categories);
-
-    // activeUserId is now set from the LoginForm, so we don't automatically assign the first user here anymore.
   }, []);
 
-  useEffect(() => {
-    fetchData()
-      .catch((err) => console.error(err))
-      .finally(() => setIsInitialLoading(false));
+  const signedOut = useCallback(() => {
+    setSession(null);
+    clearData();
+  }, []);
+
+  const beginSession = useCallback(async (next: dataService.SessionInfo) => {
+    setSession(next);
+    const mode: PortalMode = next.kind === 'property' ? 'property' : 'team';
+    setPortalMode(mode);
+    localStorage.setItem('sidvinPortalMode', mode);
+    setIsInitialLoading(true);
+    try {
+      await fetchData(next.kind);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsInitialLoading(false);
+    }
   }, [fetchData]);
 
-  const activeUser = sidvinTeamMembers.find(m => m.id === activeUserId) || sidvinTeamMembers[0];
-  const currentUserName = activeUser?.name || 'System';
-  const currentUserRole = activeUser?.role || 'Employee';
+  // Restore an existing session (if the stored token is still valid) on page load.
+  useEffect(() => {
+    dataService.setUnauthorizedHandler(signedOut);
+    let cancelled = false;
+    dataService.getSession()
+      .then((existing) => {
+        if (cancelled) return;
+        if (existing) return beginSession(existing);
+        setIsInitialLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (!cancelled) setIsInitialLoading(false);
+      });
+    return () => {
+      cancelled = true;
+      dataService.setUnauthorizedHandler(null);
+    };
+  }, [beginSession, signedOut]);
+
+  const teamUser = session?.kind === 'team' ? session.user : null;
+  const isAuthenticated = !!teamUser;
+  const propertyPortalSessionId = session?.kind === 'property' ? session.property.id : '';
+  const currentUserName = teamUser?.name || 'System';
+  const currentUserRole = teamUser?.role || 'Employee';
 
   const refreshData = async () => {
-    await fetchData();
+    if (session) await fetchData(session.kind);
+  };
+
+  const logout = async () => {
+    await dataService.logout();
+    signedOut();
   };
 
   const switchToTeamPortal = () => {
+    if (session?.kind === 'property') void logout();
     setPortalMode('team');
     localStorage.setItem('sidvinPortalMode', 'team');
-    setPropertyPortalSessionId('');
-    localStorage.removeItem('sidvinPropertyPortalId');
   };
 
   const switchToPropertyPortal = () => {
-    setPortalMode('property');
-    localStorage.setItem('sidvinPortalMode', 'property');
-    localStorage.removeItem('sidvinActiveUserId');
-    setActiveUserId('');
-    setIsAuthenticated(false);
-  };
-
-  const startPropertySession = (propertyId: string) => {
-    setPropertyPortalSessionId(propertyId);
-    localStorage.setItem('sidvinPropertyPortalId', propertyId);
+    if (session?.kind === 'team') void logout();
     setPortalMode('property');
     localStorage.setItem('sidvinPortalMode', 'property');
   };
 
   const endPropertySession = () => {
-    setPropertyPortalSessionId('');
-    localStorage.removeItem('sidvinPropertyPortalId');
+    void logout();
   };
 
   const runWithSaving = async (message: string, work: () => Promise<void>) => {
@@ -839,7 +880,7 @@ const App: React.FC = () => {
         followUps={followUps}
         termSheetAgreements={termSheetAgreements}
         initialPropertyId={propertyPortalSessionId}
-        onSessionStart={startPropertySession}
+        onSessionStart={(next) => { void beginSession(next); }}
         onSessionEnd={endPropertySession}
         onRefresh={refreshData}
         onBackToTeamLogin={switchToTeamPortal}
@@ -850,14 +891,8 @@ const App: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <LoginForm
-        teamMembers={sidvinTeamMembers}
         onSwitchToPropertyPortal={switchToPropertyPortal}
-        onLogin={(userId) => {
-          localStorage.setItem('sidvinActiveUserId', userId);
-          localStorage.setItem('sidvinPortalMode', 'team');
-          setActiveUserId(userId);
-          setIsAuthenticated(true);
-        }}
+        onLogin={(next) => { void beginSession(next); }}
       />
     );
   }
@@ -947,11 +982,7 @@ const App: React.FC = () => {
                 <span>Welcome, {currentUserName} {currentUserRole ? `(${currentUserRole})` : ''}</span>
                 <button
                   type="button"
-                  onClick={() => {
-                    localStorage.removeItem('sidvinActiveUserId');
-                    setActiveUserId('');
-                    setIsAuthenticated(false);
-                  }}
+                  onClick={() => { void logout(); }}
                   className="text-xs bg-red-100 text-red-700 hover:bg-red-200 px-2 py-1 rounded border border-red-200 font-semibold transition-colors"
                 >
                   Logout
