@@ -3,6 +3,8 @@ import Button from '../common/Button';
 import PageHeader from '../common/PageHeader';
 import {
   getWhatsAppTemplates,
+  RedLavaSettings,
+  saveRedLavaSettings,
   submitWhatsAppTemplate,
   WhatsAppTemplateInfo,
   WhatsAppTemplatesResult,
@@ -49,6 +51,106 @@ const BodyPreview: React.FC<{ template: WhatsAppTemplateInfo }> = ({ template })
         );
       })}
     </div>
+  );
+};
+
+/** Red Lava connection: the API key is write-only; only its last 4 characters are ever shown. */
+const ConnectionPanel: React.FC<{
+  settings: RedLavaSettings;
+  canEdit: boolean;
+  remoteError: string | null;
+  onSaved: () => Promise<void>;
+}> = ({ settings, canEdit, remoteError, onSaved }) => {
+  const connected = settings.source !== 'none';
+  const [editing, setEditing] = useState(!connected);
+  const [apiKey, setApiKey] = useState('');
+  const [phoneId, setPhoneId] = useState(settings.phoneId);
+  const [saving, setSaving] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => { setPhoneId(settings.phoneId); }, [settings.phoneId]);
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setResult(null);
+    try {
+      const res = await saveRedLavaSettings(apiKey, phoneId);
+      setApiKey('');
+      if (res.checkError) {
+        setResult({ ok: false, text: `Saved, but Red Lava did not accept it: ${res.checkError}` });
+      } else {
+        setResult({ ok: true, text: `Connected. Red Lava has ${res.templateCount} template(s) in this account.` });
+        setEditing(false);
+      }
+      await onSaved();
+    } catch (err: any) {
+      setResult({ ok: false, text: err?.message || 'Could not save.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const healthy = connected && !remoteError;
+  return (
+    <section className={`rounded-lg border p-4 ${healthy ? 'border-green-300 bg-green-50' : 'border-amber-300 bg-amber-50'}`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="text-sm">
+          <p className="font-semibold text-gray-900">
+            Red Lava connection: {healthy ? 'Connected' : connected ? 'Saved, but not working' : 'Not connected'}
+          </p>
+          {connected && (
+            <p className="mt-1 text-gray-700">
+              API key {settings.keyHint}
+              {settings.phoneId ? ` · Phone ID ${settings.phoneId}` : ' · Phone ID not set'}
+              {settings.source === 'config' ? ' · set in the server config file' : ''}
+              {settings.updatedBy ? ` · saved by ${settings.updatedBy}` : ''}
+            </p>
+          )}
+          {remoteError && <p className="mt-1 text-red-700">{remoteError}</p>}
+          {!canEdit && !connected && <p className="mt-1 text-gray-700">Ask an Admin to connect Red Lava.</p>}
+        </div>
+        {canEdit && settings.source !== 'config' && connected && !editing && (
+          <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>Change</Button>
+        )}
+      </div>
+
+      {canEdit && settings.source !== 'config' && editing && (
+        <form onSubmit={save} className="mt-3 grid gap-3 sm:grid-cols-[2fr_1fr_auto] items-end">
+          <label className="text-sm">
+            <span className="block font-medium text-gray-800 mb-1">API key</span>
+            <input
+              type="password"
+              autoComplete="off"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder={connected ? 'Leave blank to keep the current key' : 'Paste your Red Lava API key'}
+              required={!connected}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300"
+            />
+          </label>
+          <label className="text-sm">
+            <span className="block font-medium text-gray-800 mb-1">Phone ID</span>
+            <input
+              inputMode="numeric"
+              value={phoneId}
+              onChange={(e) => setPhoneId(e.target.value.replace(/\D/g, ''))}
+              placeholder="From Connected Accounts"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300"
+            />
+          </label>
+          <div className="flex gap-2">
+            <Button type="submit" disabled={saving}>{saving ? 'Checking...' : 'Save & test'}</Button>
+            {connected && <Button type="button" variant="secondary" onClick={() => { setEditing(false); setApiKey(''); }}>Cancel</Button>}
+          </div>
+          <p className="sm:col-span-3 text-xs text-gray-600">
+            The key is stored encrypted on the server and is never shown again after saving. The Phone ID is under your
+            number in Red Lava &rarr; Connected Accounts.
+          </p>
+        </form>
+      )}
+      {result && <p className={`mt-2 text-sm ${result.ok ? 'text-green-700' : 'text-red-700'}`}>{result.text}</p>}
+    </section>
   );
 };
 
@@ -111,19 +213,13 @@ const WhatsAppTemplatesView: React.FC<WhatsAppTemplatesViewProps> = ({ onBack })
 
       {loadError && <div className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">{loadError}</div>}
 
-      {data && !data.configured && (
-        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-          <p className="font-semibold">Red Lava is not connected yet.</p>
-          <p className="mt-1">
-            Add your Red Lava API key and Phone ID to <code className="bg-amber-100 px-1 rounded">api/config.php</code> on
-            Hostinger (in the <code className="bg-amber-100 px-1 rounded">'redlava'</code> section), then press Refresh status.
-          </p>
-        </div>
-      )}
-      {data?.remoteError && (
-        <div className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-          Could not read template status from Red Lava: {data.remoteError}
-        </div>
+      {data && (
+        <ConnectionPanel
+          settings={data.settings}
+          canEdit={data.canEditSettings}
+          remoteError={data.remoteError}
+          onSaved={load}
+        />
       )}
       {data?.configured && !data.canSubmit && (
         <div className="rounded-md border border-gray-300 bg-gray-50 p-3 text-sm text-gray-700">

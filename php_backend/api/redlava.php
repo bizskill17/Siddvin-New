@@ -1,21 +1,116 @@
 <?php
 
 // Minimal Red Lava (wa.redlava.in) WhatsApp API client.
-// Credentials live only in api/config.php on the server:
-//   'redlava' => ['api_key' => '...', 'phone_id' => '...'],
+//
+// Credentials come from one of two places:
+//   1. api/config.php  ('redlava' => ['api_key' => '...', 'phone_id' => '...'])  - takes priority
+//   2. Saved in the app (WhatsApp Templates page), stored encrypted in the app_settings table.
+// The API key is never sent back to the browser; only its last 4 characters are shown.
 
-function redlava_config(): array {
-  static $cfg = null;
-  if ($cfg !== null) return $cfg;
+function app_config_all(): array {
+  static $all = null;
+  if ($all !== null) return $all;
   $path = __DIR__ . '/config.php';
   $all = file_exists($path) ? (require $path) : [];
-  $rl = is_array($all['redlava'] ?? null) ? $all['redlava'] : [];
+  if (!is_array($all)) $all = [];
+  return $all;
+}
+
+function ensure_settings_table(PDO $pdo): void {
+  $pdo->exec(
+    "CREATE TABLE IF NOT EXISTS app_settings (
+      name VARCHAR(64) NOT NULL,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_by VARCHAR(255) NULL,
+      PRIMARY KEY (name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+  );
+}
+
+/** Encryption key for stored secrets, derived from the server-only database password in config.php. */
+function settings_secret(): string {
+  $db = app_config_all()['db'] ?? [];
+  return hash('sha256', 'sidvin-app-settings|' . ($db['pass'] ?? '') . '|' . ($db['name'] ?? ''), true);
+}
+
+function encrypt_setting(string $plain): string {
+  $iv = random_bytes(12);
+  $tag = '';
+  $cipher = openssl_encrypt($plain, 'aes-256-gcm', settings_secret(), OPENSSL_RAW_DATA, $iv, $tag);
+  return 'v1:' . base64_encode($iv . $tag . $cipher);
+}
+
+function decrypt_setting(string $stored): string {
+  if (strpos($stored, 'v1:') !== 0) return '';
+  $raw = base64_decode(substr($stored, 3), true);
+  if ($raw === false || strlen($raw) < 29) return '';
+  $plain = openssl_decrypt(substr($raw, 28), 'aes-256-gcm', settings_secret(), OPENSSL_RAW_DATA, substr($raw, 0, 12), substr($raw, 12, 16));
+  return $plain === false ? '' : $plain;
+}
+
+function read_settings(PDO $pdo, array $names): array {
+  try {
+    $in = implode(',', array_fill(0, count($names), '?'));
+    $stmt = $pdo->prepare("SELECT name, value, updated_at, updated_by FROM app_settings WHERE name IN ({$in})");
+    $stmt->execute($names);
+    $out = [];
+    foreach ($stmt->fetchAll() as $r) $out[$r['name']] = $r;
+    return $out;
+  } catch (PDOException $e) {
+    return []; // table not created yet
+  }
+}
+
+function write_setting(PDO $pdo, string $name, string $value, string $by): void {
+  ensure_settings_table($pdo);
+  $stmt = $pdo->prepare("REPLACE INTO app_settings (name, value, updated_by) VALUES (?, ?, ?)");
+  $stmt->execute([$name, $value, $by]);
+}
+
+function redlava_config(bool $reload = false): array {
+  static $cfg = null;
+  if ($cfg !== null && !$reload) return $cfg;
+  $rl = app_config_all()['redlava'] ?? [];
+  if (!is_array($rl)) $rl = [];
   $cfg = [
     'api_key' => trim((string)($rl['api_key'] ?? '')),
     'phone_id' => trim((string)($rl['phone_id'] ?? '')),
     'base_url' => rtrim(trim((string)($rl['base_url'] ?? 'https://wa.redlava.in')), '/'),
+    'source' => 'config',
+    'updated_at' => null,
+    'updated_by' => null,
   ];
+  if ($cfg['api_key'] === '') {
+    $saved = read_settings(db(), ['redlava_api_key', 'redlava_phone_id']);
+    $cfg['api_key'] = isset($saved['redlava_api_key']) ? decrypt_setting($saved['redlava_api_key']['value']) : '';
+    $cfg['phone_id'] = trim((string)($saved['redlava_phone_id']['value'] ?? ''));
+    $cfg['source'] = $cfg['api_key'] !== '' ? 'app' : 'none';
+    $cfg['updated_at'] = $saved['redlava_api_key']['updated_at'] ?? null;
+    $cfg['updated_by'] = $saved['redlava_api_key']['updated_by'] ?? null;
+  }
   return $cfg;
+}
+
+/** What the browser may see about the connection: never the key itself. */
+function redlava_public_settings(): array {
+  $cfg = redlava_config();
+  $key = $cfg['api_key'];
+  return [
+    'source' => $cfg['source'],
+    'keyHint' => $key !== '' ? '••••' . substr($key, -4) : '',
+    'phoneId' => $cfg['phone_id'],
+    'updatedAt' => $cfg['updated_at'] ? gmdate('c', strtotime($cfg['updated_at'])) : null,
+    'updatedBy' => $cfg['updated_by'],
+  ];
+}
+
+function redlava_save_settings(PDO $pdo, string $apiKey, string $phoneId, string $by): void {
+  $apiKey = trim($apiKey);
+  $phoneId = trim($phoneId);
+  if ($apiKey !== '') write_setting($pdo, 'redlava_api_key', encrypt_setting($apiKey), $by);
+  write_setting($pdo, 'redlava_phone_id', $phoneId, $by);
+  redlava_config(true);
 }
 
 function redlava_configured(): bool {
@@ -68,7 +163,7 @@ function redlava_request(string $method, string $path, ?array $body = null, int 
 
 /** Builds a readable error from Red Lava's various error shapes, without echoing credentials. */
 function redlava_error_text(int $status, $json, string $raw): string {
-  if ($status === 401 || $status === 403) return "Red Lava refused the request ({$status}): check the API key and Phone ID in api/config.php.";
+  if ($status === 401 || $status === 403) return "Red Lava refused the request ({$status}): check the Red Lava API key and Phone ID.";
   $parts = [];
   if (is_array($json)) {
     $err = is_array($json['error'] ?? null) ? $json['error'] : $json;

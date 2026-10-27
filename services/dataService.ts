@@ -696,9 +696,19 @@ export interface WhatsAppTemplateInfo {
   remote: { name: string; language: string; status: string; category: string; reason: string } | null;
 }
 
+export interface RedLavaSettings {
+  source: 'config' | 'app' | 'none';
+  keyHint: string;
+  phoneId: string;
+  updatedAt: string | null;
+  updatedBy: string | null;
+}
+
 export interface WhatsAppTemplatesResult {
   configured: boolean;
   canSubmit: boolean;
+  canEditSettings: boolean;
+  settings: RedLavaSettings;
   remoteError: string | null;
   templates: WhatsAppTemplateInfo[];
 }
@@ -711,4 +721,13 @@ export const getWhatsAppTemplates = async (): Promise<WhatsAppTemplatesResult> =
 export const submitWhatsAppTemplate = async (name: string): Promise<string> => {
   const res: any = await postJson({ action: 'waSubmitTemplate', name });
   return String(res.data?.message || 'Submitted to Meta for review.');
+};
+
+/** Saves the Red Lava connection. A blank apiKey keeps the current key. Returns whether Red Lava accepted it. */
+export const saveRedLavaSettings = async (
+  apiKey: string,
+  phoneId: string,
+): Promise<{ settings: RedLavaSettings; checkError: string | null; templateCount: number }> => {
+  const res: any = await postJson({ action: 'waSaveSettings', apiKey, phoneId });
+  return res.data;
 };

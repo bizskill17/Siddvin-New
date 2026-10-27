@@ -109,3 +109,12 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
   PRIMARY KEY (token_hash),
   KEY idx_auth_sessions_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- App settings (e.g. the Red Lava connection; secrets are stored encrypted). Also created automatically.
+CREATE TABLE IF NOT EXISTS app_settings (
+  name VARCHAR(64) NOT NULL,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_by VARCHAR(255) NULL,
+  PRIMARY KEY (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

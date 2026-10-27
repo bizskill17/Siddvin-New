@@ -35,12 +35,12 @@ Notes
 
 
 WhatsApp templates (Red Lava)
-- In Hostinger File Manager, open `public_html/api/config.php` and add (inside `return [ ... ]`):
-    'redlava' => [
-      'api_key' => 'YOUR_RED_LAVA_API_KEY',
-      'phone_id' => 'YOUR_PHONE_ID',
-    ],
+- In the app: menu -> Master -> WhatsApp Templates (Admin / Super Admin).
+- Connect Red Lava there: paste the API key and Phone ID and press "Save & test".
+  The key is stored encrypted in the `app_settings` table (key derived from the DB password in config.php)
+  and is never shown again; only its last 4 characters appear.
   The Phone ID is shown under your number in Red Lava -> Connected Accounts.
-- In the app: menu -> Master -> WhatsApp Templates. Preview each template, then press "Submit to Meta"
-  (Admin / Super Admin only). "Refresh status" shows Pending / Approved / Rejected from Red Lava.
+- Optional: putting 'redlava' => ['api_key' => ..., 'phone_id' => ...] in api/config.php overrides the app setting.
+- Preview each template, then press "Submit to Meta". "Refresh status" shows Pending / Approved / Rejected.
 - Template wording lives in `tools/whatsapp_templates.py`; run it to regenerate `api/whatsapp_templates.json`.
+- If the database password in config.php changes, re-enter the Red Lava key in the app.

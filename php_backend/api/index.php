@@ -165,6 +165,25 @@ try {
 
   if ($action === 'me') ok(session_public($session));
 
+  // ---- Red Lava connection settings (saved in the app, encrypted) ----
+  if ($action === 'waSaveSettings') {
+    if ($method !== 'POST') fail(405, 'Method not allowed');
+    if ($session['kind'] !== 'team' || !in_array($session['role'], ['Admin', 'Super Admin'], true)) {
+      fail(403, 'Only Admin or Super Admin can change the Red Lava connection.');
+    }
+    if (redlava_config()['source'] === 'config') fail(400, 'The Red Lava key is set in api/config.php on the server. Remove it there to manage it from the app.');
+    $apiKey = trim((string)($body['apiKey'] ?? ''));
+    $phoneId = trim((string)($body['phoneId'] ?? ''));
+    if ($apiKey === '' && !redlava_configured()) fail(400, 'Enter the Red Lava API key.');
+    if ($phoneId !== '' && !preg_match('/^\d{5,30}$/', $phoneId)) fail(400, 'Phone ID should be digits only.');
+    if (strlen($apiKey) > 500) fail(400, 'That API key looks too long.');
+    redlava_save_settings($pdo, $apiKey, $phoneId, $session['name']);
+    error_log("[sidvin-api] Red Lava connection updated by {$session['name']}");
+    // Check the new details work, so the user knows straight away.
+    $check = redlava_list_templates();
+    ok(['settings' => redlava_public_settings(), 'checkError' => $check['error'], 'templateCount' => count($check['templates'])]);
+  }
+
   // ---- WhatsApp templates (Red Lava) ----
   if ($action === 'waTemplates' || $action === 'waSubmitTemplate') {
     if ($session['kind'] !== 'team') fail(403, 'Not allowed');
@@ -203,6 +222,8 @@ try {
       ok([
         'configured' => $configured,
         'canSubmit' => $isAdmin && $configured,
+        'canEditSettings' => $isAdmin,
+        'settings' => redlava_public_settings(),
         'remoteError' => $remote['error'],
         'templates' => array_map($describe, $local),
       ]);
@@ -211,7 +232,7 @@ try {
     // waSubmitTemplate
     if ($method !== 'POST') fail(405, 'Method not allowed');
     if (!$isAdmin) fail(403, 'Only Admin or Super Admin can submit templates.');
-    if (!$configured) fail(400, 'Red Lava is not set up yet: add the API key and Phone ID to api/config.php.');
+    if (!$configured) fail(400, 'Red Lava is not connected yet: add the API key on this page first.');
     if ($remote['error']) fail(502, 'Could not check existing templates first. ' . $remote['error']);
 
     $name = trim((string)($body['name'] ?? ''));

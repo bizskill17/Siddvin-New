@@ -10,7 +10,8 @@ return [
     'pass' => 'YOUR_DB_PASSWORD_HERE',
   ],
 
-  // Red Lava WhatsApp API (wa.redlava.in). Find both in the Red Lava panel.
+  // Optional: Red Lava WhatsApp API (wa.redlava.in). Usually set from the app instead
+  // (WhatsApp Templates page). Values here override the app setting.
   // Phone ID is shown under your number in Red Lava -> Connected Accounts.
   'redlava' => [
     'api_key' => '',
