@@ -48,6 +48,8 @@ export interface Property extends AuditFields {
   propertyFeeStatus: PropertyFeeStatus;
   propertyFeeFollowUpDate: string | null;
   propertyFeeFollowUpRemarks: string;
+  /** Date our team visited the property when registering it (used in the WhatsApp welcome message). */
+  siteVisitDate?: string | null;
 }
 
 export interface Brand extends AuditFields {

@@ -284,6 +284,7 @@ const normalizeProperty = (p: any): Property => ({
   propertyFeePaperSigningDate: fromSheetDate(p.propertyFeePaperSigningDate),
   propertyFeeStatus: derivePropertyFeeStatus(p),
   propertyFeeFollowUpDate: fromSheetDate(p.propertyFeeFollowUpDate),
+  siteVisitDate: fromSheetDate(p.siteVisitDate),
 });
 
 const normalizeBrand = (b: any): Brand => ({
@@ -433,6 +434,7 @@ export const addProperty = async (newProperty: Omit<Property, 'id' | 'serialNo'>
     propertyFeeAcceptanceEmailDate: toSheetDate(newProperty.propertyFeeAcceptanceEmailDate),
     propertyFeePaperSigningDate: toSheetDate(newProperty.propertyFeePaperSigningDate),
     propertyFeeFollowUpDate: toSheetDate(newProperty.propertyFeeFollowUpDate),
+    siteVisitDate: toSheetDate(newProperty.siteVisitDate),
     contactPersonsJson: newProperty.contactPersons || [],
     propertyPhotosJson: newProperty.propertyPhotos || [],
     drawingsJson: newProperty.drawings || [],
@@ -450,6 +452,7 @@ export const updateProperty = async (updatedProperty: Property, updatedBy = 'Sys
     propertyFeeAcceptanceEmailDate: toSheetDate(updatedProperty.propertyFeeAcceptanceEmailDate),
     propertyFeePaperSigningDate: toSheetDate(updatedProperty.propertyFeePaperSigningDate),
     propertyFeeFollowUpDate: toSheetDate(updatedProperty.propertyFeeFollowUpDate),
+    siteVisitDate: toSheetDate(updatedProperty.siteVisitDate),
     contactPersonsJson: updatedProperty.contactPersons || [],
     propertyPhotosJson: updatedProperty.propertyPhotos || [],
     drawingsJson: updatedProperty.drawings || [],
@@ -730,4 +733,24 @@ export const saveRedLavaSettings = async (
 ): Promise<{ settings: RedLavaSettings; checkError: string | null; templateCount: number }> => {
   const res: any = await postJson({ action: 'waSaveSettings', apiKey, phoneId });
   return res.data;
+};
+
+export interface WhatsAppSendResult {
+  template: string;
+  results: { name: string; to: string; status: string; note: string | null }[];
+  skipped: string[];
+}
+
+/** Sends the WhatsApp messages for an event; the server builds the text from the saved record. */
+export const sendWhatsAppEvent = async (event: 'property_registration', entityId: string, requestKey: string): Promise<WhatsAppSendResult> => {
+  const res: any = await postJson({ action: 'waSend', event, entityId, requestKey });
+  return res.data as WhatsAppSendResult;
+};
+
+/** Same rule as the server: digits with country code (India by default), or '' if unusable. */
+export const normalizeWhatsAppNumber = (raw: string): string => {
+  let d = String(raw || '').replace(/\D+/g, '');
+  if (d.length === 11 && d.startsWith('0')) d = d.slice(1);
+  if (d.length === 10) d = `91${d}`;
+  return /^[1-9]\d{7,14}$/.test(d) ? d : '';
 };

@@ -44,6 +44,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
         propertyFeeStatus: initialData.propertyFeeStatus,
         propertyFeeFollowUpDate: initialData.propertyFeeFollowUpDate,
         propertyFeeFollowUpRemarks: initialData.propertyFeeFollowUpRemarks,
+        siteVisitDate: initialData.siteVisitDate ?? null,
       }
       : {
         address: '',
@@ -69,6 +70,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
         propertyFeeStatus: 'Pending Property Email',
         propertyFeeFollowUpDate: null,
         propertyFeeFollowUpRemarks: '',
+        siteVisitDate: null,
       }
   );
 
@@ -107,6 +109,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
         propertyFeeStatus: initialData.propertyFeeStatus,
         propertyFeeFollowUpDate: initialData.propertyFeeFollowUpDate,
         propertyFeeFollowUpRemarks: initialData.propertyFeeFollowUpRemarks,
+        siteVisitDate: initialData.siteVisitDate ?? null,
       });
     }
   }, [initialData]);
@@ -197,6 +200,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       <Input id="proposedArea" label="Proposed Area (sqft)" value={formData.proposedArea} onChange={handleChange} type="number" min="0" step="0.01" required />
       <Input id="frontage" label="Frontage" value={formData.frontage} onChange={handleChange} required />
       <Input id="noOfFloors" label="No. of Floors" value={formData.noOfFloors} onChange={handleChange} type="number" min="0" step="1" required />
+      <Input id="siteVisitDate" label="Site Visit Date" value={formData.siteVisitDate ?? ''} onChange={handleChange} type="date" />
 
       <Input id="serviceFeeProposed" label="Service Fee Proposed" value={formData.serviceFeeProposed} onChange={handleChange} required />
       <LongTextInput id="notes" label="Notes" value={formData.notes} onChange={handleChange} />

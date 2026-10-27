@@ -22,6 +22,7 @@ import ProposalDetailView from './components/views/ProposalDetailView';
 import DashboardView from './components/views/DashboardView';
 import CompanyCategoryView from './components/views/CompanyCategoryView';
 import WhatsAppTemplatesView from './components/views/WhatsAppTemplatesView';
+import AddPropertyConfirmModal from './components/whatsapp/AddPropertyConfirmModal';
 import Button from './components/common/Button';
 import PropertyForm from './components/forms/PropertyForm';
 import BrandForm from './components/forms/BrandForm';
@@ -435,12 +436,39 @@ const App: React.FC = () => {
     });
   };
 
+  // "Add Property" first opens a confirmation where the user chooses whether to send the WhatsApp welcome message.
+  const [pendingNewProperty, setPendingNewProperty] = useState<Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'> | null>(null);
+
   const handleAddProperty = async (newProperty: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
+    setPendingNewProperty(newProperty);
+  };
+
+  const confirmAddProperty = async (sendWhatsApp: boolean) => {
+    const newProperty = pendingNewProperty;
+    if (!newProperty) return;
+    setPendingNewProperty(null);
     handleViewChange('properties');
+    // A fresh key per save, so a retry or double click can never send the same message twice.
+    const requestKey = `prop-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    let report = '';
     await runWithSaving('Adding Property...', async () => {
-      await dataService.addProperty(newProperty, currentUserName);
+      const saved = await dataService.addProperty(newProperty, currentUserName);
       await refreshData();
+      if (!sendWhatsApp) return;
+      setSavingMessage('Sending WhatsApp message...');
+      try {
+        const res = await dataService.sendWhatsAppEvent('property_registration', saved.id, requestKey);
+        const lines = res.results.map((r) => {
+          const label = r.status === 'accepted' ? 'sent' : r.status === 'unknown' ? 'not confirmed' : r.status;
+          return `• ${r.name || r.to} (+${r.to}): ${label}${r.note && r.status !== 'accepted' ? ` - ${r.note}` : ''}`;
+        });
+        res.skipped.forEach((s) => lines.push(`• Skipped ${s}`));
+        report = `Property saved.\n\nWhatsApp welcome message:\n${lines.join('\n')}`;
+      } catch (err: any) {
+        report = `Property saved, but the WhatsApp message was not sent:\n${err?.message || 'Unknown error.'}`;
+      }
     });
+    if (report) window.alert(report);
   };
 
   const handleUpdateProperty = async (updatedProperty: Property) => {
@@ -1008,6 +1036,13 @@ const App: React.FC = () => {
             <p className="text-sm text-black">{savingMessage}</p>
           </div>
         </div>
+      )}
+      {pendingNewProperty && (
+        <AddPropertyConfirmModal
+          property={pendingNewProperty}
+          onConfirm={(send) => { void confirmAddProperty(send); }}
+          onCancel={() => setPendingNewProperty(null)}
+        />
       )}
       <DeleteConfirmationModal isOpen={showDeleteConfirm} onClose={handleCloseDeleteConfirm} onConfirm={handleConfirmDelete} title={`Delete ${itemToDelete?.type}?`} message={`Are you sure you want to delete ${itemToDelete?.name || itemToDelete?.type}? This action cannot be undone.`} error={deleteError} isProcessing={isSaving} />
     </div>

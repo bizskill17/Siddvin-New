@@ -4,6 +4,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/entity_map.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/redlava.php';
+require_once __DIR__ . '/whatsapp_send.php';
 
 function json_out(int $status, $payload): void {
   http_response_code($status);
@@ -164,6 +165,19 @@ try {
   if (!$session) fail(401, 'Please sign in again.');
 
   if ($action === 'me') ok(session_public($session));
+
+  // ---- Send WhatsApp messages for an event (any team member) ----
+  if ($action === 'waSend') {
+    if ($method !== 'POST') fail(405, 'Method not allowed');
+    if ($session['kind'] !== 'team') fail(403, 'Not allowed');
+    @set_time_limit(180);
+    $event = trim((string)($body['event'] ?? ''));
+    $entityId = trim((string)($body['entityId'] ?? ''));
+    $requestKey = trim((string)($body['requestKey'] ?? ''));
+    if ($event === '' || $entityId === '') fail(400, 'Missing event or record.');
+    if (!preg_match('/^[A-Za-z0-9_-]{8,64}$/', $requestKey)) fail(400, 'Missing request key.');
+    ok(wa_send_event($pdo, $event, $entityId, $requestKey, $session['name']));
+  }
 
   // ---- Red Lava connection settings (saved in the app, encrypted) ----
   if ($action === 'waSaveSettings') {

@@ -118,3 +118,24 @@ CREATE TABLE IF NOT EXISTS app_settings (
   updated_by VARCHAR(255) NULL,
   PRIMARY KEY (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Log of WhatsApp messages sent through Red Lava. Also created automatically on first send.
+CREATE TABLE IF NOT EXISTS wa_messages (
+  id VARCHAR(36) NOT NULL,
+  request_key VARCHAR(64) NOT NULL,
+  event VARCHAR(64) NOT NULL,
+  entity_id VARCHAR(36) NOT NULL,
+  template VARCHAR(128) NOT NULL,
+  to_number VARCHAR(20) NOT NULL,
+  recipient_name VARCHAR(255) NULL,
+  variables TEXT NOT NULL,
+  user_message_id VARCHAR(64) NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  provider_id VARCHAR(128) NULL,
+  error TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_by VARCHAR(255) NULL,
+  PRIMARY KEY (id),
+  KEY idx_wa_messages_request (request_key, to_number),
+  KEY idx_wa_messages_entity (entity_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
