@@ -3,6 +3,7 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/entity_map.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/redlava.php';
 
 function json_out(int $status, $payload): void {
   http_response_code($status);
@@ -163,6 +164,76 @@ try {
   if (!$session) fail(401, 'Please sign in again.');
 
   if ($action === 'me') ok(session_public($session));
+
+  // ---- WhatsApp templates (Red Lava) ----
+  if ($action === 'waTemplates' || $action === 'waSubmitTemplate') {
+    if ($session['kind'] !== 'team') fail(403, 'Not allowed');
+    $isAdmin = in_array($session['role'], ['Admin', 'Super Admin'], true);
+    @set_time_limit(180);
+
+    $local = siddvin_templates();
+    $configured = redlava_configured();
+    $remote = ['templates' => [], 'error' => null];
+    if ($configured) $remote = redlava_list_templates();
+
+    $describe = function (array $t) use ($remote): array {
+      $req = $t['request'] ?? [];
+      $body = '';
+      $examples = [];
+      foreach (($req['components'] ?? []) as $c) {
+        if (($c['type'] ?? '') === 'BODY') {
+          $body = (string)($c['text'] ?? '');
+          $examples = $c['example']['body_text'][0] ?? [];
+        }
+      }
+      $key = ($req['name'] ?? '') . '|' . ($req['language'] ?? '');
+      return [
+        'title' => $t['title'] ?? ($req['name'] ?? ''),
+        'name' => $req['name'] ?? '',
+        'language' => $req['language'] ?? '',
+        'category' => $req['category'] ?? '',
+        'body' => $body,
+        'fields' => $t['fields'] ?? [],
+        'examples' => $examples,
+        'remote' => $remote['templates'][$key] ?? null,
+      ];
+    };
+
+    if ($action === 'waTemplates') {
+      ok([
+        'configured' => $configured,
+        'canSubmit' => $isAdmin && $configured,
+        'remoteError' => $remote['error'],
+        'templates' => array_map($describe, $local),
+      ]);
+    }
+
+    // waSubmitTemplate
+    if ($method !== 'POST') fail(405, 'Method not allowed');
+    if (!$isAdmin) fail(403, 'Only Admin or Super Admin can submit templates.');
+    if (!$configured) fail(400, 'Red Lava is not set up yet: add the API key and Phone ID to api/config.php.');
+    if ($remote['error']) fail(502, 'Could not check existing templates first. ' . $remote['error']);
+
+    $name = trim((string)($body['name'] ?? ''));
+    $match = null;
+    foreach ($local as $t) if (($t['request']['name'] ?? '') === $name) $match = $t;
+    if (!$match) fail(404, 'Unknown template.');
+    $info = $describe($match);
+    if ($info['remote']) fail(409, "This template is already in Red Lava (status: {$info['remote']['status']}).");
+
+    $res = redlava_create_template($match['request']);
+    if ($res['status'] === 0) {
+      // No reply: it may still have been submitted. Never resubmit blindly.
+      error_log("[sidvin-api] Red Lava create {$name}: {$res['error']}");
+      fail(504, $res['error'] . ' It may still have been submitted. Refresh this page in a few minutes before trying again.');
+    }
+    if ($res['error']) fail(502, $res['error']);
+    error_log("[sidvin-api] Submitted WhatsApp template {$name} by {$session['name']}");
+    ok([
+      'name' => $name,
+      'message' => is_array($res['json']) ? (string)($res['json']['message'] ?? 'Submitted to Meta for review.') : 'Submitted to Meta for review.',
+    ]);
+  }
 
   $entity = resolve_entity((string)($method === 'POST' ? ($body['entity'] ?? '') : ($_GET['entity'] ?? '')));
   if ($entity['kind'] === 'unknown') fail(400, 'Unknown entity');

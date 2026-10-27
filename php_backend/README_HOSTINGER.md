@@ -33,3 +33,14 @@ Notes
 - Set `cors_origin` in `api/config.php` to your exact domain instead of `*`.
 - Server errors are written to the PHP error log; the browser only sees a generic message.
 
+
+WhatsApp templates (Red Lava)
+- In Hostinger File Manager, open `public_html/api/config.php` and add (inside `return [ ... ]`):
+    'redlava' => [
+      'api_key' => 'YOUR_RED_LAVA_API_KEY',
+      'phone_id' => 'YOUR_PHONE_ID',
+    ],
+  The Phone ID is shown under your number in Red Lava -> Connected Accounts.
+- In the app: menu -> Master -> WhatsApp Templates. Preview each template, then press "Submit to Meta"
+  (Admin / Super Admin only). "Refresh status" shows Pending / Approved / Rejected from Red Lava.
+- Template wording lives in `tools/whatsapp_templates.py`; run it to regenerate `api/whatsapp_templates.json`.

@@ -680,3 +680,35 @@ export interface MasterOptionItem {
   updatedAt?: string;
   updatedBy?: string;
 }
+
+// ---------------------------------------------------------------------------
+// WhatsApp templates (Red Lava)
+// ---------------------------------------------------------------------------
+
+export interface WhatsAppTemplateInfo {
+  title: string;
+  name: string;
+  language: string;
+  category: string;
+  body: string;
+  fields: string[];
+  examples: string[];
+  remote: { name: string; language: string; status: string; category: string; reason: string } | null;
+}
+
+export interface WhatsAppTemplatesResult {
+  configured: boolean;
+  canSubmit: boolean;
+  remoteError: string | null;
+  templates: WhatsAppTemplateInfo[];
+}
+
+export const getWhatsAppTemplates = async (): Promise<WhatsAppTemplatesResult> => {
+  const res: any = await getJson(qs({ action: 'waTemplates' }));
+  return res.data as WhatsAppTemplatesResult;
+};
+
+export const submitWhatsAppTemplate = async (name: string): Promise<string> => {
+  const res: any = await postJson({ action: 'waSubmitTemplate', name });
+  return String(res.data?.message || 'Submitted to Meta for review.');
+};

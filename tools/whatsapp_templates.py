@@ -4,7 +4,7 @@ Siddvin WhatsApp templates in Meta format, ready to submit to Red Lava
 
 Run:  python3 tools/whatsapp_templates.py
 It checks every template against Meta's rules and writes
-php_backend/whatsapp/templates.json (one request body per template, plus
+php_backend/api/whatsapp_templates.json (one request body per template, plus
 the app field that fills each {{n}} placeholder).
 
 Edit the wording here, not in the JSON.
@@ -401,7 +401,7 @@ def main() -> int:
     if len(set(names)) != len(names):
         print("ERR duplicate template names")
         problems += 1
-    path = Path(__file__).resolve().parents[1] / "php_backend" / "whatsapp" / "templates.json"
+    path = Path(__file__).resolve().parents[1] / "php_backend" / "api" / "whatsapp_templates.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"\n{len(out)} templates, {problems} problem(s) -> {path}")

@@ -21,6 +21,7 @@ import SidvinTeamTable from './components/tables/SidvinTeamTable';
 import ProposalDetailView from './components/views/ProposalDetailView';
 import DashboardView from './components/views/DashboardView';
 import CompanyCategoryView from './components/views/CompanyCategoryView';
+import WhatsAppTemplatesView from './components/views/WhatsAppTemplatesView';
 import Button from './components/common/Button';
 import PropertyForm from './components/forms/PropertyForm';
 import BrandForm from './components/forms/BrandForm';
@@ -49,6 +50,7 @@ type View =
   | 'pendingDeposit'
   | 'companyMaster'
   | 'categoryMaster'
+  | 'whatsappTemplates'
   | 'proposalDetail'
   | 'addProperty'
   | 'editProperty'
@@ -764,6 +766,8 @@ const App: React.FC = () => {
         return editingProperty ? <PropertyForm initialData={editingProperty} onSubmit={(payload) => handleUpdateProperty({ ...editingProperty, ...payload })} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} /> : <div className="text-center py-8">Property not found for editing.</div>;
       case 'companyMaster':
         return <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} onBack={() => handleViewChange('dashboard')} />;
+      case 'whatsappTemplates':
+        return <WhatsAppTemplatesView onBack={() => handleViewChange('dashboard')} />;
       case 'categoryMaster':
         return <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} onBack={() => handleViewChange('dashboard')} />;
       case 'brands':
@@ -959,6 +963,7 @@ const App: React.FC = () => {
               <li><NavLink label={`Category (${categoryMasterOptions.length})`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} isSubItem /></li>
               <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} isSubItem /></li>
               <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} isSubItem /></li>
+              <li><NavLink label="WhatsApp Templates" onClick={() => handleViewChange('whatsappTemplates')} isActive={currentView === 'whatsappTemplates'} isSubItem /></li>
             </>
           )}
         </ul>
