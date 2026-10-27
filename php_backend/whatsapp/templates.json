@@ -1,0 +1,524 @@
+[
+  {
+    "title": "1) Property Registration - Property side",
+    "fields": [
+      "property.address",
+      "visit date of the property (no field yet)"
+    ],
+    "request": {
+      "name": "sidvin_property_registration",
+      "language": "en",
+      "category": "MARKETING",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear Sir,\n\nProperty (*{{1}}*)\n\nThe site visit to your property was done on *{{2}}*. Thank you for registering your property with us. We assure you the best services from our end. Hope to have a good relation with you. Welcome on board.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "12 MG Road, Guwahati",
+                "27/10/2026"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "2) Brand Registration - Brand side",
+    "fields": [
+      "brand contact: Mr./Ms. + name",
+      "brand.name",
+      "brand.companyName",
+      "brand contact designation"
+    ],
+    "request": {
+      "name": "sidvin_brand_registration",
+      "language": "en",
+      "category": "MARKETING",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear {{1}},\n\nBrand Name: *{{2}}*\nCompany Name: *{{3}}*\nDesignation: *{{4}}*\n\nThank you for giving us the opportunity to join hands with you. We shall be sending you property proposals, knowledge info and regular updates through email and WhatsApp messages.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "Mr. Rajesh Kumar",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "Expansion Manager"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "3) Proposal sent - Property side",
+    "fields": [
+      "property.address",
+      "brand.name",
+      "brand.companyName",
+      "proposal.proposalDate",
+      "brand.name",
+      "brand.companyName",
+      "property portal link"
+    ],
+    "request": {
+      "name": "sidvin_proposal_property",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear Sir,\n\nWe have proposed your property *{{1}}* to *{{2}}* of *{{3}}* on *{{4}}*. Next process is the site visit of *{{5}}* - *{{6}}*. For live tracking, please visit the link {{7}} .\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "12 MG Road, Guwahati",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "27/10/2026",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "https://proposal.bizskilledu.com"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "4) Proposal sent - Brand side",
+    "fields": [
+      "brand contact: Mr./Ms. + name",
+      "brand.name",
+      "brand.companyName",
+      "brand contact designation",
+      "property.address",
+      "property owner: first contact person name"
+    ],
+    "request": {
+      "name": "sidvin_proposal_brand",
+      "language": "en",
+      "category": "MARKETING",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear {{1}},\n\nBrand Name: *{{2}}*\nCompany Name: *{{3}}*\nDesignation: *{{4}}*\n\nThis is to inform you that we have proposed a commercial property *{{5}}* which belongs to *{{6}}*. Please review and send us your valuable feedback.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "Mr. Rajesh Kumar",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "Expansion Manager",
+                "12 MG Road, Guwahati",
+                "Mr. Anil Sharma"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "5) Visit Scheduled - Property side",
+    "fields": [
+      "property.address",
+      "visit.scheduledDate (+ time)",
+      "brand.name",
+      "brand.companyName"
+    ],
+    "request": {
+      "name": "sidvin_visit_scheduled_property",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear Sir,\n\nProperty (*{{1}}*)\n\nThis is to inform you that a site visit is arranged for your property on *{{2}}* with *{{3}}* - *{{4}}*. Please keep yourself/team available for the same.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "12 MG Road, Guwahati",
+                "28/10/2026 11:00 AM",
+                "BrandOne",
+                "ABC Retail Pvt Ltd"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "6) Visit Scheduled - Brand side",
+    "fields": [
+      "brand contact: Mr./Ms. + name",
+      "brand.name",
+      "brand.companyName",
+      "property.address",
+      "property owner: first contact person name",
+      "visit.scheduledDate (+ time)"
+    ],
+    "request": {
+      "name": "sidvin_visit_scheduled_brand",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear {{1}},\n\nBrand Name: *{{2}}*\nCompany Name: *{{3}}*\n\nThis is to inform you that the site visit of the property *{{4}}* which belongs to *{{5}}* has been scheduled on *{{6}}*.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "Mr. Rajesh Kumar",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "12 MG Road, Guwahati",
+                "Mr. Anil Sharma",
+                "28/10/2026 11:00 AM"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "7) Visit Completed - Property side",
+    "fields": [
+      "property.address",
+      "brand.name",
+      "brand.companyName",
+      "visit.visitDate",
+      "visit.developerAttendees"
+    ],
+    "request": {
+      "name": "sidvin_visit_completed_property",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear Sir,\n\nProperty (*{{1}}*)\n\nThis is to inform you that the site visit for your property was completed by *{{2}}* - *{{3}}* on *{{4}}*. Mr. *{{5}}* from your side was present. We will keep you posted on further updates.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "12 MG Road, Guwahati",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "28/10/2026",
+                "Anil Sharma"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "8) Visit Completed - Brand side",
+    "fields": [
+      "brand contact: Mr./Ms. + name",
+      "brand.name",
+      "brand.companyName",
+      "property.address",
+      "property owner: first contact person name"
+    ],
+    "request": {
+      "name": "sidvin_visit_completed_brand",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear {{1}},\n\nBrand Name: *{{2}}*\nCompany Name: *{{3}}*\n\nThank you for taking the time to visit the property *{{4}}* of *{{5}}* and sharing your insights. We look forward to coordinate on the next steps.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "Mr. Rajesh Kumar",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "12 MG Road, Guwahati",
+                "Mr. Anil Sharma"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "9) Follow-up: Client Meeting - Property side",
+    "fields": [
+      "property.address",
+      "brand contact name",
+      "brand.name",
+      "brand.companyName",
+      "followUp.nextFollowUpDate",
+      "followUp.nextFollowUpTime"
+    ],
+    "request": {
+      "name": "sidvin_meeting_property",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear Sir,\n\nProperty (*{{1}}*)\n\nA meeting has been scheduled with Mr. *{{2}}* from *{{3}}* - *{{4}}* on *{{5}}* at *{{6}}*. Please keep yourself available.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "12 MG Road, Guwahati",
+                "Rajesh Kumar",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "30/10/2026",
+                "4:00 PM"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "10) Follow-up: Client Meeting - Brand side",
+    "fields": [
+      "brand contact: Mr./Ms. + name",
+      "brand.name",
+      "brand.companyName",
+      "property owner: first contact person name",
+      "property.address",
+      "followUp.nextFollowUpDate",
+      "followUp.nextFollowUpTime"
+    ],
+    "request": {
+      "name": "sidvin_meeting_brand",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear {{1}},\n\nBrand Name: *{{2}}*\nCompany Name: *{{3}}*\n\nA meeting has been scheduled with Mr. *{{4}}*, owner of *{{5}}*, on *{{6}}* at *{{7}}*. Please keep yourself available.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "Mr. Rajesh Kumar",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "Anil Sharma",
+                "12 MG Road, Guwahati",
+                "30/10/2026",
+                "4:00 PM"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "11) Follow-up: Virtual Meeting - Property side",
+    "fields": [
+      "property.address",
+      "brand contact name",
+      "brand.name",
+      "visit.scheduledDate",
+      "visit.scheduledTime",
+      "visit.meetingLink"
+    ],
+    "request": {
+      "name": "sidvin_virtual_meeting_property",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear Sir,\n\nProperty (*{{1}}*)\n\nA virtual meeting has been scheduled with Mr. *{{2}}* of *{{3}}* on *{{4}}* at *{{5}}*. Please make a note of the timing and join the meeting via {{6}} .\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "12 MG Road, Guwahati",
+                "Rajesh Kumar",
+                "BrandOne",
+                "30/10/2026",
+                "4:00 PM",
+                "https://zoom.us/j/1234567890"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "12) Follow-up: Virtual Meeting - Brand side",
+    "fields": [
+      "brand contact: Mr./Ms. + name",
+      "brand.name",
+      "brand.companyName",
+      "property owner: first contact person name",
+      "property.address",
+      "visit.scheduledDate",
+      "visit.scheduledTime",
+      "visit.meetingLink"
+    ],
+    "request": {
+      "name": "sidvin_virtual_meeting_brand",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear {{1}},\n\nBrand Name: *{{2}}*\nCompany Name: *{{3}}*\n\nIt is to inform you that a zoom meeting has been scheduled with owner *{{4}}* of *{{5}}* on *{{6}}* at *{{7}}*. Please make a note of the timing and join the meeting via {{8}} .\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "Mr. Rajesh Kumar",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "Anil Sharma",
+                "12 MG Road, Guwahati",
+                "30/10/2026",
+                "4:00 PM",
+                "https://zoom.us/j/1234567890"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "13) Pending Terms / Agreement Meeting - Property side",
+    "fields": [
+      "property.address",
+      "brand contact name",
+      "brand.name",
+      "brand.companyName",
+      "meeting date (no field yet)",
+      "meeting time (no field yet)"
+    ],
+    "request": {
+      "name": "sidvin_terms_meeting_property",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear Sir,\n\nProperty (*{{1}}*)\n\nA meeting with Mr. *{{2}}* of *{{3}}* of *{{4}}* is scheduled on *{{5}}* at *{{6}}* to discuss the pending terms/agreement. Please be available for the same.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "12 MG Road, Guwahati",
+                "Rajesh Kumar",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "02/11/2026",
+                "11:30 AM"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "14) Pending Terms / Agreement Meeting - Brand side",
+    "fields": [
+      "brand contact: Mr./Ms. + name",
+      "brand.name",
+      "brand.companyName",
+      "property owner: first contact person name",
+      "property.address",
+      "meeting date (no field yet)",
+      "meeting time (no field yet)"
+    ],
+    "request": {
+      "name": "sidvin_terms_meeting_brand",
+      "language": "en",
+      "category": "UTILITY",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear {{1}},\n\nBrand Name: *{{2}}*\nCompany Name: *{{3}}*\n\nIt is to inform you that the finalization of the pending terms/agreement is scheduled with *{{4}}* of *{{5}}* on *{{6}}* at *{{7}}*. Please be available for discussion.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "Mr. Rajesh Kumar",
+                "BrandOne",
+                "ABC Retail Pvt Ltd",
+                "Mr. Anil Sharma",
+                "12 MG Road, Guwahati",
+                "02/11/2026",
+                "11:30 AM"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "15) Deal Closed / Billed - Property side",
+    "fields": [
+      "property.address",
+      "brand.name",
+      "brand.companyName"
+    ],
+    "request": {
+      "name": "sidvin_deal_closed_property",
+      "language": "en",
+      "category": "MARKETING",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear Sir,\n\nProperty (*{{1}}*)\n\nWe are extending our heartiest congratulations on successful completion of the lease deal with *{{2}}* - *{{3}}*. Thank you for trusting us and giving us the opportunity to work with you. Please remember us in all future endeavors.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "12 MG Road, Guwahati",
+                "BrandOne",
+                "ABC Retail Pvt Ltd"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "16) Deal Closed / Billed - Brand side",
+    "fields": [
+      "brand contact: Mr./Ms. + name",
+      "brand.name",
+      "brand.companyName"
+    ],
+    "request": {
+      "name": "sidvin_deal_closed_brand",
+      "language": "en",
+      "category": "MARKETING",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Dear {{1}},\n\nBrand Name: *{{2}}*\nCompany Name: *{{3}}*\n\nCongratulations on successful completion of the lease deal. Your efforts and collaborations made this possible. Thank you for trusting us and giving us the opportunity to work with you. Please remember us in all future endeavors.\n\nBest Regards.\n\n*Siddvin RLT*\nFounder: *Mr. Vikaas D Goenka*\nCall: 9117706555\nwww.sidvinrlt.com\n\nInstagram: https://www.instagram.com/realtorvikasgoenka",
+          "example": {
+            "body_text": [
+              [
+                "Mr. Rajesh Kumar",
+                "BrandOne",
+                "ABC Retail Pvt Ltd"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  }
+]
