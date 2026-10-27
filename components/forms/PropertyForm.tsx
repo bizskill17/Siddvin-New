@@ -9,7 +9,7 @@ import Button from '../common/Button';
 interface PropertyFormProps {
   /** id of a field to scroll to and focus when the form opens (from the list's update icon). */
   focusField?: string;
-  /** Show only this section (opened from the list's update icon); the user can still expand the full form. */
+  /** Show only this section (opened from the list's update icon). */
   section?: 'files' | 'coordination';
   initialData?: Property;
   onSubmit: (property: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => void;
@@ -118,8 +118,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
     }
   }, [initialData]);
 
-  const [showFullForm, setShowFullForm] = useState(false);
-  const showMain = !section || showFullForm;
+  const showMain = !section;
   const showFiles = showMain || section === 'files';
   const showCoordination = showMain || section === 'coordination';
 
@@ -200,9 +199,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       {!showMain && (
         <div className="mb-4 rounded-md border border-gray-300 bg-white/60 p-3 text-sm text-gray-800">
           <p><span className="font-semibold">Property:</span> {formData.address || 'N/A'}</p>
-          <button type="button" className="mt-1 text-xs font-semibold text-orange-800 underline" onClick={() => setShowFullForm(true)}>
-            Show full form
-          </button>
         </div>
       )}
 
