@@ -15,6 +15,9 @@ interface ProposalsTableProps {
   onViewDetails: (proposalId: string) => void;
   onEdit?: (proposal: Proposal) => void;
   onDelete?: (proposalId: string) => void; // New prop for delete
+  /** Next-step action for a row, e.g. "Add follow-up"; null hides the update icon. */
+  getUpdateLabel?: (proposal: Proposal) => string | null;
+  onUpdate?: (proposal: Proposal) => void;
   selectedStage?: CurrentStageEnum | 'All'; // Keep prop for external filtering
   toolbarInline?: boolean;
   toolbarActions?: React.ReactNode;
@@ -29,6 +32,8 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
   onViewDetails,
   onEdit,
   onDelete,
+  getUpdateLabel,
+  onUpdate,
   selectedStage = 'All', // Default to 'All' if not provided
   toolbarInline = false,
   toolbarActions,
@@ -168,8 +173,25 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
                     );
                   })()}
                 </td>
-                <td className="w-20 relative whitespace-nowrap py-2.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                <td className="w-24 relative whitespace-nowrap py-2.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                   <div className="flex justify-end space-x-1">
+                    {onUpdate && getUpdateLabel && (() => {
+                      const label = getUpdateLabel(proposal);
+                      if (!label) return null;
+                      return (
+                        <Button
+                          size="sm"
+                          onClick={() => onUpdate(proposal)}
+                          title={label}
+                          aria-label={label}
+                          className="p-1 !bg-green-700 hover:!bg-green-800 focus:!ring-green-600"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                          </svg>
+                        </Button>
+                      );
+                    })()}
                     <Button variant="secondary" size="sm" onClick={() => onViewDetails(proposal.id)} title="View Detail" className="p-1">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />

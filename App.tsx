@@ -251,6 +251,7 @@ const App: React.FC = () => {
   };
 
   const handleViewChange = (view: View) => {
+    setReturnToList(false);
     setCurrentView(view);
     setIsSidebarOpen(false);
     setSelectedProposalId(null);
@@ -456,6 +457,14 @@ const App: React.FC = () => {
   }
   const [pendingWhatsAppSave, setPendingWhatsAppSave] = useState<PendingWhatsAppSave | null>(null);
 
+  // Forms opened from a proposals list (the green update icon) go back to that list when done.
+  const [returnToList, setReturnToList] = useState(false);
+  /** Where to go after a proposal-related form: the list it was opened from, or the proposal detail. */
+  const makeLeave = () => {
+    const toList = returnToList;
+    return () => (toList ? handleViewChange('proposals') : setCurrentView('proposalDetail'));
+  };
+
   const confirmWhatsAppSave = async (sides: WhatsAppSide[]) => {
     const job = pendingWhatsAppSave;
     if (!job) return;
@@ -630,7 +639,7 @@ const App: React.FC = () => {
       record: newVisit,
       defaultSend: true,
       savingLabel: 'Scheduling Visit...',
-      beforeSave: () => setCurrentView('proposalDetail'),
+      beforeSave: makeLeave(),
       save: async () => {
         const saved = await dataService.addVisit(newVisit, currentUserName);
         await refreshData();
@@ -647,9 +656,10 @@ const App: React.FC = () => {
       await refreshData();
       return merged.id;
     };
+    const leave = makeLeave();
     // Visit completed: the actual visit date was just filled in.
     if (!merged.visitDate || editingVisit.visitDate) {
-      setCurrentView('proposalDetail');
+      leave();
       await runWithSaving('Updating Visit...', async () => { await save(); });
       return;
     }
@@ -661,18 +671,21 @@ const App: React.FC = () => {
       record: merged,
       defaultSend: true,
       savingLabel: 'Updating Visit...',
-      beforeSave: () => setCurrentView('proposalDetail'),
+      beforeSave: leave,
       save,
     });
   };
 
   const handleAddFollowUp = async (newFollowUp: Omit<FollowUp, 'id' | 'createdAt' | 'updatedAt' | 'updatedBy'>, actionToTake?: 'scheduleVisit') => {
+    const toList = returnToList;
+    const leave = makeLeave();
     const goNext = () => {
       if (actionToTake === 'scheduleVisit') {
         setSelectedProposalId(newFollowUp.proposalId);
         setCurrentView('scheduleVisit');
+        setReturnToList(toList);
       } else {
-        setCurrentView('proposalDetail');
+        leave();
       }
     };
     let savedId = '';
@@ -686,7 +699,7 @@ const App: React.FC = () => {
     // not every follow-up is a meeting with the owner).
     const isMeeting = newFollowUp.status === 'Follow Up Again' && !!newFollowUp.nextFollowUpDate && !!newFollowUp.nextFollowUpTime;
     if (!isMeeting) {
-      setCurrentView(actionToTake === 'scheduleVisit' ? 'scheduleVisit' : 'proposalDetail');
+      if (actionToTake !== 'scheduleVisit') leave();
       await runWithSaving('Adding Follow Up...', async () => { await save(); goNext(); });
       return;
     }
@@ -698,9 +711,9 @@ const App: React.FC = () => {
       record: newFollowUp,
       defaultSend: false,
       savingLabel: 'Adding Follow Up...',
-      beforeSave: () => setCurrentView('proposalDetail'),
+      beforeSave: () => { if (actionToTake !== 'scheduleVisit') leave(); },
       save,
-      afterSave: () => { if (savedId) goNext(); },
+      afterSave: () => { if (savedId && actionToTake === 'scheduleVisit') goNext(); },
     });
   };
 
@@ -720,6 +733,7 @@ const App: React.FC = () => {
   };
 
   const handleAddOrUpdateTermSheetDetails = async (termSheetData: Omit<TermSheetAgreement, 'agreementDate' | 'storeOpeningDate' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
+    const leave = makeLeave();
     const before = termSheetAgreements.find((t) => t.proposalId === termSheetData.proposalId);
     const meetingSet = !!termSheetData.termsMeetingDate && !!termSheetData.termsMeetingTime;
     const meetingChanged = meetingSet && (
@@ -734,12 +748,12 @@ const App: React.FC = () => {
         record: termSheetData,
         defaultSend: true,
         savingLabel: 'Saving Terms...',
-        beforeSave: () => handleViewChange('proposalDetail'),
+        beforeSave: leave,
         save: async () => { await saveTermSheetDetails(termSheetData); return termSheetData.proposalId; },
       });
       return;
     }
-    handleViewChange('proposalDetail');
+    leave();
     await runWithSaving('Saving Terms...', async () => { await saveTermSheetDetails(termSheetData); });
   };
 
@@ -768,7 +782,7 @@ const App: React.FC = () => {
       storeOpeningDate: string | null;
     }
   ) => {
-    handleViewChange('proposalDetail');
+    makeLeave()();
     await runWithSaving('Updating Agreement...', async () => {
       const existingTermSheet = await dataService.getTermSheetByProposalId(proposalId);
       if (!existingTermSheet) {
@@ -832,7 +846,9 @@ const App: React.FC = () => {
     setEditingTeamMember(null);
     setEditingFollowUp(null);
 
-    if (selectedProposalId) {
+    if (returnToList) {
+      handleViewChange('proposals');
+    } else if (selectedProposalId) {
       setCurrentView('proposalDetail');
     } else {
       if (currentView.includes('Property')) setCurrentView(propertyReturnView);
@@ -900,13 +916,52 @@ const App: React.FC = () => {
     />
   );
 
+  /** The next step for a proposal at its current stage (green update icon in the lists). */
+  const getProposalUpdateAction = (proposal: Proposal): { label: string; open: () => void } | null => {
+    const pendingVisit = visits
+      .filter((v) => v.proposalId === proposal.id && v.scheduledDate && !v.visitDate)
+      .sort((a, b) => String(b.scheduledDate).localeCompare(String(a.scheduledDate)))[0];
+    const termSheet = termSheetAgreements.find((t) => t.proposalId === proposal.id);
+    const open = (view: View, setup: () => void) => () => {
+      setup();
+      setCurrentView(view);
+      setReturnToList(true);
+    };
+    switch (proposal.currentStage) {
+      case CurrentStageEnum.Draft:
+        return { label: 'Edit proposal (add proposal date)', open: open('editProposal', () => setEditingProposal(proposal)) };
+      case CurrentStageEnum.PendingFollowUp:
+        return { label: 'Add follow-up', open: open('addFollowUp', () => setSelectedProposalId(proposal.id)) };
+      case CurrentStageEnum.PendingVisitScheduling:
+        return { label: 'Schedule visit', open: open('scheduleVisit', () => setSelectedProposalId(proposal.id)) };
+      case CurrentStageEnum.PendingVisit:
+      case CurrentStageEnum.PendingVisitAgain:
+        return pendingVisit
+          ? { label: 'Update visit (enter actual visit date)', open: open('editVisit', () => { setSelectedProposalId(proposal.id); setEditingVisit(pendingVisit); }) }
+          : null;
+      case CurrentStageEnum.PendingTermsFinalization:
+        return {
+          label: termSheet ? 'Edit terms' : 'Add terms',
+          open: open('addTermSheetDetails', () => { setSelectedProposalId(proposal.id); setEditingTermSheet(termSheet || null); }),
+        };
+      case CurrentStageEnum.PendingAgreement:
+        return termSheet
+          ? { label: 'Record agreement / store opening', open: open('recordAgreementAndStoreOpening', () => { setSelectedProposalId(proposal.id); setEditingTermSheet(termSheet); }) }
+          : null;
+      case CurrentStageEnum.PendingBrandFees:
+        return { label: 'Edit proposal (invoice details)', open: open('editProposal', () => setEditingProposal(proposal)) };
+      default:
+        return null;
+    }
+  };
+
   const renderProposalsView = () => (
     <>
       {renderPageHeader(selectedStageFilter === 'All' ? 'Proposal Workflow' : selectedStageFilter, {
         onBack: () => handleViewChange('dashboard'),
         backLabel: 'Back to Dashboard',
       })}
-      <ProposalsTable proposals={proposals} properties={properties} brands={brands} followUps={followUps} termSheetAgreements={termSheetAgreements} onViewDetails={handleViewProposalDetails} onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onDelete={(id) => handleDeleteClick(id, 'proposal')} selectedStage={selectedStageFilter} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>} />
+      <ProposalsTable proposals={proposals} properties={properties} brands={brands} followUps={followUps} termSheetAgreements={termSheetAgreements} onViewDetails={handleViewProposalDetails} onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onDelete={(id) => handleDeleteClick(id, 'proposal')} getUpdateLabel={(p) => getProposalUpdateAction(p)?.label ?? null} onUpdate={(p) => getProposalUpdateAction(p)?.open()} selectedStage={selectedStageFilter} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>} />
     </>
   );
 
