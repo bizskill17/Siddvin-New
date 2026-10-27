@@ -9,6 +9,8 @@ import Button from '../common/Button';
 interface PropertyFormProps {
   /** id of a field to scroll to and focus when the form opens (from the list's update icon). */
   focusField?: string;
+  /** Show only this section (opened from the list's update icon); the user can still expand the full form. */
+  section?: 'files' | 'coordination';
   initialData?: Property;
   onSubmit: (property: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => void;
   onCancel: () => void;
@@ -16,7 +18,7 @@ interface PropertyFormProps {
   currentUserName: string;
 }
 
-const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCancel, currentUserRole, currentUserName, focusField }) => {
+const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCancel, currentUserRole, currentUserName, focusField, section }) => {
   const getPropertyFeeStageLabel = (status: string) =>
     status === 'Pending Property Email' ? 'Pending Service Fee Email' : status;
 
@@ -116,6 +118,11 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
     }
   }, [initialData]);
 
+  const [showFullForm, setShowFullForm] = useState(false);
+  const showMain = !section || showFullForm;
+  const showFiles = showMain || section === 'files';
+  const showCoordination = showMain || section === 'coordination';
+
   useEffect(() => {
     if (!focusField) return;
     const t = window.setTimeout(() => {
@@ -184,10 +191,22 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
   return (
     <form onSubmit={handleSubmit} className="p-6 bg-[#ece8e3] rounded-lg shadow-md max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">{initialData ? 'Edit Property' : 'Add New Property'}</h2>
+        <h2 className="text-2xl font-bold text-gray-800">
+          {!showMain ? (section === 'files' ? 'Update Property Files' : 'Update Property Coordination') : initialData ? 'Edit Property' : 'Add New Property'}
+        </h2>
         <Button type="button" variant="primary" onClick={onCancel}>Back</Button>
       </div>
 
+      {!showMain && (
+        <div className="mb-4 rounded-md border border-gray-300 bg-white/60 p-3 text-sm text-gray-800">
+          <p><span className="font-semibold">Property:</span> {formData.address || 'N/A'}</p>
+          <button type="button" className="mt-1 text-xs font-semibold text-orange-800 underline" onClick={() => setShowFullForm(true)}>
+            Show full form
+          </button>
+        </div>
+      )}
+
+      {showMain && (<>
       <Input id="address" label="Property Address" value={formData.address} onChange={handleChange} required />
       <Input id="googleMapsLink" label="Google Maps Link" value={formData.googleMapsLink} onChange={handleChange} type="url" required />
 
@@ -227,8 +246,10 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
         placeholder={initialData ? 'Leave blank to keep the current password' : undefined}
         required={!initialData}
       />
+      </>)}
 
-      <hr className="my-6 border-gray-200" />
+      {showFiles && (<>
+      {showMain && <hr className="my-6 border-gray-200" />}
       <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Files</h3>
       {[0, 1, 2, 3, 4].map((idx) => (
         <Input
@@ -243,9 +264,10 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
       <Input id="drawing-0" label="PDF Drawing URL" value={formData.drawings[0] || ''} onChange={(e) => handleDrawingChange(0, e.target.value)} type="url" />
       <Input id="cadDrawingUrl" label="CAD Drawing URL" value={formData.cadDrawingUrl} onChange={handleChange} type="url" />
       <Input id="propertyPresentation" label="Property Presentation URL" value={formData.propertyPresentation} onChange={handleChange} type="url" />
+      </>)}
 
-      <>
-        <hr className="my-6 border-gray-200" />
+      {showCoordination && <>
+        {(showMain || showFiles) && <hr className="my-6 border-gray-200" />}
         <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Coordination</h3>
         <CheckboxInput id="propertySigningApplicable" label="MOU Signing Applicable" checked={formData.propertySigningApplicable} onChange={handleChange} />
         <Input id="propertyFeeEmailSentDate" label="Email Sent Date" value={formData.propertyFeeEmailSentDate} onChange={handleChange} type="date" />
@@ -255,7 +277,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
         <Input id="propertyFeeFollowUpDate" label="Property Follow Up Date" value={formData.propertyFeeFollowUpDate} onChange={handleChange} type="date" />
         <LongTextInput id="propertyFeeFollowUpRemarks" label="Property Follow Up Remarks" value={formData.propertyFeeFollowUpRemarks} onChange={handleChange} />
         <Input id="propertyFeeStatusDisplay" label="Current Property Status" value={getPropertyFeeStageLabel(getDerivedPropertyFeeStage(formData))} readOnly />
-      </>
+      </>}
 
       <Input id="updatedByDisplay" label="Updated By" value={currentUserName} readOnly />
 

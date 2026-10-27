@@ -280,20 +280,21 @@ const App: React.FC = () => {
 
   // Field to jump to when Edit Property is opened from the list's update icon.
   const [propertyFocusField, setPropertyFocusField] = useState<string | undefined>(undefined);
+  const [propertyFormSection, setPropertyFormSection] = useState<'files' | 'coordination' | undefined>(undefined);
 
   /** The next step for a property at its current status (green update icon in the Properties list). */
-  const getPropertyUpdateAction = (property: Property): { label: string; icon: StageActionIconName; field: string } | null => {
+  const getPropertyUpdateAction = (property: Property): { label: string; icon: StageActionIconName; field: string; section: 'files' | 'coordination' } | null => {
     switch (getPropertyTaskStatus(property)) {
       case 'Pending Property Files':
-        return { label: 'Add property photos / files', icon: 'photos', field: 'propertyPhoto-0' };
+        return { label: 'Add property photos / files', icon: 'photos', field: 'propertyPhoto-0', section: 'files' };
       case 'Pending Property Email':
-        return { label: 'Enter service fee email sent date', icon: 'mail', field: 'propertyFeeEmailSentDate' };
+        return { label: 'Enter service fee email sent date', icon: 'mail', field: 'propertyFeeEmailSentDate', section: 'coordination' };
       case 'Pending Negotiation':
-        return { label: 'Update negotiation / acceptance email date', icon: 'negotiate', field: 'propertyFeeAcceptanceEmailDate' };
+        return { label: 'Update negotiation / acceptance email date', icon: 'negotiate', field: 'propertyFeeAcceptanceEmailDate', section: 'coordination' };
       case 'Pending Acceptance Email':
-        return { label: 'Enter acceptance email date', icon: 'mailCheck', field: 'propertyFeeAcceptanceEmailDate' };
+        return { label: 'Enter acceptance email date', icon: 'mailCheck', field: 'propertyFeeAcceptanceEmailDate', section: 'coordination' };
       case 'Pending MOU Signing':
-        return { label: 'Enter MOU signing date', icon: 'agreement', field: 'propertyFeePaperSigningDate' };
+        return { label: 'Enter MOU signing date', icon: 'agreement', field: 'propertyFeePaperSigningDate', section: 'coordination' };
       default:
         return null;
     }
@@ -364,8 +365,13 @@ const App: React.FC = () => {
     handleViewChange('addProperty');
   };
 
-  const handleEditPropertyView = (property: Property, returnView: 'properties' | 'propertyFeeFollowUp', focusField?: string) => {
-    setPropertyFocusField(focusField);
+  const handleEditPropertyView = (
+    property: Property,
+    returnView: 'properties' | 'propertyFeeFollowUp',
+    focus?: { field: string; section: 'files' | 'coordination' },
+  ) => {
+    setPropertyFocusField(focus?.field);
+    setPropertyFormSection(focus?.section);
     setPropertyReturnView('properties'); // Always return to unified view
     setEditingProperty(property);
     setCurrentView('editProperty');
@@ -1005,7 +1011,7 @@ const App: React.FC = () => {
               properties={selectedPropertyTaskFilter === 'All' ? properties : properties.filter(p => getPropertyTaskStatus(p) === selectedPropertyTaskFilter)} 
               onEdit={(p) => handleEditPropertyView(p, 'properties')}
               getUpdateAction={(p) => getPropertyUpdateAction(p)}
-              onUpdate={(p) => handleEditPropertyView(p, 'properties', getPropertyUpdateAction(p)?.field)} 
+              onUpdate={(p) => handleEditPropertyView(p, 'properties', getPropertyUpdateAction(p) ?? undefined)} 
               onDelete={(id) => handleDeleteClick(id, 'property')} 
               getStatusLabel={(property) => getPropertyTaskLabel(getPropertyTaskStatus(property))} 
               toolbarInline 
@@ -1030,7 +1036,7 @@ const App: React.FC = () => {
       case 'addProperty':
         return <PropertyForm onSubmit={handleAddProperty} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} />;
       case 'editProperty':
-        return editingProperty ? <PropertyForm initialData={editingProperty} focusField={propertyFocusField} onSubmit={(payload) => handleUpdateProperty({ ...editingProperty, ...payload })} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} /> : <div className="text-center py-8">Property not found for editing.</div>;
+        return editingProperty ? <PropertyForm key={`${editingProperty.id}-${propertyFormSection || 'all'}`} initialData={editingProperty} focusField={propertyFocusField} section={propertyFormSection} onSubmit={(payload) => handleUpdateProperty({ ...editingProperty, ...payload })} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} /> : <div className="text-center py-8">Property not found for editing.</div>;
       case 'companyMaster':
         return <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} onBack={() => handleViewChange('dashboard')} />;
       case 'whatsappTemplates':
