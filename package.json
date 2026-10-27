@@ -7,13 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "server": "node server/index.js"
+    "api": "php -S localhost:8000 -t php_backend"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
-    "express": "^4.21.2",
-    "mysql2": "^3.14.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

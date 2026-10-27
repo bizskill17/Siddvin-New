@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Stray local files
+*.err
+~$*
+
+# PHP API credentials (copy config.php.example)
+php_backend/api/config.php

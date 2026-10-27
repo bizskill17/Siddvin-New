@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Brand, CurrentStageEnum, FollowUp, Property, Proposal, TermSheetAgreement, Visit } from '../../types';
 import { formatDateDisplay } from '../common/dateUtils';
 import { downloadTableAsPdf, exportRowsToCsv } from '../common/exportUtils';
+import { loginProperty, SessionInfo } from '../../services/dataService';
 
 interface PropertyPortalViewProps {
   properties: Property[];
@@ -11,7 +12,7 @@ interface PropertyPortalViewProps {
   followUps: FollowUp[];
   termSheetAgreements: TermSheetAgreement[];
   initialPropertyId?: string;
-  onSessionStart: (propertyId: string) => void;
+  onSessionStart: (session: SessionInfo) => void;
   onSessionEnd: () => void;
   onRefresh: () => Promise<void>;
   onBackToTeamLogin: () => void;
@@ -46,19 +47,6 @@ const toTs = (value: string | null | undefined): number => {
   }
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
-};
-
-const findPropertyByIdentifier = (properties: Property[], input: string): Property | null => {
-  const value = input.trim().toLowerCase();
-  if (!value) return null;
-  const serial = value.match(/(\d+)$/);
-  const serialNo = serial ? Number(serial[1]) : null;
-  return (
-    properties.find((p) => p.id.toLowerCase() === value) ||
-    properties.find((p) => serialNo !== null && Number(p.serialNo || 0) === serialNo) ||
-    properties.find((p) => p.address.toLowerCase().includes(value)) ||
-    null
-  );
 };
 
 const collectProposalActivities = (
@@ -113,25 +101,30 @@ const collectProposalActivities = (
 };
 
 const AuthGate: React.FC<{
-  properties: Property[];
-  onAuthenticate: (propertyId: string) => void;
+  onAuthenticate: (session: SessionInfo) => void;
   onBackToTeamLogin: () => void;
   initialPropertyId?: string;
-}> = ({ properties, onAuthenticate, onBackToTeamLogin, initialPropertyId = '' }) => {
+}> = ({ onAuthenticate, onBackToTeamLogin, initialPropertyId = '' }) => {
   const [propertyId, setPropertyId] = useState(initialPropertyId);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    // Backend integration: replace local password checks below with password verification endpoint.
     if (!propertyId.trim()) return setError('Please enter Property ID/Code.');
     if (!password.trim()) return setError('Please enter password.');
-    const found = findPropertyByIdentifier(properties, propertyId);
-    if (!found) return setError('Property not found for entered ID/code.');
-    if (String(found.password || '').trim() !== password.trim()) return setError('Incorrect password.');
-    onAuthenticate(found.id);
+    setIsSubmitting(true);
+    try {
+      // The password is checked on the server; the browser never sees stored passwords.
+      const session = await loginProperty(propertyId.trim(), password);
+      if (session.kind === 'property') onAuthenticate(session);
+    } catch (err: any) {
+      setError(err?.message || 'Unable to sign in. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -150,7 +143,7 @@ const AuthGate: React.FC<{
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-500" placeholder="Enter password" required />
             </div>
             {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>}
-            <button type="submit" className="w-full rounded-xl bg-slate-900 text-white py-2.5 font-semibold hover:bg-slate-700">Access Dashboard</button>
+            <button type="submit" disabled={isSubmitting} className="w-full rounded-xl bg-slate-900 text-white py-2.5 font-semibold hover:bg-slate-700 disabled:opacity-60">{isSubmitting ? 'Signing in...' : 'Access Dashboard'}</button>
           </form>
           <div className="mt-4 text-center">
             <button
@@ -303,7 +296,7 @@ const PropertyPortalView: React.FC<PropertyPortalViewProps> = ({
   }, [bundles, masterRows]);
 
   if (!sessionPropertyId) {
-    return <AuthGate properties={properties} initialPropertyId={initialPropertyId} onAuthenticate={(id) => { setSessionPropertyId(id); onSessionStart(id); }} onBackToTeamLogin={onBackToTeamLogin} />;
+    return <AuthGate initialPropertyId={initialPropertyId} onAuthenticate={(session) => { if (session.kind === 'property') setSessionPropertyId(session.property.id); onSessionStart(session); }} onBackToTeamLogin={onBackToTeamLogin} />;
   }
 
   if (!property) {
@@ -331,7 +324,6 @@ const PropertyPortalView: React.FC<PropertyPortalViewProps> = ({
                       setError('');
                       setIsRefreshing(true);
                       try {
-                        // Backend integration: property fetch endpoint for real-time dashboard refresh.
                         await onRefresh();
                       } catch (e: any) {
                         setError(e?.message || 'Unable to refresh data.');

@@ -200,7 +200,16 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ initialData, onSubmit, onCa
 
       <Input id="serviceFeeProposed" label="Service Fee Proposed" value={formData.serviceFeeProposed} onChange={handleChange} required />
       <LongTextInput id="notes" label="Notes" value={formData.notes} onChange={handleChange} />
-      <Input id="password" label="Property Password" value={formData.password} onChange={handleChange} type="password" required />
+      <Input
+        id="password"
+        label={initialData ? 'New Property Password' : 'Property Password'}
+        value={formData.password}
+        onChange={handleChange}
+        type="password"
+        autoComplete="new-password"
+        placeholder={initialData ? 'Leave blank to keep the current password' : undefined}
+        required={!initialData}
+      />
 
       <hr className="my-6 border-gray-200" />
       <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Files</h3>

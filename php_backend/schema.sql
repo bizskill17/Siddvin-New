@@ -98,3 +98,14 @@ CREATE TABLE IF NOT EXISTS term_sheets (
   updated_by VARCHAR(255) NULL,
   PRIMARY KEY (proposal_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Login sessions. The API also creates this table automatically on first login.
+CREATE TABLE IF NOT EXISTS auth_sessions (
+  token_hash CHAR(64) NOT NULL,
+  kind VARCHAR(16) NOT NULL,
+  subject_id VARCHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME NOT NULL,
+  PRIMARY KEY (token_hash),
+  KEY idx_auth_sessions_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

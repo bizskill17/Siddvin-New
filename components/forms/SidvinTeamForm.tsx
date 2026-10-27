@@ -80,7 +80,16 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
       <Input id="mobile" label="Mobile" value={formData.mobile} onChange={handleChange} type="tel" required />
       <Input id="email" label="Email" value={formData.email} onChange={handleChange} type="email" required />
       <SelectInput id="role" label="Role" options={roleOptions} value={formData.role} onChange={handleChange} required placeholder="Select Role" />
-      <Input id="password" label="Password" value={formData.password} onChange={handleChange} type="password" required />
+      <Input
+        id="password"
+        label={initialData ? 'New Password' : 'Password'}
+        value={formData.password}
+        onChange={handleChange}
+        type="password"
+        autoComplete="new-password"
+        placeholder={initialData ? 'Leave blank to keep the current password' : undefined}
+        required={!initialData}
+      />
 
       <div className="flex justify-end gap-3 mt-6">
         <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
