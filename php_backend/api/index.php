@@ -166,17 +166,26 @@ try {
 
   if ($action === 'me') ok(session_public($session));
 
-  // ---- Send WhatsApp messages for an event (any team member) ----
-  if ($action === 'waSend') {
+  // ---- WhatsApp messages for an event (any team member) ----
+  // waPreview: build the messages from form data that isn't saved yet (nothing is sent).
+  // waSend: send the chosen sides for a saved record.
+  if ($action === 'waPreview' || $action === 'waSend') {
     if ($method !== 'POST') fail(405, 'Method not allowed');
     if ($session['kind'] !== 'team') fail(403, 'Not allowed');
     @set_time_limit(180);
     $event = trim((string)($body['event'] ?? ''));
+    if ($action === 'waPreview') {
+      $record = $body['record'] ?? null;
+      if (!is_array($record)) fail(400, 'Missing record.');
+      ok(wa_preview($pdo, $event, $record));
+    }
     $entityId = trim((string)($body['entityId'] ?? ''));
     $requestKey = trim((string)($body['requestKey'] ?? ''));
-    if ($event === '' || $entityId === '') fail(400, 'Missing event or record.');
+    $sides = array_values(array_intersect((array)($body['sides'] ?? []), ['property', 'brand']));
+    if ($entityId === '') fail(400, 'Missing record.');
+    if (!$sides) fail(400, 'Choose who to send to.');
     if (!preg_match('/^[A-Za-z0-9_-]{8,64}$/', $requestKey)) fail(400, 'Missing request key.');
-    ok(wa_send_event($pdo, $event, $entityId, $requestKey, $session['name']));
+    ok(wa_send_event($pdo, $event, $entityId, $sides, $requestKey, $session['name']));
   }
 
   // ---- Red Lava connection settings (saved in the app, encrypted) ----

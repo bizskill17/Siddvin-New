@@ -3,7 +3,7 @@
     "title": "1) Property Registration - Property side",
     "fields": [
       "property.address",
-      "visit date of the property (no field yet)"
+      "property.siteVisitDate (Site Visit Date)"
     ],
     "request": {
       "name": "sidvin_property_registration",
@@ -402,8 +402,8 @@
       "brand contact name",
       "brand.name",
       "brand.companyName",
-      "meeting date (no field yet)",
-      "meeting time (no field yet)"
+      "termSheet.termsMeetingDate (Terms / Agreement Meeting Date)",
+      "termSheet.termsMeetingTime (Terms / Agreement Meeting Time)"
     ],
     "request": {
       "name": "sidvin_terms_meeting_property",
@@ -437,8 +437,8 @@
       "brand.companyName",
       "property owner: first contact person name",
       "property.address",
-      "meeting date (no field yet)",
-      "meeting time (no field yet)"
+      "termSheet.termsMeetingDate (Terms / Agreement Meeting Date)",
+      "termSheet.termsMeetingTime (Terms / Agreement Meeting Time)"
     ],
     "request": {
       "name": "sidvin_terms_meeting_brand",

@@ -42,7 +42,7 @@ TEMPLATES: list[dict] = [
         ),
         "vars": [
             ("property.address", "12 MG Road, Guwahati"),
-            ("visit date of the property (no field yet)", "27/10/2026"),
+            ("property.siteVisitDate (Site Visit Date)", "27/10/2026"),
         ],
     },
     {
@@ -275,8 +275,8 @@ TEMPLATES: list[dict] = [
             ("brand contact name", "Rajesh Kumar"),
             ("brand.name", "BrandOne"),
             ("brand.companyName", "ABC Retail Pvt Ltd"),
-            ("meeting date (no field yet)", "02/11/2026"),
-            ("meeting time (no field yet)", "11:30 AM"),
+            ("termSheet.termsMeetingDate (Terms / Agreement Meeting Date)", "02/11/2026"),
+            ("termSheet.termsMeetingTime (Terms / Agreement Meeting Time)", "11:30 AM"),
         ],
     },
     {
@@ -296,8 +296,8 @@ TEMPLATES: list[dict] = [
             ("brand.companyName", "ABC Retail Pvt Ltd"),
             ("property owner: first contact person name", "Mr. Anil Sharma"),
             ("property.address", "12 MG Road, Guwahati"),
-            ("meeting date (no field yet)", "02/11/2026"),
-            ("meeting time (no field yet)", "11:30 AM"),
+            ("termSheet.termsMeetingDate (Terms / Agreement Meeting Date)", "02/11/2026"),
+            ("termSheet.termsMeetingTime (Terms / Agreement Meeting Time)", "11:30 AM"),
         ],
     },
     {

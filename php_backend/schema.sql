@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
 -- Log of WhatsApp messages sent through Red Lava. Also created automatically on first send.
 CREATE TABLE IF NOT EXISTS wa_messages (
   id VARCHAR(36) NOT NULL,
-  request_key VARCHAR(64) NOT NULL,
+  request_key VARCHAR(80) NOT NULL,
   event VARCHAR(64) NOT NULL,
   entity_id VARCHAR(36) NOT NULL,
   template VARCHAR(128) NOT NULL,

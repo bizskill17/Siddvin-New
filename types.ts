@@ -175,4 +175,8 @@ export interface TermSheetAgreement extends AuditFields {
   electricalPanel: string;
   powerLoad: string;
   dgBackup: string;
+
+  /** Meeting to finalise pending terms/agreement (used in the WhatsApp terms-meeting messages). */
+  termsMeetingDate?: string | null;
+  termsMeetingTime?: string | null;
 }

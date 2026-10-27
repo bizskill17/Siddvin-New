@@ -37,6 +37,8 @@ const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposa
           plannedOpeningDate: initialData.plannedOpeningDate,
           preparationDate: initialData.preparationDate,
           finalizationDate: initialData.finalizationDate,
+          termsMeetingDate: initialData.termsMeetingDate ?? null,
+          termsMeetingTime: initialData.termsMeetingTime ?? null,
           signingDate: initialData.signingDate,
           advancePlan: initialData.advancePlan,
           agreementRegistrationRequired: initialData.agreementRegistrationRequired,
@@ -66,6 +68,8 @@ const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposa
           plannedOpeningDate: null,
           preparationDate: null,
           finalizationDate: null,
+          termsMeetingDate: null,
+          termsMeetingTime: null,
           signingDate: null,
           advancePlan: '',
           agreementRegistrationRequired: false,
@@ -99,6 +103,8 @@ const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposa
         plannedOpeningDate: initialData.plannedOpeningDate,
         preparationDate: initialData.preparationDate,
         finalizationDate: initialData.finalizationDate,
+        termsMeetingDate: initialData.termsMeetingDate ?? null,
+        termsMeetingTime: initialData.termsMeetingTime ?? null,
         signingDate: initialData.signingDate,
         advancePlan: initialData.advancePlan,
         agreementRegistrationRequired: initialData.agreementRegistrationRequired,
@@ -169,6 +175,8 @@ const TermSheetAgreementForm: React.FC<TermSheetAgreementFormProps> = ({ proposa
       </div>
 
       <LongTextInput id="specificTerms" label="Terms" value={formData.specificTerms} onChange={handleChange} />
+      <DateInput id="termsMeetingDate" label="Terms / Agreement Meeting Date" value={formData.termsMeetingDate || ''} onChange={handleChange} />
+      <Input id="termsMeetingTime" label="Terms / Agreement Meeting Time" value={formData.termsMeetingTime || ''} onChange={handleChange} type="time" />
       <DateInput id="finalizationDate" label="Finalization Date" value={formData.finalizationDate || ''} onChange={handleChange} />
       <DateInput id="preparationDate" label="Preparation Date" value={formData.preparationDate || ''} onChange={handleChange} />
       <DateInput id="signingDate" label="Signing Date" value={formData.signingDate || ''} onChange={handleChange} />

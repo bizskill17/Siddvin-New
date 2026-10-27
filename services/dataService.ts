@@ -341,6 +341,8 @@ const normalizeTermSheet = (t: any): TermSheetAgreement => ({
   agreementDate: fromSheetDate(t.agreementDate),
   agreementRegistrationDate: fromSheetDate(t.agreementRegistrationDate),
   storeOpeningDate: fromSheetDate(t.storeOpeningDate),
+  termsMeetingDate: fromSheetDate(t.termsMeetingDate),
+  termsMeetingTime: normalizeTimeValue(t.termsMeetingTime),
   rentFreePeriodDays: t.rentFreePeriodDays === null ? null : (t.rentFreePeriodDays === '' || t.rentFreePeriodDays === undefined ? null : Number(t.rentFreePeriodDays)),
   registrationFeePropertyShare: t.registrationFeePropertyShare === null ? null : (t.registrationFeePropertyShare === '' || t.registrationFeePropertyShare === undefined ? null : Number(t.registrationFeePropertyShare)),
   registrationFeeBrandShare: t.registrationFeeBrandShare === null ? null : (t.registrationFeeBrandShare === '' || t.registrationFeeBrandShare === undefined ? null : Number(t.registrationFeeBrandShare)),
@@ -625,6 +627,8 @@ export const addOrUpdateTermSheet = async (termSheet: TermSheetAgreement, update
     agreementDate: toSheetDate(termSheet.agreementDate),
     agreementRegistrationDate: toSheetDate(termSheet.agreementRegistrationDate),
     storeOpeningDate: toSheetDate(termSheet.storeOpeningDate),
+    termsMeetingDate: toSheetDate(termSheet.termsMeetingDate),
+    termsMeetingTime: toSheetTime(termSheet.termsMeetingTime),
     depositStagesJson: termSheet.depositStages || [],
   };
   const res: any = await postJson({ action: 'upsertByProposalId', entity: ENTITY_MAP.termSheets, proposalId: termSheet.proposalId, data: payload, updatedBy });
@@ -735,22 +739,48 @@ export const saveRedLavaSettings = async (
   return res.data;
 };
 
-export interface WhatsAppSendResult {
+export type WhatsAppEvent =
+  | 'property_registration'
+  | 'brand_registration'
+  | 'proposal_sent'
+  | 'visit_scheduled'
+  | 'visit_completed'
+  | 'follow_up_meeting'
+  | 'terms_meeting'
+  | 'deal_closed';
+
+export interface WhatsAppPreviewSide {
+  side: 'property' | 'brand';
+  label: string;
   template: string;
+  canSend: boolean;
+  blockedReason: string;
+  recipients: { name: string; mobile: string; to: string; text: string }[];
+  skipped: string[];
+}
+
+export interface WhatsAppSendSide {
+  side: 'property' | 'brand';
+  label: string;
+  template: string;
+  error: string | null;
   results: { name: string; to: string; status: string; note: string | null }[];
   skipped: string[];
 }
 
-/** Sends the WhatsApp messages for an event; the server builds the text from the saved record. */
-export const sendWhatsAppEvent = async (event: 'property_registration', entityId: string, requestKey: string): Promise<WhatsAppSendResult> => {
-  const res: any = await postJson({ action: 'waSend', event, entityId, requestKey });
-  return res.data as WhatsAppSendResult;
+/** Builds the WhatsApp messages for form data that isn't saved yet. Nothing is sent. */
+export const previewWhatsApp = async (event: WhatsAppEvent, record: unknown): Promise<WhatsAppPreviewSide[]> => {
+  const res: any = await postJson({ action: 'waPreview', event, record });
+  return (res.data?.sides || []) as WhatsAppPreviewSide[];
 };
 
-/** Same rule as the server: digits with country code (India by default), or '' if unusable. */
-export const normalizeWhatsAppNumber = (raw: string): string => {
-  let d = String(raw || '').replace(/\D+/g, '');
-  if (d.length === 11 && d.startsWith('0')) d = d.slice(1);
-  if (d.length === 10) d = `91${d}`;
-  return /^[1-9]\d{7,14}$/.test(d) ? d : '';
+/** Sends the chosen sides for a saved record; the server builds the text from the saved data. */
+export const sendWhatsApp = async (
+  event: WhatsAppEvent,
+  entityId: string,
+  sides: ('property' | 'brand')[],
+  requestKey: string,
+): Promise<WhatsAppSendSide[]> => {
+  const res: any = await postJson({ action: 'waSend', event, entityId, sides, requestKey });
+  return (res.data?.sides || []) as WhatsAppSendSide[];
 };

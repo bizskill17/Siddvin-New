@@ -22,7 +22,7 @@ import ProposalDetailView from './components/views/ProposalDetailView';
 import DashboardView from './components/views/DashboardView';
 import CompanyCategoryView from './components/views/CompanyCategoryView';
 import WhatsAppTemplatesView from './components/views/WhatsAppTemplatesView';
-import AddPropertyConfirmModal from './components/whatsapp/AddPropertyConfirmModal';
+import WhatsAppConfirmModal, { WhatsAppSide } from './components/whatsapp/WhatsAppConfirmModal';
 import Button from './components/common/Button';
 import PropertyForm from './components/forms/PropertyForm';
 import BrandForm from './components/forms/BrandForm';
@@ -436,39 +436,74 @@ const App: React.FC = () => {
     });
   };
 
-  // "Add Property" first opens a confirmation where the user chooses whether to send the WhatsApp welcome message.
-  const [pendingNewProperty, setPendingNewProperty] = useState<Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'> | null>(null);
+  // ---------------------------------------------------------------------------
+  // Saving with an optional WhatsApp message: the form first opens a confirmation that previews the
+  // messages; the record is saved only after confirming, then the ticked messages are sent.
+  // ---------------------------------------------------------------------------
+  interface PendingWhatsAppSave {
+    title: string;
+    subtitle?: string;
+    event: dataService.WhatsAppEvent;
+    record: unknown;
+    defaultSend: boolean;
+    savingLabel: string;
+    /** Runs right after confirming, before saving (e.g. leave the form). */
+    beforeSave?: () => void;
+    /** Saves the record and returns the id the messages belong to. */
+    save: () => Promise<string>;
+    /** Runs after saving and sending. */
+    afterSave?: () => void;
+  }
+  const [pendingWhatsAppSave, setPendingWhatsAppSave] = useState<PendingWhatsAppSave | null>(null);
 
-  const handleAddProperty = async (newProperty: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
-    setPendingNewProperty(newProperty);
-  };
-
-  const confirmAddProperty = async (sendWhatsApp: boolean) => {
-    const newProperty = pendingNewProperty;
-    if (!newProperty) return;
-    setPendingNewProperty(null);
-    handleViewChange('properties');
+  const confirmWhatsAppSave = async (sides: WhatsAppSide[]) => {
+    const job = pendingWhatsAppSave;
+    if (!job) return;
+    setPendingWhatsAppSave(null);
+    job.beforeSave?.();
     // A fresh key per save, so a retry or double click can never send the same message twice.
-    const requestKey = `prop-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const requestKey = `wa-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     let report = '';
-    await runWithSaving('Adding Property...', async () => {
-      const saved = await dataService.addProperty(newProperty, currentUserName);
-      await refreshData();
-      if (!sendWhatsApp) return;
-      setSavingMessage('Sending WhatsApp message...');
+    await runWithSaving(job.savingLabel, async () => {
+      const entityId = await job.save();
+      if (!sides.length) return;
+      setSavingMessage('Sending WhatsApp messages...');
       try {
-        const res = await dataService.sendWhatsAppEvent('property_registration', saved.id, requestKey);
-        const lines = res.results.map((r) => {
-          const label = r.status === 'accepted' ? 'sent' : r.status === 'unknown' ? 'not confirmed' : r.status;
-          return `• ${r.name || r.to} (+${r.to}): ${label}${r.note && r.status !== 'accepted' ? ` - ${r.note}` : ''}`;
+        const result = await dataService.sendWhatsApp(job.event, entityId, sides, requestKey);
+        const lines: string[] = [];
+        result.forEach((side) => {
+          lines.push(`${side.label}:`);
+          if (side.error) lines.push(`  Not sent: ${side.error}`);
+          side.results.forEach((r) => {
+            const label = r.status === 'accepted' ? 'sent' : r.status === 'unknown' ? 'not confirmed' : r.status;
+            lines.push(`  • ${r.name || 'contact'} (+${r.to}): ${label}${r.note && r.status !== 'accepted' ? ` - ${r.note}` : ''}`);
+          });
+          side.skipped.forEach((k) => lines.push(`  • Skipped: ${k}`));
         });
-        res.skipped.forEach((s) => lines.push(`• Skipped ${s}`));
-        report = `Property saved.\n\nWhatsApp welcome message:\n${lines.join('\n')}`;
+        report = `Saved.\n\nWhatsApp:\n${lines.join('\n')}`;
       } catch (err: any) {
-        report = `Property saved, but the WhatsApp message was not sent:\n${err?.message || 'Unknown error.'}`;
+        report = `Saved, but the WhatsApp messages were not sent:\n${err?.message || 'Unknown error.'}`;
       }
     });
+    job.afterSave?.();
     if (report) window.alert(report);
+  };
+
+  const handleAddProperty = async (newProperty: Omit<Property, 'id' | 'serialNo' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
+    setPendingWhatsAppSave({
+      title: 'Add this property?',
+      subtitle: newProperty.address,
+      event: 'property_registration',
+      record: newProperty,
+      defaultSend: true,
+      savingLabel: 'Adding Property...',
+      beforeSave: () => handleViewChange('properties'),
+      save: async () => {
+        const saved = await dataService.addProperty(newProperty, currentUserName);
+        await refreshData();
+        return saved.id;
+      },
+    });
   };
 
   const handleUpdateProperty = async (updatedProperty: Property) => {
@@ -488,10 +523,19 @@ const App: React.FC = () => {
       window.alert('Brand with same name already exists.');
       return;
     }
-    handleViewChange('brands');
-    await runWithSaving('Adding Brand...', async () => {
-      await dataService.addBrand(newBrand, currentUserName);
-      await refreshData();
+    setPendingWhatsAppSave({
+      title: 'Add this brand?',
+      subtitle: [newBrand.name, newBrand.companyName].filter(Boolean).join(' - '),
+      event: 'brand_registration',
+      record: newBrand,
+      defaultSend: true,
+      savingLabel: 'Adding Brand...',
+      beforeSave: () => handleViewChange('brands'),
+      save: async () => {
+        const saved = await dataService.addBrand(newBrand, currentUserName);
+        await refreshData();
+        return saved.id;
+      },
     });
   };
 
@@ -511,18 +555,59 @@ const App: React.FC = () => {
   };
 
   const handleAddProposal = async (newProposal: Omit<Proposal, 'id' | 'serialNo' | 'currentStage' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
-    handleViewChange('proposals');
-    await runWithSaving('Adding Proposal...', async () => {
-      await dataService.addProposal(newProposal, currentUserName);
+    const save = async () => {
+      const saved = await dataService.addProposal(newProposal, currentUserName);
       await refreshData();
+      return saved.id;
+    };
+    if (!newProposal.proposalDate) {
+      handleViewChange('proposals');
+      await runWithSaving('Adding Proposal...', async () => { await save(); });
+      return;
+    }
+    setPendingWhatsAppSave({
+      title: 'Add this proposal?',
+      subtitle: describeProposal(newProposal.propertyId, newProposal.brandId),
+      event: 'proposal_sent',
+      record: newProposal,
+      defaultSend: true,
+      savingLabel: 'Adding Proposal...',
+      beforeSave: () => handleViewChange('proposals'),
+      save,
     });
   };
 
+  const isBilled = (p: Pick<Proposal, 'invoiceNo' | 'invoiceDate' | 'invoiceAmount'> | undefined) =>
+    !!p && !!p.invoiceNo && !!p.invoiceDate && p.invoiceAmount !== null && p.invoiceAmount !== undefined;
+
+  const describeProposal = (propertyId: string, brandId: string) => {
+    const property = properties.find((p) => p.id === propertyId);
+    const brand = brands.find((b) => b.id === brandId);
+    return [brand?.name, property?.address].filter(Boolean).join(' - ');
+  };
+
   const handleUpdateProposal = async (updatedProposal: Proposal) => {
-    handleViewChange('proposals');
-    await runWithSaving('Updating Proposal...', async () => {
+    const save = async () => {
       await dataService.updateProposal(updatedProposal, currentUserName);
       await refreshData();
+      return updatedProposal.id;
+    };
+    const before = proposals.find((p) => p.id === updatedProposal.id);
+    // Deal closed: the invoice details were just completed.
+    if (!isBilled(updatedProposal) || isBilled(before)) {
+      handleViewChange('proposals');
+      await runWithSaving('Updating Proposal...', async () => { await save(); });
+      return;
+    }
+    setPendingWhatsAppSave({
+      title: 'Save this proposal as billed?',
+      subtitle: describeProposal(updatedProposal.propertyId, updatedProposal.brandId),
+      event: 'deal_closed',
+      record: updatedProposal,
+      defaultSend: true,
+      savingLabel: 'Updating Proposal...',
+      beforeSave: () => handleViewChange('proposals'),
+      save,
     });
   };
 
@@ -537,33 +622,85 @@ const App: React.FC = () => {
       brandAttendees: '',
       sidvinAttendees: '',
     };
-    setCurrentView('proposalDetail');
-    await runWithSaving('Scheduling Visit...', async () => {
-      await dataService.addVisit(newVisit, currentUserName);
-      await refreshData();
+    const proposal = proposals.find((p) => p.id === newVisit.proposalId);
+    setPendingWhatsAppSave({
+      title: newVisit.meetingType === 'Virtual' ? 'Schedule this virtual meeting?' : 'Schedule this visit?',
+      subtitle: proposal ? describeProposal(proposal.propertyId, proposal.brandId) : undefined,
+      event: 'visit_scheduled',
+      record: newVisit,
+      defaultSend: true,
+      savingLabel: 'Scheduling Visit...',
+      beforeSave: () => setCurrentView('proposalDetail'),
+      save: async () => {
+        const saved = await dataService.addVisit(newVisit, currentUserName);
+        await refreshData();
+        return saved.id;
+      },
     });
   };
 
   const handleUpdateVisit = async (updatedVisit: Omit<Visit, 'id' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
     if (!editingVisit) return;
-    setCurrentView('proposalDetail');
-    await runWithSaving('Updating Visit...', async () => {
-      await dataService.updateVisit({ ...editingVisit, ...updatedVisit }, currentUserName);
+    const merged = { ...editingVisit, ...updatedVisit };
+    const save = async () => {
+      await dataService.updateVisit(merged, currentUserName);
       await refreshData();
+      return merged.id;
+    };
+    // Visit completed: the actual visit date was just filled in.
+    if (!merged.visitDate || editingVisit.visitDate) {
+      setCurrentView('proposalDetail');
+      await runWithSaving('Updating Visit...', async () => { await save(); });
+      return;
+    }
+    const proposal = proposals.find((p) => p.id === merged.proposalId);
+    setPendingWhatsAppSave({
+      title: 'Mark this visit as completed?',
+      subtitle: proposal ? describeProposal(proposal.propertyId, proposal.brandId) : undefined,
+      event: 'visit_completed',
+      record: merged,
+      defaultSend: true,
+      savingLabel: 'Updating Visit...',
+      beforeSave: () => setCurrentView('proposalDetail'),
+      save,
     });
   };
 
   const handleAddFollowUp = async (newFollowUp: Omit<FollowUp, 'id' | 'createdAt' | 'updatedAt' | 'updatedBy'>, actionToTake?: 'scheduleVisit') => {
-    setCurrentView(actionToTake === 'scheduleVisit' ? 'scheduleVisit' : 'proposalDetail');
-    await runWithSaving('Adding Follow Up...', async () => {
-      await dataService.addFollowUp(newFollowUp, currentUserName);
-      await refreshData();
+    const goNext = () => {
       if (actionToTake === 'scheduleVisit') {
         setSelectedProposalId(newFollowUp.proposalId);
         setCurrentView('scheduleVisit');
       } else {
         setCurrentView('proposalDetail');
       }
+    };
+    let savedId = '';
+    const save = async () => {
+      const saved = await dataService.addFollowUp(newFollowUp, currentUserName);
+      await refreshData();
+      savedId = saved.id;
+      return saved.id;
+    };
+    // A next follow-up with a date and time can be announced as a meeting (off by default:
+    // not every follow-up is a meeting with the owner).
+    const isMeeting = newFollowUp.status === 'Follow Up Again' && !!newFollowUp.nextFollowUpDate && !!newFollowUp.nextFollowUpTime;
+    if (!isMeeting) {
+      setCurrentView(actionToTake === 'scheduleVisit' ? 'scheduleVisit' : 'proposalDetail');
+      await runWithSaving('Adding Follow Up...', async () => { await save(); goNext(); });
+      return;
+    }
+    const proposal = proposals.find((p) => p.id === newFollowUp.proposalId);
+    setPendingWhatsAppSave({
+      title: 'Add this follow-up?',
+      subtitle: proposal ? describeProposal(proposal.propertyId, proposal.brandId) : undefined,
+      event: 'follow_up_meeting',
+      record: newFollowUp,
+      defaultSend: false,
+      savingLabel: 'Adding Follow Up...',
+      beforeSave: () => setCurrentView('proposalDetail'),
+      save,
+      afterSave: () => { if (savedId) goNext(); },
     });
   };
 
@@ -583,21 +720,42 @@ const App: React.FC = () => {
   };
 
   const handleAddOrUpdateTermSheetDetails = async (termSheetData: Omit<TermSheetAgreement, 'agreementDate' | 'storeOpeningDate' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
+    const before = termSheetAgreements.find((t) => t.proposalId === termSheetData.proposalId);
+    const meetingSet = !!termSheetData.termsMeetingDate && !!termSheetData.termsMeetingTime;
+    const meetingChanged = meetingSet && (
+      (before?.termsMeetingDate || '') !== termSheetData.termsMeetingDate || (before?.termsMeetingTime || '') !== termSheetData.termsMeetingTime
+    );
+    if (meetingChanged) {
+      const proposal = proposals.find((p) => p.id === termSheetData.proposalId);
+      setPendingWhatsAppSave({
+        title: 'Save terms and the meeting?',
+        subtitle: proposal ? describeProposal(proposal.propertyId, proposal.brandId) : undefined,
+        event: 'terms_meeting',
+        record: termSheetData,
+        defaultSend: true,
+        savingLabel: 'Saving Terms...',
+        beforeSave: () => handleViewChange('proposalDetail'),
+        save: async () => { await saveTermSheetDetails(termSheetData); return termSheetData.proposalId; },
+      });
+      return;
+    }
     handleViewChange('proposalDetail');
-    await runWithSaving('Saving Terms...', async () => {
-      const existingTermSheet = await dataService.getTermSheetByProposalId(termSheetData.proposalId);
-      const fullTermSheet: TermSheetAgreement = {
-        ...termSheetData,
-        leaseAgreementRemarks: existingTermSheet?.leaseAgreementRemarks || termSheetData.leaseAgreementRemarks || '',
-        agreementDate: existingTermSheet?.agreementDate || null,
-        storeOpeningDate: existingTermSheet?.storeOpeningDate || null,
-        createdAt: existingTermSheet?.createdAt,
-        updatedAt: existingTermSheet?.updatedAt,
-        updatedBy: existingTermSheet?.updatedBy,
-      };
-      await dataService.addOrUpdateTermSheet(fullTermSheet, currentUserName);
-      await refreshData();
-    });
+    await runWithSaving('Saving Terms...', async () => { await saveTermSheetDetails(termSheetData); });
+  };
+
+  const saveTermSheetDetails = async (termSheetData: Omit<TermSheetAgreement, 'agreementDate' | 'storeOpeningDate' | 'createdAt' | 'updatedAt' | 'updatedBy'>) => {
+    const existingTermSheet = await dataService.getTermSheetByProposalId(termSheetData.proposalId);
+    const fullTermSheet: TermSheetAgreement = {
+      ...termSheetData,
+      leaseAgreementRemarks: existingTermSheet?.leaseAgreementRemarks || termSheetData.leaseAgreementRemarks || '',
+      agreementDate: existingTermSheet?.agreementDate || null,
+      storeOpeningDate: existingTermSheet?.storeOpeningDate || null,
+      createdAt: existingTermSheet?.createdAt,
+      updatedAt: existingTermSheet?.updatedAt,
+      updatedBy: existingTermSheet?.updatedBy,
+    };
+    await dataService.addOrUpdateTermSheet(fullTermSheet, currentUserName);
+    await refreshData();
   };
 
   const handleRecordAgreementAndStoreOpeningDates = async (
@@ -1037,11 +1195,15 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
-      {pendingNewProperty && (
-        <AddPropertyConfirmModal
-          property={pendingNewProperty}
-          onConfirm={(send) => { void confirmAddProperty(send); }}
-          onCancel={() => setPendingNewProperty(null)}
+      {pendingWhatsAppSave && (
+        <WhatsAppConfirmModal
+          title={pendingWhatsAppSave.title}
+          subtitle={pendingWhatsAppSave.subtitle}
+          event={pendingWhatsAppSave.event}
+          record={pendingWhatsAppSave.record}
+          defaultSend={pendingWhatsAppSave.defaultSend}
+          onConfirm={(sides) => { void confirmWhatsAppSave(sides); }}
+          onCancel={() => setPendingWhatsAppSave(null)}
         />
       )}
       <DeleteConfirmationModal isOpen={showDeleteConfirm} onClose={handleCloseDeleteConfirm} onConfirm={handleConfirmDelete} title={`Delete ${itemToDelete?.type}?`} message={`Are you sure you want to delete ${itemToDelete?.name || itemToDelete?.type}? This action cannot be undone.`} error={deleteError} isProcessing={isSaving} />
