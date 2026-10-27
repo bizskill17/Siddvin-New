@@ -1,5 +1,6 @@
 import React from 'react';
 import { Proposal, Property, Brand, CurrentStageEnum, FollowUp, TermSheetAgreement } from '../../types';
+import StageActionIcon, { StageActionIconName } from '../common/StageActionIcon';
 import Button from '../common/Button';
 import ExportIconButton from '../common/ExportIconButton';
 import StageBadge from '../common/StageBadge';
@@ -15,8 +16,8 @@ interface ProposalsTableProps {
   onViewDetails: (proposalId: string) => void;
   onEdit?: (proposal: Proposal) => void;
   onDelete?: (proposalId: string) => void; // New prop for delete
-  /** Next-step action for a row, e.g. "Add follow-up"; null hides the update icon. */
-  getUpdateLabel?: (proposal: Proposal) => string | null;
+  /** Next-step action for a row (label shown on hover + icon); null hides the update button. */
+  getUpdateAction?: (proposal: Proposal) => { label: string; icon: StageActionIconName } | null;
   onUpdate?: (proposal: Proposal) => void;
   selectedStage?: CurrentStageEnum | 'All'; // Keep prop for external filtering
   toolbarInline?: boolean;
@@ -32,7 +33,7 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
   onViewDetails,
   onEdit,
   onDelete,
-  getUpdateLabel,
+  getUpdateAction,
   onUpdate,
   selectedStage = 'All', // Default to 'All' if not provided
   toolbarInline = false,
@@ -175,9 +176,10 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
                 </td>
                 <td className="w-24 relative whitespace-nowrap py-2.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                   <div className="flex justify-end space-x-1">
-                    {onUpdate && getUpdateLabel && (() => {
-                      const label = getUpdateLabel(proposal);
-                      if (!label) return null;
+                    {onUpdate && getUpdateAction && (() => {
+                      const action = getUpdateAction(proposal);
+                      if (!action) return null;
+                      const { label } = action;
                       return (
                         <Button
                           size="sm"
@@ -186,9 +188,7 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
                           aria-label={label}
                           className="p-1 !bg-green-700 hover:!bg-green-800 focus:!ring-green-600"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                          </svg>
+                          <StageActionIcon name={action.icon} />
                         </Button>
                       );
                     })()}

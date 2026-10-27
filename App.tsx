@@ -22,6 +22,7 @@ import ProposalDetailView from './components/views/ProposalDetailView';
 import DashboardView from './components/views/DashboardView';
 import CompanyCategoryView from './components/views/CompanyCategoryView';
 import WhatsAppTemplatesView from './components/views/WhatsAppTemplatesView';
+import { StageActionIconName } from './components/common/StageActionIcon';
 import WhatsAppConfirmModal, { WhatsAppSide } from './components/whatsapp/WhatsAppConfirmModal';
 import Button from './components/common/Button';
 import PropertyForm from './components/forms/PropertyForm';
@@ -917,7 +918,7 @@ const App: React.FC = () => {
   );
 
   /** The next step for a proposal at its current stage (green update icon in the lists). */
-  const getProposalUpdateAction = (proposal: Proposal): { label: string; open: () => void } | null => {
+  const getProposalUpdateAction = (proposal: Proposal): { label: string; icon: StageActionIconName; open: () => void } | null => {
     const pendingVisit = visits
       .filter((v) => v.proposalId === proposal.id && v.scheduledDate && !v.visitDate)
       .sort((a, b) => String(b.scheduledDate).localeCompare(String(a.scheduledDate)))[0];
@@ -929,27 +930,28 @@ const App: React.FC = () => {
     };
     switch (proposal.currentStage) {
       case CurrentStageEnum.Draft:
-        return { label: 'Edit proposal (add proposal date)', open: open('editProposal', () => setEditingProposal(proposal)) };
+        return { label: 'Edit proposal (add proposal date)', icon: 'proposal', open: open('editProposal', () => setEditingProposal(proposal)) };
       case CurrentStageEnum.PendingFollowUp:
-        return { label: 'Add follow-up', open: open('addFollowUp', () => setSelectedProposalId(proposal.id)) };
+        return { label: 'Add follow-up', icon: 'followUp', open: open('addFollowUp', () => setSelectedProposalId(proposal.id)) };
       case CurrentStageEnum.PendingVisitScheduling:
-        return { label: 'Schedule visit', open: open('scheduleVisit', () => setSelectedProposalId(proposal.id)) };
+        return { label: 'Schedule visit', icon: 'schedule', open: open('scheduleVisit', () => setSelectedProposalId(proposal.id)) };
       case CurrentStageEnum.PendingVisit:
       case CurrentStageEnum.PendingVisitAgain:
         return pendingVisit
-          ? { label: 'Update visit (enter actual visit date)', open: open('editVisit', () => { setSelectedProposalId(proposal.id); setEditingVisit(pendingVisit); }) }
+          ? { label: 'Update visit (enter actual visit date)', icon: 'visit', open: open('editVisit', () => { setSelectedProposalId(proposal.id); setEditingVisit(pendingVisit); }) }
           : null;
       case CurrentStageEnum.PendingTermsFinalization:
         return {
           label: termSheet ? 'Edit terms' : 'Add terms',
+          icon: 'terms',
           open: open('addTermSheetDetails', () => { setSelectedProposalId(proposal.id); setEditingTermSheet(termSheet || null); }),
         };
       case CurrentStageEnum.PendingAgreement:
         return termSheet
-          ? { label: 'Record agreement / store opening', open: open('recordAgreementAndStoreOpening', () => { setSelectedProposalId(proposal.id); setEditingTermSheet(termSheet); }) }
+          ? { label: 'Record agreement / store opening', icon: 'agreement', open: open('recordAgreementAndStoreOpening', () => { setSelectedProposalId(proposal.id); setEditingTermSheet(termSheet); }) }
           : null;
       case CurrentStageEnum.PendingBrandFees:
-        return { label: 'Edit proposal (invoice details)', open: open('editProposal', () => setEditingProposal(proposal)) };
+        return { label: 'Edit proposal (invoice details)', icon: 'invoice', open: open('editProposal', () => setEditingProposal(proposal)) };
       default:
         return null;
     }
@@ -961,7 +963,7 @@ const App: React.FC = () => {
         onBack: () => handleViewChange('dashboard'),
         backLabel: 'Back to Dashboard',
       })}
-      <ProposalsTable proposals={proposals} properties={properties} brands={brands} followUps={followUps} termSheetAgreements={termSheetAgreements} onViewDetails={handleViewProposalDetails} onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onDelete={(id) => handleDeleteClick(id, 'proposal')} getUpdateLabel={(p) => getProposalUpdateAction(p)?.label ?? null} onUpdate={(p) => getProposalUpdateAction(p)?.open()} selectedStage={selectedStageFilter} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>} />
+      <ProposalsTable proposals={proposals} properties={properties} brands={brands} followUps={followUps} termSheetAgreements={termSheetAgreements} onViewDetails={handleViewProposalDetails} onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onDelete={(id) => handleDeleteClick(id, 'proposal')} getUpdateAction={(p) => getProposalUpdateAction(p)} onUpdate={(p) => getProposalUpdateAction(p)?.open()} selectedStage={selectedStageFilter} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>} />
     </>
   );
 
