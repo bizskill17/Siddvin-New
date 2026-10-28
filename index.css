@@ -82,7 +82,7 @@ body {
 }
 
 #root > .min-h-screen.flex.relative > nav button.bg-amber-500 {
-  background: #e77722 !important;
+  background: var(--sidvin-orange) !important;
   box-shadow: 0 4px 12px rgba(35, 18, 5, .16) !important;
   color: #fff !important;
 }
@@ -241,9 +241,9 @@ h2 {
 #root input:focus,
 #root select:focus,
 #root textarea:focus {
-  border-color: #d16a2c !important;
-  --tw-ring-color: rgba(198,77,18,.2) !important;
-  box-shadow: 0 0 0 3px rgba(198,77,18,.12) !important;
+  border-color: var(--sidvin-orange) !important;
+  --tw-ring-color: color-mix(in srgb, var(--sidvin-orange) 20%, transparent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sidvin-orange) 16%, transparent) !important;
 }
 
 #root label {
@@ -351,4 +351,9 @@ h2 {
     max-width: 150px;
     max-height: 38px;
   }
+}
+
+#root .view-theme-option[aria-pressed="true"] {
+  border-color: var(--sidvin-orange) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--sidvin-orange) 18%, transparent) !important;
 }
