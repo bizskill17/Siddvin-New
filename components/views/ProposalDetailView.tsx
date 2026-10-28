@@ -73,6 +73,45 @@ const ContactList: React.FC<{ contacts: ContactPerson[] }> = ({ contacts }) => {
   );
 };
 
+const PropertyPhoto: React.FC<{ property?: Property }> = ({ property }) => {
+  const rawPhotoUrl = property?.propertyPhotos?.find((url) => typeof url === 'string' && url.trim())?.trim() || '';
+  const [imageFailed, setImageFailed] = React.useState(false);
+
+  React.useEffect(() => setImageFailed(false), [rawPhotoUrl]);
+
+  let photoUrl = rawPhotoUrl;
+  try {
+    const parsed = new URL(rawPhotoUrl);
+    if (parsed.hostname === 'drive.google.com' || parsed.hostname.endsWith('.drive.google.com')) {
+      const fileId = parsed.pathname.match(/\/file\/d\/([^/]+)/)?.[1] || parsed.searchParams.get('id');
+      if (fileId) photoUrl = `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`;
+    }
+  } catch {
+    photoUrl = '';
+  }
+
+  return (
+    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg border border-gray-200 bg-[#f7eee5] sm:max-w-[220px]">
+      {photoUrl && !imageFailed ? (
+        <img
+          src={photoUrl}
+          alt={property?.address ? `Property photo: ${property.address}` : 'Property photo'}
+          className="h-full w-full object-cover"
+          loading="lazy"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <div className="flex h-full min-h-32 flex-col items-center justify-center gap-2 px-4 text-center text-sm text-gray-600">
+          <svg aria-hidden="true" className="h-10 w-10 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M8 9h1m6 0h1m-8 3h1m6 0h1" />
+          </svg>
+          <span>Property photo not available</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
   proposal,
   property,
@@ -143,6 +182,23 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
         <div className="flex flex-wrap justify-between items-center mb-4" data-export-ignore="true">
           <h2 className="text-xl font-semibold text-gray-800">Summary</h2>
           <Button variant="secondary" size="sm" onClick={() => onEditProposal(proposal)}>Edit Proposal</Button>
+        </div>
+        <div className="mb-5 grid grid-cols-1 items-center gap-5 sm:grid-cols-[220px_minmax(0,1fr)]">
+          <PropertyPhoto property={property} />
+          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
+            <div className="md:col-span-2">
+              <p className="font-medium text-gray-700">Property</p>
+              <p className="text-base font-semibold text-gray-900">{property?.address || 'N/A'}</p>
+              {property?.googleMapsLink && <a className="mt-1 inline-block text-orange-700 underline" href={property.googleMapsLink} target="_blank" rel="noreferrer">View location</a>}
+            </div>
+            <div>
+              <p className="font-medium text-gray-700">Brand</p>
+              <p className="text-base font-semibold text-gray-900">{brand?.name || 'N/A'}</p>
+            </div>
+            <div><p className="font-medium text-gray-700">Proposed Rent</p><p className="text-gray-900">{property?.proposedRent != null ? `₹ ${property.proposedRent.toLocaleString('en-IN')}` : 'N/A'}</p></div>
+            <div><p className="font-medium text-gray-700">Area</p><p className="text-gray-900">{property?.proposedArea != null ? `${property.proposedArea.toLocaleString('en-IN')} sqft` : 'N/A'}</p></div>
+            <div><p className="font-medium text-gray-700">Floors / Frontage</p><p className="text-gray-900">{[property?.noOfFloors ? `${property.noOfFloors} floors` : '', property?.frontage].filter(Boolean).join(' / ') || 'N/A'}</p></div>
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
           <div><p className="font-medium text-gray-700">Property Code:</p><p className="text-gray-900">{property?.serialNo ? `P-${property.serialNo}` : 'N/A'}</p></div>
