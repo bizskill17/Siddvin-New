@@ -166,6 +166,56 @@ try {
 
   if ($action === 'me') ok(session_public($session));
 
+  // ---- Shared branding and color theme for the team workspace ----
+  if ($action === 'viewSettings' || $action === 'saveViewSettings') {
+    if ($session['kind'] !== 'team') fail(403, 'Not allowed');
+    $isAdmin = in_array($session['role'], ['Admin', 'Super Admin'], true);
+
+    if ($action === 'viewSettings') {
+      if ($method !== 'GET') fail(405, 'Method not allowed');
+      $stored = read_settings($pdo, ['view_settings'])['view_settings'] ?? null;
+      $saved = is_array($stored) ? json_decode((string)($stored['value'] ?? ''), true) : [];
+      if (!is_array($saved)) $saved = [];
+      $theme = (string)($saved['theme'] ?? 'terracotta');
+      $allowedThemes = ['terracotta', 'ocean', 'forest', 'plum'];
+      if (!in_array($theme, $allowedThemes, true)) $theme = 'terracotta';
+      $logoDataUrl = (string)($saved['logoDataUrl'] ?? '');
+      if (strlen($logoDataUrl) > 48000 || ($logoDataUrl !== '' && !preg_match('/^data:image\\/(?:png|jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/', $logoDataUrl))) {
+        $logoDataUrl = '';
+      }
+      ok([
+        'settings' => [
+          'logoDataUrl' => $logoDataUrl,
+          'theme' => $theme,
+          'updatedAt' => $stored['updated_at'] ?? null,
+          'updatedBy' => $stored['updated_by'] ?? null,
+        ],
+        'canEditSettings' => $isAdmin,
+      ]);
+    }
+
+    if ($method !== 'POST') fail(405, 'Method not allowed');
+    if (!$isAdmin) fail(403, 'Only Admin or Super Admin can change view settings.');
+    $theme = trim((string)($body['theme'] ?? ''));
+    if (!in_array($theme, ['terracotta', 'ocean', 'forest', 'plum'], true)) fail(400, 'Choose a valid color theme.');
+    $logoDataUrl = trim((string)($body['logoDataUrl'] ?? ''));
+    if (strlen($logoDataUrl) > 48000) fail(400, 'The logo is too large after compression. Choose a smaller image.');
+    if ($logoDataUrl !== '' && !preg_match('/^data:image\\/(?:png|jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/', $logoDataUrl)) {
+      fail(400, 'Upload a PNG, JPEG, or WebP logo image.');
+    }
+    $saved = ['logoDataUrl' => $logoDataUrl, 'theme' => $theme];
+    write_setting($pdo, 'view_settings', json_encode($saved, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $session['name']);
+    ok([
+      'settings' => [
+        'logoDataUrl' => $logoDataUrl,
+        'theme' => $theme,
+        'updatedAt' => gmdate('c'),
+        'updatedBy' => $session['name'],
+      ],
+      'canEditSettings' => true,
+    ]);
+  }
+
   // ---- WhatsApp messages for an event (any team member) ----
   // waPreview: build the messages from form data that isn't saved yet (nothing is sent).
   // waSend: send the chosen sides for a saved record.
