@@ -19,6 +19,7 @@ import VisitsTable from './components/tables/VisitsTable';
 import TermSheetAgreementsTable from './components/tables/TermSheetAgreementsTable';
 import SidvinTeamTable from './components/tables/SidvinTeamTable';
 import ProposalDetailView from './components/views/ProposalDetailView';
+import PropertyDetailView from './components/views/PropertyDetailView';
 import DashboardView from './components/views/DashboardView';
 import CompanyCategoryView from './components/views/CompanyCategoryView';
 import WhatsAppTemplatesView from './components/views/WhatsAppTemplatesView';
@@ -45,6 +46,7 @@ type View =
   | 'dashboard'
   | 'proposals'
   | 'properties'
+  | 'propertyDetail'
   | 'brands'
   | 'visits'
   | 'termSheets'
@@ -104,6 +106,7 @@ const App: React.FC = () => {
   const [categoryMasterOptions, setCategoryMasterOptions] = useState<MasterOptionItem[]>([]);
 
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [editingProposal, setEditingProposal] = useState<Proposal | null>(null);
@@ -289,6 +292,7 @@ const App: React.FC = () => {
   const handleViewChange = (view: View) => {
     setReturnToList(false);
     setCurrentView(view);
+    setSelectedPropertyId(null);
     // Keep the desktop sidebar preference when navigating; close only the mobile drawer.
     if (!window.matchMedia('(min-width: 1024px)').matches) setIsSidebarOpen(false);
     setSelectedProposalId(null);
@@ -345,6 +349,11 @@ const App: React.FC = () => {
   const handleViewProposalDetails = (proposalId: string) => {
     setSelectedProposalId(proposalId);
     setCurrentView('proposalDetail');
+  };
+
+  const handleViewPropertyDetails = (property: Property) => {
+    setSelectedPropertyId(property.id);
+    setCurrentView('propertyDetail');
   };
 
   const companyOptions = Array.from(new Set([...brands.map(b => (b.companyName || '').trim()).filter(Boolean), ...companyMasterOptions.map(c => c.name)])).sort((a, b) => a.localeCompare(b));
@@ -1045,6 +1054,7 @@ const App: React.FC = () => {
 
             <PropertiesTable 
               properties={selectedPropertyTaskFilter === 'All' ? properties : properties.filter(p => getPropertyTaskStatus(p) === selectedPropertyTaskFilter)} 
+              onRowClick={handleViewPropertyDetails}
               onEdit={(p) => handleEditPropertyView(p, 'properties')}
               getUpdateAction={(p) => getPropertyUpdateAction(p)}
               onUpdate={(p) => handleEditPropertyView(p, 'properties', getPropertyUpdateAction(p) ?? undefined)} 
@@ -1055,6 +1065,21 @@ const App: React.FC = () => {
             />
           </div>
         );
+      case 'propertyDetail': {
+        const property = properties.find((item) => item.id === selectedPropertyId);
+        return property ? (
+          <PropertyDetailView
+            property={property}
+            onBack={() => setCurrentView('properties')}
+            onEdit={() => handleEditPropertyView(property, 'properties')}
+          />
+        ) : (
+          <div className="rounded-xl border border-gray-200 bg-white p-6 text-center">
+            <p className="text-gray-700">Property details are unavailable.</p>
+            <Button className="mt-4" onClick={() => setCurrentView('properties')}>Back to Properties</Button>
+          </div>
+        );
+      }
       case 'propertyFeeFollowUp':
         // Redirect to properties view with the selected filter
         handleViewChange('properties');
