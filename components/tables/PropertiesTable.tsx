@@ -7,6 +7,7 @@ import { downloadTableAsPdf, exportRowsToCsv } from '../common/exportUtils';
 
 interface PropertiesTableProps {
   properties: Property[];
+  onRowClick?: (property: Property) => void;
   onEdit?: (property: Property) => void;
   onDelete?: (propertyId: string) => void; // New prop for delete
   getStatusLabel?: (property: Property) => string;
@@ -17,7 +18,7 @@ interface PropertiesTableProps {
   toolbarActions?: React.ReactNode;
 }
 
-const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, onDelete, getStatusLabel, getUpdateAction, onUpdate, toolbarInline = false, toolbarActions}) => {
+const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onRowClick, onEdit, onDelete, getStatusLabel, getUpdateAction, onUpdate, toolbarInline = false, toolbarActions}) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const resolveStatus = (property: Property) => (getStatusLabel ? getStatusLabel(property) : property.propertyFeeStatus);
   const visibleProperties = properties.filter((property) => {
@@ -104,7 +105,20 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
         </thead>
         <tbody className="divide-y divide-gray-200 bg-[#ece8e3]">
           {visibleProperties.map((property, index) => (
-            <tr key={property.id}>
+            <tr
+              key={property.id}
+              onClick={() => onRowClick?.(property)}
+              onKeyDown={(event) => {
+                if (onRowClick && (event.key === 'Enter' || event.key === ' ')) {
+                  event.preventDefault();
+                  onRowClick(property);
+                }
+              }}
+              tabIndex={onRowClick ? 0 : undefined}
+              role={onRowClick ? 'button' : undefined}
+              aria-label={onRowClick ? `View details for ${property.address || 'property'}` : undefined}
+              className={onRowClick ? 'cursor-pointer hover:bg-orange-50 focus:bg-orange-50 focus:outline-none' : undefined}
+            >
               <td className="w-24 whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                 {`P-${property.serialNo || index + 1}`}
               </td>
@@ -131,7 +145,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
                     return (
                       <Button
                         size="sm"
-                        onClick={() => onUpdate(property)}
+                        onClick={(event) => { event.stopPropagation(); onUpdate(property); }}
                         title={action.label}
                         aria-label={action.label}
                         className="p-1 !bg-green-700 hover:!bg-green-800 focus:!ring-green-600"
@@ -141,14 +155,14 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onEdit, o
                     );
                   })()}
                   {onEdit && (
-                    <Button variant="primary" size="sm" onClick={() => onEdit(property)} title="Edit" className="p-1">
+                    <Button variant="primary" size="sm" onClick={(event) => { event.stopPropagation(); onEdit(property); }} title="Edit" className="p-1">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                       </svg>
                     </Button>
                   )}
                   {onDelete && (
-                    <Button variant="danger" size="sm" onClick={() => onDelete(property.id)} title="Delete" className="p-1">
+                    <Button variant="danger" size="sm" onClick={(event) => { event.stopPropagation(); onDelete(property.id); }} title="Delete" className="p-1">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                       </svg>
