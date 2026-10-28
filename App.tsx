@@ -1248,30 +1248,34 @@ const App: React.FC = () => {
           aria-label="Close menu overlay"
         />
       )}
-      <nav className={`fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-amber-800 to-amber-800 text-white p-4 shadow-lg z-40 transform transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain [scrollbar-gutter:stable] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="mb-4 px-3 flex items-start justify-between gap-3">
-          <div className="sidvin-nav-brand"><span className="sidvin-nav-brand-name">{viewSettings.orgName || 'Sidvin'}</span></div>
+      <nav className={`sidvin-sidebar fixed inset-y-0 left-0 w-72 text-white p-4 shadow-lg z-40 transform transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain [scrollbar-gutter:stable] flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="sidvin-sidebar-header">
+          <div className="sidvin-nav-brand">
+            <span className="sidvin-workspace-label">WORKSPACE</span>
+            <span className="sidvin-nav-brand-name">{viewSettings.orgName || 'Sidvin'}</span>
+          </div>
           <button
             type="button"
-            onClick={() => setIsSidebarOpen(false)}
-            className="text-white/80 hover:text-white"
-            aria-label="Close menu"
+            onClick={toggleSidebar}
+            className="sidvin-sidebar-collapse"
+            aria-label={isSidebarOpen ? 'Hide left menu' : 'Show left menu'}
+            title={isSidebarOpen ? 'Hide left menu' : 'Show left menu'}
           >
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="m13 6-6 6 6 6m6-12-6 6 6 6" />
             </svg>
           </button>
         </div>
-        <ul className="space-y-1">
-          <li><NavLink label={`Dashboard`} onClick={() => handleViewChange('dashboard')} isActive={currentView === 'dashboard'} /></li>
-          <li><SectionToggle label="Proposal" isOpen={expandedSections.proposalStages} onClick={() => toggleSection('proposalStages')} /></li>
+        <ul className="sidvin-sidebar-menu space-y-1">
+          <li><NavLink icon="dashboard" label="Dashboard" onClick={() => handleViewChange('dashboard')} isActive={currentView === 'dashboard'} /></li>
+          <li><SectionToggle icon="proposal" label="Proposal" isOpen={expandedSections.proposalStages} onClick={() => toggleSection('proposalStages')} /></li>
           {expandedSections.proposalStages && (
             <>
               <li><NavLink label={`All Proposals (${proposals.length})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter('All'); }} isActive={currentView === 'proposals' && selectedStageFilter === 'All'} isSubItem /></li>
               {allProposalStages.map(stage => <li key={stage}><NavLink label={`${stage} (${stageCounts[stage] || 0})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter(stage); }} isActive={currentView === 'proposals' && selectedStageFilter === stage} isSubItem /></li>)}
             </>
           )}
-          <li><SectionToggle label="Property" isOpen={expandedSections.propertyTasks} onClick={() => toggleSection('propertyTasks')} /></li>
+          <li><SectionToggle icon="property" label="Property" isOpen={expandedSections.propertyTasks} onClick={() => toggleSection('propertyTasks')} /></li>
           {expandedSections.propertyTasks && (
             <>
               <li><NavLink label={`Properties (${properties.length})`} onClick={() => { handleViewChange('properties'); setSelectedPropertyTaskFilter('All'); }} isActive={currentView === 'properties' && selectedPropertyTaskFilter === 'All'} isSubItem /></li>
@@ -1287,24 +1291,33 @@ const App: React.FC = () => {
               ))}
             </>
           )}
-          <li><SectionToggle label="Deposit" isOpen={expandedSections.deposit} onClick={() => toggleSection('deposit')} /></li>
+          <li><SectionToggle icon="deposit" label="Deposit" isOpen={expandedSections.deposit} onClick={() => toggleSection('deposit')} /></li>
           {expandedSections.deposit && (
             <>
               <li><NavLink label={`Pending Deposit (${pendingDepositCount})`} onClick={() => handleViewChange('pendingDeposit')} isActive={currentView === 'pendingDeposit'} isSubItem /></li>
             </>
           )}
-          <li><SectionToggle label="Master" isOpen={expandedSections.masterData} onClick={() => toggleSection('masterData')} /></li>
+          <li><SectionToggle icon="master" label="Master" isOpen={expandedSections.masterData} onClick={() => toggleSection('masterData')} /></li>
           {expandedSections.masterData && (
             <>
-              <li><NavLink label={`Company (${companyMasterOptions.length})`} onClick={() => handleViewChange('companyMaster')} isActive={currentView === 'companyMaster'} isSubItem /></li>
-              <li><NavLink label={`Category (${categoryMasterOptions.length})`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} isSubItem /></li>
-              <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} isSubItem /></li>
-              <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} isSubItem /></li>
-              <li><NavLink label="View Settings" onClick={() => handleViewChange('viewSettings')} isActive={currentView === 'viewSettings'} isSubItem /></li>
-              <li><NavLink label="WhatsApp Templates" onClick={() => handleViewChange('whatsappTemplates')} isActive={currentView === 'whatsappTemplates'} isSubItem /></li>
+              <li><NavLink icon="company" label={`Company (${companyMasterOptions.length})`} onClick={() => handleViewChange('companyMaster')} isActive={currentView === 'companyMaster'} isSubItem /></li>
+              <li><NavLink icon="category" label={`Category (${categoryMasterOptions.length})`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} isSubItem /></li>
+              <li><NavLink icon="brands" label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} isSubItem /></li>
+              <li><NavLink icon="team" label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} isSubItem /></li>
+              <li><NavLink icon="settings" label="View Settings" onClick={() => handleViewChange('viewSettings')} isActive={currentView === 'viewSettings'} isSubItem /></li>
+              <li><NavLink icon="templates" label="WhatsApp Templates" onClick={() => handleViewChange('whatsappTemplates')} isActive={currentView === 'whatsappTemplates'} isSubItem /></li>
             </>
           )}
         </ul>
+        <div className="sidvin-sidebar-profile">
+          <div className="sidvin-profile-avatar">
+            {currentUserName.split(/\\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'U'}
+          </div>
+          <div className="min-w-0">
+            <div className="sidvin-profile-name">{currentUserName}</div>
+            <div className="sidvin-profile-role">{currentUserRole}</div>
+          </div>
+        </div>
       </nav>
 
       <div className="flex-grow flex flex-col min-h-screen">
@@ -1364,30 +1377,60 @@ const App: React.FC = () => {
   );
 };
 
+type SidebarIconName = 'dashboard' | 'proposal' | 'property' | 'deposit' | 'master' | 'company' | 'category' | 'brands' | 'team' | 'settings' | 'templates';
+
 interface NavLinkProps {
   label: string;
   onClick: () => void;
   isActive: boolean;
   isSubItem?: boolean;
+  icon?: SidebarIconName;
 }
 
 interface SectionToggleProps {
   label: string;
   isOpen: boolean;
   onClick: () => void;
+  icon: SidebarIconName;
 }
 
-const SectionToggle: React.FC<SectionToggleProps> = ({ label, isOpen, onClick }) => (
-  <button type="button" onClick={onClick} className="w-full flex items-center justify-between text-left py-2 px-3 rounded-md font-semibold hover:bg-amber-700 hover:text-white transition duration-150 ease-in-out">
-    <span>{label}</span>
-    <svg className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+const SidebarIcon: React.FC<{ name: SidebarIconName; className?: string }> = ({ name, className = 'h-5 w-5' }) => {
+  const paths: Record<SidebarIconName, string> = {
+    dashboard: 'M3 10.5 12 3l9 7.5M5.5 9v11h13V9M9 20v-6h6v6',
+    proposal: 'M7 3.75h7l4.5 4.5v12H7a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2ZM14 4v5h5M8.5 13h7M8.5 16.5h7',
+    property: 'M4 21V6l8-3 8 3v15M8 8h1m6 0h1M8 12h1m6 0h1M10 21v-5h4v5',
+    deposit: 'M12 3c4.4 0 8 1.3 8 3s-3.6 3-8 3-8-1.3-8-3 3.6-3 8-3ZM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6',
+    master: 'M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7ZM19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 3.1-.2-.1a1.8 1.8 0 0 0-1.9.1l-.2.1h-3.5l-.1-.2a1.8 1.8 0 0 0-1.6-1.1 1.8 1.8 0 0 0-1.6 1.1l-.1.2H5.3l-.1-.2a1.8 1.8 0 0 0-1.7-1.1H3.3l-1.8-3.1.1-.1a1.7 1.7 0 0 0 .3-1.9l-.1-.2v-3.5l.2-.1a1.8 1.8 0 0 0 1.1-1.6A1.8 1.8 0 0 0 2 8l-.2-.1 1.8-3.1h.2a1.8 1.8 0 0 0 1.7-1.1l.1-.2h3.5l.1.2a1.8 1.8 0 0 0 1.6 1.1 1.8 1.8 0 0 0 1.6-1.1l.1-.2h3.5l.1.2a1.8 1.8 0 0 0 1.7 1.1h.2l1.8 3.1-.1.1a1.7 1.7 0 0 0-.3 1.9l.1.2v3.5l-.2.1a1.8 1.8 0 0 0-1.1 1.6Z',
+    company: 'M4 21V5h11v16M15 9h5v12M7 8h2m2 0h1M7 12h2m2 0h1M7 16h2m2 0h1m4-3h2m-2 4h2M2 21h20',
+    category: 'm20.6 13.4-7.2 7.2a2 2 0 0 1-2.8 0L3 13V4h9l8.6 8.6a.6.6 0 0 1 0 .8ZM7.5 8.5h.01',
+    brands: 'm12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z',
+    team: 'M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20m4-12a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm9 2a3 3 0 1 0 0-6m5 16v-1.5a4 4 0 0 0-3-3.9',
+    settings: 'M4 6h16M4 12h16M4 18h16M8 6v0m7 6v0m-4 6v0',
+    templates: 'M21 11.5a8.4 8.4 0 0 1-8.8 8.4 9 9 0 0 1-4-.9L3 20l1.2-4.5a8 8 0 1 1 16.8-4Zm-12-1h.01M12 10.5h.01m3 0h.01',
+  };
+  return <svg aria-hidden="true" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={paths[name]} /></svg>;
+}
+
+const SectionToggle: React.FC<SectionToggleProps> = ({ label, isOpen, onClick, icon }) => (
+  <button type="button" onClick={onClick} className="sidvin-section-toggle">
+    <span className="sidvin-nav-label"><SidebarIcon name={icon} /><span>{label}</span></span>
+    <svg className={`sidvin-chevron ${isOpen ? 'is-open' : ''}`} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m6 8 4 4 4-4" />
     </svg>
   </button>
 );
 
-const NavLink: React.FC<NavLinkProps> = ({ label, onClick, isActive, isSubItem = false }) => (
-  <button type="button" onClick={onClick} className={`w-full text-left py-2 px-3 rounded-md transition duration-150 ease-in-out ${isActive ? 'bg-amber-500 text-white shadow-md' : 'hover:bg-amber-700 hover:text-white'} ${isSubItem ? 'ml-4 text-sm' : 'font-medium'}`}>{label}</button>
-);
+const NavLink: React.FC<NavLinkProps> = ({ label, onClick, isActive, isSubItem = false, icon }) => {
+  const countMatch = isSubItem ? label.match(/^(.*) \((\d+)\)$/) : null;
+  return (
+    <button type="button" onClick={onClick} className={`sidvin-nav-link ${isSubItem ? 'sidvin-nav-sub-link' : ''} ${isActive ? 'is-active' : ''}`}>
+      <span className="sidvin-nav-label">
+        {icon && <SidebarIcon name={icon} />}
+        <span className="sidvin-nav-link-text">{countMatch ? countMatch[1] : label}</span>
+      </span>
+      {countMatch && <span className="sidvin-nav-count">{countMatch[2]}</span>}
+    </button>
+  );
+};
 
 export default App;
