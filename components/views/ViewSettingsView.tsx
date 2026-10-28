@@ -64,6 +64,7 @@ const compressLogo = async (file: File): Promise<string> => {
 
 const ViewSettingsView: React.FC<ViewSettingsViewProps> = ({ initialSettings, canEdit, onSaved, onBack }) => {
   const [logoDataUrl, setLogoDataUrl] = useState(initialSettings.logoDataUrl);
+  const [orgName, setOrgName] = useState(initialSettings.orgName || 'Sidvin');
   const [theme, setTheme] = useState<dataService.ViewColorTheme>(initialSettings.theme);
   const [saving, setSaving] = useState(false);
   const [logoName, setLogoName] = useState('');
@@ -72,6 +73,7 @@ const ViewSettingsView: React.FC<ViewSettingsViewProps> = ({ initialSettings, ca
 
   useEffect(() => {
     setLogoDataUrl(initialSettings.logoDataUrl);
+    setOrgName(initialSettings.orgName || 'Sidvin');
     setTheme(initialSettings.theme);
   }, [initialSettings]);
 
@@ -95,7 +97,7 @@ const ViewSettingsView: React.FC<ViewSettingsViewProps> = ({ initialSettings, ca
     setError('');
     setMessage('');
     try {
-      const result = await dataService.saveViewSettings(logoDataUrl, theme);
+      const result = await dataService.saveViewSettings(logoDataUrl, theme, orgName);
       onSaved(result.settings);
       setLogoName('');
       setMessage('View settings saved for the Sidvin team.');
@@ -120,11 +122,27 @@ const ViewSettingsView: React.FC<ViewSettingsViewProps> = ({ initialSettings, ca
         </div>
       )}
 
+      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900">Organization Name</h2>
+        <p className="mt-1 text-sm text-gray-600">This name is shown at the top of the left menu.</p>
+        <label htmlFor="organization-name" className="mt-4 block text-sm font-semibold text-gray-700">Name</label>
+        <input
+          id="organization-name"
+          type="text"
+          maxLength={80}
+          value={orgName}
+          onChange={(event) => setOrgName(event.target.value)}
+          disabled={!canEdit || saving}
+          className="mt-1 block w-full max-w-xl rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          placeholder="Enter organization name"
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Company Logo</h2>
-            <p className="mt-1 text-sm text-gray-600">The logo appears in the sidebar and the workspace header.</p>
+            <p className="mt-1 text-sm text-gray-600">The logo appears in the top-right workspace header.</p>
           </div>
 
           <div className="flex min-h-36 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 p-5">

@@ -65,11 +65,7 @@ body {
 }
 
 .sidvin-nav-brand h1 {
-  margin: 4px 0 0;
-  color: rgba(255,255,255,.84);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  display: none;
 }
 
 #root > .min-h-screen.flex.relative > nav button {
@@ -254,13 +250,24 @@ h2 {
 /* Desktop: keep navigation visible and give the workspace breathing room.
    On narrow screens the existing drawer and overlay continue to work. */
 @media (min-width: 1024px) {
-  #root > .min-h-screen.flex.relative {
+  #root > .min-h-screen.flex.relative[data-sidebar-open="true"] {
     padding-left: 264px;
+  }
+
+  #root > .min-h-screen.flex.relative[data-sidebar-open="false"] {
+    padding-left: 0;
   }
 
   #root > .min-h-screen.flex.relative > nav.fixed.inset-y-0.left-0 {
     width: 264px;
+  }
+
+  #root > .min-h-screen.flex.relative[data-sidebar-open="true"] > nav.fixed.inset-y-0.left-0 {
     transform: translateX(0) !important;
+  }
+
+  #root > .min-h-screen.flex.relative[data-sidebar-open="false"] > nav.fixed.inset-y-0.left-0 {
+    transform: translateX(-100%) !important;
   }
 
   #root > .min-h-screen.flex.relative > nav.fixed.inset-y-0.left-0 > div:first-child > button {
@@ -277,9 +284,6 @@ h2 {
     padding: 24px 34px 40px;
   }
 
-  #root > .min-h-screen.flex.relative main > .mb-6.flex.flex-wrap.items-center.justify-between > div:first-child > button {
-    display: none;
-  }
 }
 
 @media (max-width: 640px) {

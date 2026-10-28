@@ -735,6 +735,7 @@ export type ViewColorTheme = 'terracotta' | 'ocean' | 'forest' | 'plum';
 
 export interface ViewSettings {
   logoDataUrl: string;
+  orgName: string;
   theme: ViewColorTheme;
   updatedAt: string | null;
   updatedBy: string | null;
@@ -750,8 +751,8 @@ export const getViewSettings = async (): Promise<ViewSettingsResponse> => {
   return res.data as ViewSettingsResponse;
 };
 
-export const saveViewSettings = async (logoDataUrl: string, theme: ViewColorTheme): Promise<ViewSettingsResponse> => {
-  const res: any = await postJson({ action: 'saveViewSettings', logoDataUrl, theme });
+export const saveViewSettings = async (logoDataUrl: string, theme: ViewColorTheme, orgName: string): Promise<ViewSettingsResponse> => {
+  const res: any = await postJson({ action: 'saveViewSettings', logoDataUrl, theme, orgName });
   return res.data as ViewSettingsResponse;
 };
 

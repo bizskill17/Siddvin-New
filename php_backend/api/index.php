@@ -183,9 +183,12 @@ try {
       if (strlen($logoDataUrl) > 48000 || ($logoDataUrl !== '' && !preg_match('/^data:image\\/(?:png|jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/', $logoDataUrl))) {
         $logoDataUrl = '';
       }
+      $orgName = trim((string)($saved['orgName'] ?? 'Sidvin'));
+      if ($orgName === '' || strlen($orgName) > 240) $orgName = 'Sidvin';
       ok([
         'settings' => [
           'logoDataUrl' => $logoDataUrl,
+          'orgName' => $orgName,
           'theme' => $theme,
           'updatedAt' => $stored['updated_at'] ?? null,
           'updatedBy' => $stored['updated_by'] ?? null,
@@ -199,15 +202,19 @@ try {
     $theme = trim((string)($body['theme'] ?? ''));
     if (!in_array($theme, ['terracotta', 'ocean', 'forest', 'plum'], true)) fail(400, 'Choose a valid color theme.');
     $logoDataUrl = trim((string)($body['logoDataUrl'] ?? ''));
+    $orgName = trim((string)($body['orgName'] ?? ''));
+    if ($orgName === '') fail(400, 'Enter an organization name.');
+    if (strlen($orgName) > 240) fail(400, 'Organization name must be 80 characters or fewer.');
     if (strlen($logoDataUrl) > 48000) fail(400, 'The logo is too large after compression. Choose a smaller image.');
     if ($logoDataUrl !== '' && !preg_match('/^data:image\\/(?:png|jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/', $logoDataUrl)) {
       fail(400, 'Upload a PNG, JPEG, or WebP logo image.');
     }
-    $saved = ['logoDataUrl' => $logoDataUrl, 'theme' => $theme];
+    $saved = ['logoDataUrl' => $logoDataUrl, 'orgName' => $orgName, 'theme' => $theme];
     write_setting($pdo, 'view_settings', json_encode($saved, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $session['name']);
     ok([
       'settings' => [
         'logoDataUrl' => $logoDataUrl,
+        'orgName' => $orgName,
         'theme' => $theme,
         'updatedAt' => gmdate('c'),
         'updatedBy' => $session['name'],
