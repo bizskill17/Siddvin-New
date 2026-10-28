@@ -174,7 +174,7 @@ const ViewSettingsView: React.FC<ViewSettingsViewProps> = ({ initialSettings, ca
                 aria-pressed={theme === option.id}
                 disabled={!canEdit || saving}
                 onClick={() => setTheme(option.id)}
-                className={`rounded-lg border p-3 text-left transition ${theme === option.id ? 'border-orange-700 ring-2 ring-orange-200' : 'border-gray-200 hover:border-gray-400'} ${!canEdit ? 'cursor-not-allowed opacity-60' : ''}`}
+                className={`view-theme-option rounded-lg border p-3 text-left transition ${theme === option.id ? 'border-orange-700 ring-2 ring-orange-200' : 'border-gray-200 hover:border-gray-400'} ${!canEdit ? 'cursor-not-allowed opacity-60' : ''}`}
               >
                 <div className="mb-3 flex h-12 overflow-hidden rounded-md border border-gray-200">
                   <span className="w-1/3" style={{ backgroundColor: option.sidebar }} />
