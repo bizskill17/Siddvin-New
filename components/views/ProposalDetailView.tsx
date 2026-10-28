@@ -73,39 +73,61 @@ const ContactList: React.FC<{ contacts: ContactPerson[] }> = ({ contacts }) => {
   );
 };
 
-const PropertyPhoto: React.FC<{ property?: Property }> = ({ property }) => {
-  const rawPhotoUrl = property?.propertyPhotos?.find((url) => typeof url === 'string' && url.trim())?.trim() || '';
-  const [imageFailed, setImageFailed] = React.useState(false);
-
-  React.useEffect(() => setImageFailed(false), [rawPhotoUrl]);
-
-  let photoUrl = rawPhotoUrl;
+const getPropertyPhotoSources = (rawUrl: string): string[] => {
+  if (!rawUrl) return [];
   try {
-    const parsed = new URL(rawPhotoUrl);
+    const parsed = new URL(rawUrl);
     if (parsed.hostname === 'drive.google.com' || parsed.hostname.endsWith('.drive.google.com')) {
       const fileId = parsed.pathname.match(/\/file\/d\/([^/]+)/)?.[1] || parsed.searchParams.get('id');
-      if (fileId) photoUrl = `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`;
+      if (fileId) {
+        const id = encodeURIComponent(fileId);
+        return [
+          `https://drive.google.com/thumbnail?id=${id}&sz=w1200`,
+          `https://drive.google.com/uc?export=view&id=${id}`,
+          rawUrl,
+        ];
+      }
     }
   } catch {
-    photoUrl = '';
+    return [];
   }
+  return [rawUrl];
+};
+
+const PropertyPhoto: React.FC<{ property?: Property }> = ({ property }) => {
+  const rawPhotoUrl = property?.propertyPhotos?.find((url) => typeof url === 'string' && url.trim())?.trim() || '';
+  const photoSources = React.useMemo(() => getPropertyPhotoSources(rawPhotoUrl), [rawPhotoUrl]);
+  const [sourceIndex, setSourceIndex] = React.useState(0);
+  const [imageFailed, setImageFailed] = React.useState(false);
+
+  React.useEffect(() => {
+    setSourceIndex(0);
+    setImageFailed(false);
+  }, [rawPhotoUrl]);
+
+  const tryNextSource = () => {
+    if (sourceIndex + 1 < photoSources.length) setSourceIndex(sourceIndex + 1);
+    else setImageFailed(true);
+  };
 
   return (
     <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg border border-gray-200 bg-[#f7eee5] sm:max-w-[220px]">
-      {photoUrl && !imageFailed ? (
+      {photoSources.length > 0 && !imageFailed ? (
         <img
-          src={photoUrl}
+          src={photoSources[sourceIndex]}
           alt={property?.address ? `Property photo: ${property.address}` : 'Property photo'}
           className="h-full w-full object-cover"
           loading="lazy"
-          onError={() => setImageFailed(true)}
+          onError={tryNextSource}
         />
       ) : (
         <div className="flex h-full min-h-32 flex-col items-center justify-center gap-2 px-4 text-center text-sm text-gray-600">
           <svg aria-hidden="true" className="h-10 w-10 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M8 9h1m6 0h1m-8 3h1m6 0h1" />
           </svg>
-          <span>Property photo not available</span>
+          <span>{rawPhotoUrl ? 'Could not load property photo' : 'No property photo URL saved'}</span>
+          {rawPhotoUrl && <a className="text-xs text-orange-700 underline" href={rawPhotoUrl} target="_blank" rel="noreferrer">Open original photo</a>}
+          {rawPhotoUrl.includes('drive.google.com') && <span className="text-xs">For Drive photos, set access to “Anyone with the link”.</span>}
         </div>
       )}
     </div>
