@@ -10,6 +10,63 @@ interface PropertyDetailViewProps {
   onEdit: () => void;
 }
 
+const getPhotoSources = (rawUrl: string): string[] => {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.hostname === 'drive.google.com' || parsed.hostname.endsWith('.drive.google.com')) {
+      const fileId = parsed.pathname.match(/\/file\/d\/([^/]+)/)?.[1] || parsed.searchParams.get('id');
+      if (fileId) {
+        const id = encodeURIComponent(fileId);
+        return [
+          `https://drive.google.com/thumbnail?id=${id}&sz=w1200`,
+          `https://drive.google.com/uc?export=view&id=${id}`,
+          rawUrl,
+        ];
+      }
+    }
+    return [rawUrl];
+  } catch {
+    return [rawUrl];
+  }
+};
+
+const PropertyPhotoTile: React.FC<{ url: string; index: number }> = ({ url, index }) => {
+  const sources = React.useMemo(() => getPhotoSources(url), [url]);
+  const [sourceIndex, setSourceIndex] = React.useState(0);
+  const [failed, setFailed] = React.useState(false);
+
+  React.useEffect(() => {
+    setSourceIndex(0);
+    setFailed(false);
+  }, [url]);
+
+  const tryNextSource = () => {
+    if (sourceIndex + 1 < sources.length) setSourceIndex((current) => current + 1);
+    else setFailed(true);
+  };
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-gray-200">
+      {failed ? (
+        <div className="flex h-52 items-center justify-center bg-gray-50 px-4 text-center text-sm text-gray-500">
+          Photo preview unavailable
+        </div>
+      ) : (
+        <a href={url} target="_blank" rel="noreferrer" className="group block overflow-hidden">
+          <img
+            src={sources[sourceIndex]}
+            alt={`Property photo ${index + 1}`}
+            loading="lazy"
+            onError={tryNextSource}
+            className="h-52 w-full bg-gray-50 object-cover transition group-hover:scale-[1.02]"
+          />
+        </a>
+      )}
+      <a href={url} target="_blank" rel="noreferrer" className="block px-3 py-2 text-sm text-orange-700">Open photo {index + 1}</a>
+    </div>
+  );
+};
+
 const DetailField: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
   <div className="min-w-0">
     <dt className="text-sm font-medium text-gray-500">{label}</dt>
@@ -84,12 +141,7 @@ const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({ property, statu
         <h2 className="mb-4 text-xl font-semibold text-gray-900">Property Photos</h2>
         {photos.length ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {photos.map((url, index) => (
-              <a key={url + index} href={url} target="_blank" rel="noreferrer" className="group overflow-hidden rounded-lg border border-gray-200">
-                <img src={url} alt={`Property photo ${index + 1}`} loading="lazy" className="h-52 w-full bg-gray-50 object-cover transition group-hover:scale-[1.02]" />
-                <span className="block px-3 py-2 text-sm text-orange-700">Open photo {index + 1}</span>
-              </a>
-            ))}
+            {photos.map((url, index) => <PropertyPhotoTile key={url + index} url={url} index={index} />)}
           </div>
         ) : <p className="text-sm text-gray-500">No property photos added.</p>}
       </section>
