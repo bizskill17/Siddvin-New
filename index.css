@@ -140,7 +140,7 @@ h2 {
   background: var(--sidvin-cream) !important;
 }
 
-#root .bg-\\[\\#ece8e3\\],
+#root .bg-\[\#ece8e3\],
 #root [class*="bg-[#ece8e3]"] {
   background: var(--sidvin-card) !important;
 }
@@ -198,7 +198,7 @@ h2 {
   letter-spacing: .015em;
 }
 
-#root table tbody.bg-\\[\\#ece8e3\\],
+#root table tbody.bg-\[\#ece8e3\],
 #root table tbody.bg-white {
   background: var(--sidvin-card) !important;
 }
@@ -217,8 +217,8 @@ h2 {
   background-color: var(--sidvin-orange) !important;
 }
 
-#root .hover\\:bg-orange-800:hover,
-#root .hover\\:bg-amber-800:hover {
+#root .hover\:bg-orange-800:hover,
+#root .hover\:bg-amber-800:hover {
   background-color: var(--sidvin-orange-hover) !important;
 }
 
