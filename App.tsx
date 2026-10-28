@@ -84,6 +84,7 @@ type PortalMode = 'team' | 'property';
 
 const DEFAULT_VIEW_SETTINGS: dataService.ViewSettings = {
   logoDataUrl: '',
+  orgName: 'Sidvin',
   theme: 'terracotta',
   updatedAt: null,
   updatedBy: null,
@@ -127,7 +128,16 @@ const App: React.FC = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('Submitting...');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    try {
+      if (window.matchMedia('(min-width: 1024px)').matches) {
+        return localStorage.getItem('sidvinSidebarHidden') !== 'true';
+      }
+    } catch {
+      // Use the closed drawer default when browser storage is unavailable.
+    }
+    return false;
+  });
   const [expandedSections, setExpandedSections] = useState({
     proposalStages: false,
     propertyTasks: false,
@@ -229,6 +239,18 @@ const App: React.FC = () => {
 
   const refreshData = async () => {
     if (session) await fetchData(session.kind);
+  };
+
+  const toggleSidebar = () => {
+    const nextOpen = !isSidebarOpen;
+    setIsSidebarOpen(nextOpen);
+    try {
+      if (window.matchMedia('(min-width: 1024px)').matches) {
+        localStorage.setItem('sidvinSidebarHidden', nextOpen ? 'false' : 'true');
+      }
+    } catch {
+      // The menu still toggles for this session if browser storage is unavailable.
+    }
   };
 
   const logout = async () => {
@@ -1190,7 +1212,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex relative" data-color-theme={viewSettings.theme}>
+    <div className="min-h-screen flex relative" data-color-theme={viewSettings.theme} data-sidebar-open={isSidebarOpen ? 'true' : 'false'}>
       {isSidebarOpen && (
         <button
           type="button"
@@ -1201,7 +1223,7 @@ const App: React.FC = () => {
       )}
       <nav className={`fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-amber-800 to-amber-800 text-white p-4 shadow-lg z-40 transform transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain [scrollbar-gutter:stable] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="mb-4 px-3 flex items-start justify-between gap-3">
-          <div className="sidvin-nav-brand">{viewSettings.logoDataUrl ? <img className="sidvin-nav-logo" src={viewSettings.logoDataUrl} alt="Company logo" /> : <span className="sidvin-nav-brand-name">Sidvin</span>}<h1>Proposal Management</h1></div>
+          <div className="sidvin-nav-brand"><span className="sidvin-nav-brand-name">{viewSettings.orgName || 'Sidvin'}</span></div>
           <button
             type="button"
             onClick={() => setIsSidebarOpen(false)}
@@ -1264,9 +1286,10 @@ const App: React.FC = () => {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setIsSidebarOpen(true)}
+                onClick={toggleSidebar}
                 className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-orange-700 bg-orange-700 text-white hover:bg-orange-800"
-                aria-label="Open menu"
+                aria-label={isSidebarOpen ? 'Hide left menu' : 'Show left menu'}
+                title={isSidebarOpen ? 'Hide left menu' : 'Show left menu'}
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
