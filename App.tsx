@@ -1412,7 +1412,7 @@ const SidebarIcon: React.FC<{ name: SidebarIconName; className?: string }> = ({ 
 }
 
 const SectionToggle: React.FC<SectionToggleProps> = ({ label, isOpen, onClick, icon }) => (
-  <button type="button" onClick={onClick} className="sidvin-section-toggle">
+  <button type="button" onClick={onClick} aria-expanded={isOpen} className="sidvin-section-toggle">
     <span className="sidvin-nav-label"><SidebarIcon name={icon} /><span>{label}</span></span>
     <svg className={`sidvin-chevron ${isOpen ? 'is-open' : ''}`} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="m6 8 4 4 4-4" />
