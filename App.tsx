@@ -1070,6 +1070,7 @@ const App: React.FC = () => {
         return property ? (
           <PropertyDetailView
             property={property}
+            statusLabel={getPropertyTaskLabel(getPropertyTaskStatus(property))}
             onBack={() => setCurrentView('properties')}
             onEdit={() => handleEditPropertyView(property, 'properties')}
           />
