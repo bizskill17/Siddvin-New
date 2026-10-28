@@ -1405,7 +1405,7 @@ const SidebarIcon: React.FC<{ name: SidebarIconName; className?: string }> = ({ 
     category: 'm20.6 13.4-7.2 7.2a2 2 0 0 1-2.8 0L3 13V4h9l8.6 8.6a.6.6 0 0 1 0 .8ZM7.5 8.5h.01',
     brands: 'm12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z',
     team: 'M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20m4-12a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm9 2a3 3 0 1 0 0-6m5 16v-1.5a4 4 0 0 0-3-3.9',
-    settings: 'M4 6h16M4 12h16M4 18h16M8 6v0m7 6v0m-4 6v0',
+    settings: 'M4 6h5m4 0h7M4 12h9m4 0h3M4 18h2m4 0h10M11 4v4m4 2v4M8 16v4',
     templates: 'M21 11.5a8.4 8.4 0 0 1-8.8 8.4 9 9 0 0 1-4-.9L3 20l1.2-4.5a8 8 0 1 1 16.8-4Zm-12-1h.01M12 10.5h.01m3 0h.01',
   };
   return <svg aria-hidden="true" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={paths[name]} /></svg>;
