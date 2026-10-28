@@ -1311,7 +1311,7 @@ const App: React.FC = () => {
         </ul>
         <div className="sidvin-sidebar-profile">
           <div className="sidvin-profile-avatar">
-            {currentUserName.split(/\\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'U'}
+            {currentUserName.split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'U'}
           </div>
           <div className="min-w-0">
             <div className="sidvin-profile-name">{currentUserName}</div>
