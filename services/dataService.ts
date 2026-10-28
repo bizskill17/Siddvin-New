@@ -731,6 +731,30 @@ export const submitWhatsAppTemplate = async (name: string): Promise<string> => {
 };
 
 /** Saves the Red Lava connection. A blank apiKey keeps the current key. Returns whether Red Lava accepted it. */
+export type ViewColorTheme = 'terracotta' | 'ocean' | 'forest' | 'plum';
+
+export interface ViewSettings {
+  logoDataUrl: string;
+  theme: ViewColorTheme;
+  updatedAt: string | null;
+  updatedBy: string | null;
+}
+
+export interface ViewSettingsResponse {
+  settings: ViewSettings;
+  canEditSettings: boolean;
+}
+
+export const getViewSettings = async (): Promise<ViewSettingsResponse> => {
+  const res: any = await getJson(qs({ action: 'viewSettings' }));
+  return res.data as ViewSettingsResponse;
+};
+
+export const saveViewSettings = async (logoDataUrl: string, theme: ViewColorTheme): Promise<ViewSettingsResponse> => {
+  const res: any = await postJson({ action: 'saveViewSettings', logoDataUrl, theme });
+  return res.data as ViewSettingsResponse;
+};
+
 export const saveRedLavaSettings = async (
   apiKey: string,
   phoneId: string,

@@ -82,7 +82,7 @@ body {
 }
 
 #root > .min-h-screen.flex.relative > nav button.bg-amber-500 {
-  background: #e77722 !important;
+  background: var(--sidvin-orange) !important;
   box-shadow: 0 4px 12px rgba(35, 18, 5, .16) !important;
   color: #fff !important;
 }
@@ -241,9 +241,9 @@ h2 {
 #root input:focus,
 #root select:focus,
 #root textarea:focus {
-  border-color: #d16a2c !important;
-  --tw-ring-color: rgba(198,77,18,.2) !important;
-  box-shadow: 0 0 0 3px rgba(198,77,18,.12) !important;
+  border-color: var(--sidvin-orange) !important;
+  --tw-ring-color: color-mix(in srgb, var(--sidvin-orange) 20%, transparent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sidvin-orange) 16%, transparent) !important;
 }
 
 #root label {
@@ -294,4 +294,66 @@ h2 {
   #root table {
     min-width: 720px;
   }
+}
+
+
+/* View Settings: selected team color themes and uploaded logo */
+#root > .min-h-screen.flex.relative[data-color-theme="terracotta"] {
+  --sidvin-rust: #873609;
+  --sidvin-orange: #c64d12;
+  --sidvin-orange-hover: #a83d0b;
+  --sidvin-cream: #fbf7f1;
+  --sidvin-card: #fffdf9;
+  --sidvin-line: #eadfd3;
+  --sidvin-soft: #f7eee5;
+}
+#root > .min-h-screen.flex.relative[data-color-theme="ocean"] {
+  --sidvin-rust: #15364f;
+  --sidvin-orange: #147f89;
+  --sidvin-orange-hover: #0e6872;
+  --sidvin-cream: #f3f7fa;
+  --sidvin-card: #ffffff;
+  --sidvin-line: #dce6ed;
+  --sidvin-soft: #eaf2f7;
+}
+#root > .min-h-screen.flex.relative[data-color-theme="forest"] {
+  --sidvin-rust: #174536;
+  --sidvin-orange: #327858;
+  --sidvin-orange-hover: #275e45;
+  --sidvin-cream: #f3f8f4;
+  --sidvin-card: #ffffff;
+  --sidvin-line: #dce8de;
+  --sidvin-soft: #eaf3ec;
+}
+#root > .min-h-screen.flex.relative[data-color-theme="plum"] {
+  --sidvin-rust: #4c3155;
+  --sidvin-orange: #8b557e;
+  --sidvin-orange-hover: #704363;
+  --sidvin-cream: #faf6fa;
+  --sidvin-card: #ffffff;
+  --sidvin-line: #ebdfeb;
+  --sidvin-soft: #f4ebf3;
+}
+
+#root > .min-h-screen.flex.relative[data-color-theme] {
+  background: var(--sidvin-cream);
+}
+.sidvin-nav-logo {
+  display: block;
+  max-width: 184px;
+  max-height: 44px;
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
+}
+@media (max-width: 1023px) {
+  .sidvin-nav-logo {
+    max-width: 150px;
+    max-height: 38px;
+  }
+}
+
+#root .view-theme-option[aria-pressed="true"] {
+  border-color: var(--sidvin-orange) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--sidvin-orange) 18%, transparent) !important;
 }

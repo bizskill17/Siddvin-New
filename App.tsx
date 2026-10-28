@@ -22,6 +22,7 @@ import ProposalDetailView from './components/views/ProposalDetailView';
 import DashboardView from './components/views/DashboardView';
 import CompanyCategoryView from './components/views/CompanyCategoryView';
 import WhatsAppTemplatesView from './components/views/WhatsAppTemplatesView';
+import ViewSettingsView from './components/views/ViewSettingsView';
 import { StageActionIconName } from './components/common/StageActionIcon';
 import WhatsAppConfirmModal, { WhatsAppSide } from './components/whatsapp/WhatsAppConfirmModal';
 import Button from './components/common/Button';
@@ -53,6 +54,7 @@ type View =
   | 'companyMaster'
   | 'categoryMaster'
   | 'whatsappTemplates'
+  | 'viewSettings'
   | 'proposalDetail'
   | 'addProperty'
   | 'editProperty'
@@ -80,8 +82,16 @@ type PropertyTaskStatus =
 
 type PortalMode = 'team' | 'property';
 
+const DEFAULT_VIEW_SETTINGS: dataService.ViewSettings = {
+  logoDataUrl: '',
+  theme: 'terracotta',
+  updatedAt: null,
+  updatedBy: null,
+};
+
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [viewSettings, setViewSettings] = useState<dataService.ViewSettings>(DEFAULT_VIEW_SETTINGS);
   const [properties, setProperties] = useState<Property[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -135,12 +145,13 @@ const App: React.FC = () => {
     setProposals([]);
     setCompanyMasterOptions([]);
     setCategoryMasterOptions([]);
+    setViewSettings(DEFAULT_VIEW_SETTINGS);
   };
 
   const fetchData = useCallback(async (kind: dataService.SessionInfo['kind']) => {
     // Property sessions can only read data about their own property; the server enforces this.
     const isTeam = kind === 'team';
-    const [props, brs, vsts, terms, team, fus, prs, companies, categories] = await Promise.all([
+    const [props, brs, vsts, terms, team, fus, prs, companies, categories, viewSettingsResponse] = await Promise.all([
       dataService.getProperties(),
       dataService.getBrands(),
       dataService.getVisits(),
@@ -150,6 +161,7 @@ const App: React.FC = () => {
       dataService.getProposals(),
       isTeam ? dataService.getCompanyMasterOptions() : Promise.resolve([]),
       isTeam ? dataService.getCategoryMasterOptions() : Promise.resolve([]),
+      isTeam ? dataService.getViewSettings() : Promise.resolve({ settings: DEFAULT_VIEW_SETTINGS, canEditSettings: false }),
     ]);
 
     const calculated = prs.map((p) => ({
@@ -166,6 +178,7 @@ const App: React.FC = () => {
     setProposals(calculated);
     setCompanyMasterOptions(companies);
     setCategoryMasterOptions(categories);
+    setViewSettings(viewSettingsResponse.settings);
   }, []);
 
   const signedOut = useCallback(() => {
@@ -1041,6 +1054,8 @@ const App: React.FC = () => {
         return <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} onBack={() => handleViewChange('dashboard')} />;
       case 'whatsappTemplates':
         return <WhatsAppTemplatesView onBack={() => handleViewChange('dashboard')} />;
+      case 'viewSettings':
+        return <ViewSettingsView initialSettings={viewSettings} canEdit={['Admin', 'Super Admin'].includes(currentUserRole)} onSaved={setViewSettings} onBack={() => handleViewChange('dashboard')} />;
       case 'categoryMaster':
         return <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} onBack={() => handleViewChange('dashboard')} />;
       case 'brands':
@@ -1175,7 +1190,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex relative">
+    <div className="min-h-screen flex relative" data-color-theme={viewSettings.theme}>
       {isSidebarOpen && (
         <button
           type="button"
@@ -1186,7 +1201,7 @@ const App: React.FC = () => {
       )}
       <nav className={`fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-amber-800 to-amber-800 text-white p-4 shadow-lg z-40 transform transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain [scrollbar-gutter:stable] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="mb-4 px-3 flex items-start justify-between gap-3">
-          <div className="sidvin-nav-brand"><span className="sidvin-nav-brand-name">Sidvin</span><h1>Proposal Management</h1></div>
+          <div className="sidvin-nav-brand">{viewSettings.logoDataUrl ? <img className="sidvin-nav-logo" src={viewSettings.logoDataUrl} alt="Company logo" /> : <span className="sidvin-nav-brand-name">Sidvin</span>}<h1>Proposal Management</h1></div>
           <button
             type="button"
             onClick={() => setIsSidebarOpen(false)}
@@ -1236,6 +1251,7 @@ const App: React.FC = () => {
               <li><NavLink label={`Category (${categoryMasterOptions.length})`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} isSubItem /></li>
               <li><NavLink label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} isSubItem /></li>
               <li><NavLink label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} isSubItem /></li>
+              <li><NavLink label="View Settings" onClick={() => handleViewChange('viewSettings')} isActive={currentView === 'viewSettings'} isSubItem /></li>
               <li><NavLink label="WhatsApp Templates" onClick={() => handleViewChange('whatsappTemplates')} isActive={currentView === 'whatsappTemplates'} isSubItem /></li>
             </>
           )}
@@ -1268,7 +1284,7 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-	              <img src="https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg" alt="Sidvin Logo" className="h-16 md:h-20 w-auto object-contain" />
+	              <img src={viewSettings.logoDataUrl || "https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg"} alt="Sidvin Logo" className="h-16 md:h-20 w-auto object-contain" />
             </div>
           </div>
           {renderContent()}
