@@ -289,7 +289,8 @@ const App: React.FC = () => {
   const handleViewChange = (view: View) => {
     setReturnToList(false);
     setCurrentView(view);
-    setIsSidebarOpen(false);
+    // Keep the desktop sidebar preference when navigating; close only the mobile drawer.
+    if (!window.matchMedia('(min-width: 1024px)').matches) setIsSidebarOpen(false);
     setSelectedProposalId(null);
     setEditingProperty(null);
     setEditingBrand(null);
