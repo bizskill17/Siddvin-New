@@ -109,6 +109,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onRowClic
               key={property.id}
               onClick={() => onRowClick?.(property)}
               onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) return;
                 if (onRowClick && (event.key === 'Enter' || event.key === ' ')) {
                   event.preventDefault();
                   onRowClick(property);
