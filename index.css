@@ -1004,3 +1004,59 @@ h2 {
   background: color-mix(in srgb, var(--sidvin-orange) 12%, var(--sidvin-card));
   color: var(--sidvin-orange);
 }
+
+.sidvin-category-table {
+  width: 100%;
+  color: var(--sidvin-ink);
+}
+.sidvin-category-table th,
+.sidvin-category-table td {
+  border: 1px solid color-mix(in srgb, var(--sidvin-line) 88%, #4d8ea5);
+  padding: 11px 14px;
+  text-align: left;
+  vertical-align: middle;
+}
+.sidvin-category-table th {
+  background: color-mix(in srgb, var(--sidvin-orange) 10%, var(--sidvin-card));
+  color: var(--sidvin-orange);
+  font-size: 13px;
+  font-weight: 750;
+}
+.sidvin-category-table tbody tr:not(.sidvin-category-linked-row) {
+  background: var(--sidvin-card);
+  transition: background-color .15s ease;
+}
+.sidvin-category-table tbody tr:not(.sidvin-category-linked-row):hover {
+  background: color-mix(in srgb, var(--sidvin-orange) 5%, var(--sidvin-card));
+}
+.sidvin-category-count-column {
+  width: 145px;
+}
+.sidvin-category-actions-column {
+  width: 245px;
+}
+.sidvin-category-brand-count {
+  border: 1px solid var(--sidvin-line);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: color-mix(in srgb, var(--sidvin-ink) 5%, var(--sidvin-card));
+  color: color-mix(in srgb, var(--sidvin-ink) 68%, transparent);
+  font-size: 12px;
+  font-weight: 650;
+}
+.sidvin-category-brand-count.is-linked {
+  border-color: color-mix(in srgb, var(--sidvin-orange) 24%, var(--sidvin-line));
+  background: color-mix(in srgb, var(--sidvin-orange) 8%, var(--sidvin-card));
+  color: var(--sidvin-orange);
+  cursor: pointer;
+}
+.sidvin-category-linked-row td {
+  background: color-mix(in srgb, var(--sidvin-orange) 5%, var(--sidvin-card));
+  color: var(--sidvin-ink);
+  font-size: 12px;
+}
+@media (max-width: 640px) {
+  .sidvin-category-table {
+    min-width: 680px;
+  }
+}

@@ -422,6 +422,21 @@ const App: React.FC = () => {
       await refreshData();
     });
   };
+  const editCategoryOption = async (oldValue: string, nextValue: string) => {
+    const normalized = nextValue.trim();
+    if (!normalized || normalized === oldValue) return;
+    if (categoryOptions.some((value) => value.toLowerCase() === normalized.toLowerCase() && value.toLowerCase() !== oldValue.toLowerCase())) {
+      window.alert('Category already exists.');
+      return;
+    }
+    const masterOption = categoryMasterOptions.find((option) => option.name.toLowerCase() === oldValue.toLowerCase());
+    const linkedBrands = brands.filter((brand) => (brand.category || '').trim().toLowerCase() === oldValue.toLowerCase());
+    await runWithSaving('Updating Category...', async () => {
+      if (masterOption?.id) await dataService.updateCategoryMasterOption(masterOption.id, normalized, currentUserName);
+      await Promise.all(linkedBrands.map((brand) => dataService.updateBrand({ ...brand, category: normalized }, currentUserName)));
+      await refreshData();
+    });
+  };
 
   const handleAddPropertyView = () => {
     setPropertyReturnView('properties');
@@ -1247,7 +1262,7 @@ const App: React.FC = () => {
       case 'viewSettings':
         return renderMasterSection('settings', <ViewSettingsView initialSettings={viewSettings} canEdit={['Admin', 'Super Admin'].includes(currentUserRole)} onSaved={setViewSettings} onBack={() => handleViewChange('companyMaster')} />);
       case 'categoryMaster':
-        return renderMasterSection('category', <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />);
+        return renderMasterSection('category', <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onEditCategory={editCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />);
       case 'brands':
         return renderMasterSection('brands', (
           <>

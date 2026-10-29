@@ -11,6 +11,7 @@ interface CompanyCategoryViewProps {
   brands: Brand[];
   onAddCompany: (value: string) => Promise<void> | void;
   onAddCategory: (value: string) => Promise<void> | void;
+  onEditCategory?: (oldValue: string, newValue: string) => Promise<void> | void;
   onRemoveCompany: (value: string) => Promise<void> | void;
   onRemoveCategory: (value: string) => Promise<void> | void;
   onBack?: () => void;
@@ -23,6 +24,7 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
   brands,
   onAddCompany,
   onAddCategory,
+  onEditCategory,
   onRemoveCompany,
   onRemoveCategory,
   onBack,
@@ -30,6 +32,8 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
   const [newCompany, setNewCompany] = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState('');
 
   const addCompany = async () => {
     const val = newCompany.trim();
@@ -43,6 +47,14 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
     if (!val) return;
     await onAddCategory(val);
     setNewCategory('');
+  };
+
+  const saveCategoryEdit = async (oldName: string) => {
+    const nextName = editingCategoryName.trim();
+    if (!nextName || !onEditCategory) return;
+    await onEditCategory(oldName, nextName);
+    setEditingCategory(null);
+    setEditingCategoryName('');
   };
 
   return (
@@ -97,43 +109,94 @@ const CompanyCategoryView: React.FC<CompanyCategoryViewProps> = ({
               <Button type="button" onClick={addCategory}>Add</Button>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {categoryOptions.length === 0 ? (
-              <p className="text-sm text-gray-600">No categories added yet.</p>
-            ) : (
-              categoryOptions.map((name) => {
-                const linkedBrands = brands.filter((b) => (b.category || '').trim().toLowerCase() === name.trim().toLowerCase());
-                const isClickable = linkedBrands.length > 0;
-                const isSelected = selectedCategory === name;
-                return (
-                <div key={name} className={`border-2 rounded p-3 transition-colors ${isSelected ? 'border-orange-700 bg-orange-50/40' : 'border-orange-700 bg-[#ece8e3]'}`}>
-                  <button
-                    type="button"
-                    onClick={() => isClickable && setSelectedCategory(isSelected ? null : name)}
-                    className={`w-full text-left rounded px-1 py-1 ${isClickable ? 'cursor-pointer hover:bg-orange-100/40' : 'cursor-default'}`}
-                    disabled={!isClickable}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-gray-900">{name}</span>
-                      <span className={`text-xs px-2 py-1 rounded ${isClickable ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-500'}`}>
-                        {linkedBrands.length} brand{linkedBrands.length === 1 ? '' : 's'}
-                      </span>
-                    </div>
-                  </button>
-                  {isSelected && isClickable && (
-                    <div className="mt-2 border-t border-gray-200 pt-2 space-y-1">
-                      {linkedBrands.map((b) => (
-                        <div key={b.id} className="text-xs text-gray-800">{b.name}</div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="mt-3">
-                    <Button type="button" size="sm" variant="danger" onClick={() => onRemoveCategory(name)}>Remove</Button>
-                  </div>
-                </div>
-              )})
-            )}
-          </div>
+          {categoryOptions.length === 0 ? (
+            <p className="text-sm text-gray-600">No categories added yet.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-[var(--sidvin-line)] bg-[var(--sidvin-card)] shadow-sm">
+              <table className="sidvin-category-table min-w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th scope="col">Category</th>
+                    <th scope="col" className="sidvin-category-count-column">Brands</th>
+                    <th scope="col" className="sidvin-category-actions-column">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categoryOptions.map((name) => {
+                    const linkedBrands = brands.filter((brand) => (brand.category || '').trim().toLowerCase() === name.trim().toLowerCase());
+                    const isSelected = selectedCategory === name;
+                    const isEditing = editingCategory === name;
+                    return (
+                      <React.Fragment key={name}>
+                        <tr>
+                          <td>
+                            {isEditing ? (
+                              <input
+                                aria-label={`Edit category ${name}`}
+                                autoFocus
+                                value={editingCategoryName}
+                                onChange={(event) => setEditingCategoryName(event.target.value)}
+                                onKeyDown={(event) => {
+                                  if (event.key === 'Enter') void saveCategoryEdit(name);
+                                  if (event.key === 'Escape') { setEditingCategory(null); setEditingCategoryName(''); }
+                                }}
+                                className="w-full max-w-xl rounded-lg border border-[var(--sidvin-line)] bg-[var(--sidvin-card)] px-3 py-2 text-sm text-[var(--sidvin-ink)] outline-none focus:border-[var(--sidvin-orange)]"
+                              />
+                            ) : (
+                              <span className="font-medium text-[var(--sidvin-ink)]">{name}</span>
+                            )}
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className={`sidvin-category-brand-count ${linkedBrands.length ? 'is-linked' : ''}`}
+                              onClick={() => linkedBrands.length && setSelectedCategory(isSelected ? null : name)}
+                              disabled={!linkedBrands.length}
+                              aria-expanded={linkedBrands.length ? isSelected : undefined}
+                              title={linkedBrands.length ? 'Show linked brands' : 'No brands use this category'}
+                            >
+                              {linkedBrands.length} {linkedBrands.length === 1 ? 'brand' : 'brands'}
+                            </button>
+                          </td>
+                          <td>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {isEditing ? (
+                                <>
+                                  <Button type="button" size="sm" onClick={() => void saveCategoryEdit(name)}>Save</Button>
+                                  <Button type="button" size="sm" variant="secondary" onClick={() => { setEditingCategory(null); setEditingCategoryName(''); }}>Cancel</Button>
+                                </>
+                              ) : (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => { setEditingCategory(name); setEditingCategoryName(name); }}
+                                  aria-label={`Edit ${name}`}
+                                >
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931ZM19.5 7.125 16.862 4.487" /></svg>
+                                    Edit
+                                  </span>
+                                </Button>
+                              )}
+                              {!isEditing && <Button type="button" size="sm" variant="danger" onClick={() => onRemoveCategory(name)}>Remove</Button>}
+                            </div>
+                          </td>
+                        </tr>
+                        {isSelected && linkedBrands.length > 0 && (
+                          <tr className="sidvin-category-linked-row">
+                            <td colSpan={3}>
+                              <span className="mr-2 font-semibold">Brands in this category:</span>
+                              {linkedBrands.map((brand) => brand.name).join(' · ')}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
         )}
       </div>
