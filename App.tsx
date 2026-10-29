@@ -1070,10 +1070,11 @@ const App: React.FC = () => {
     />
   );
 
-  const isMasterView = [
+  const masterViews: View[] = [
     'companyMaster', 'categoryMaster', 'brands', 'addBrand', 'editBrand',
     'sidvinTeam', 'addTeamMember', 'editTeamMember', 'viewSettings', 'whatsappTemplates',
-  ].includes(currentView);
+  ];
+  const isMasterView = masterViews.includes(currentView);
 
   const renderMasterSection = (
     active: 'company' | 'category' | 'brands' | 'team' | 'settings',
@@ -1192,7 +1193,7 @@ const App: React.FC = () => {
       case 'whatsappTemplates':
         return renderMasterSection('settings', <WhatsAppTemplatesView />);
       case 'viewSettings':
-        return renderMasterSection('settings', <ViewSettingsView initialSettings={viewSettings} canEdit={['Admin', 'Super Admin'].includes(currentUserRole)} onSaved={setViewSettings} />);
+        return renderMasterSection('settings', <ViewSettingsView initialSettings={viewSettings} canEdit={['Admin', 'Super Admin'].includes(currentUserRole)} onSaved={setViewSettings} onBack={() => handleViewChange('companyMaster')} />);
       case 'categoryMaster':
         return renderMasterSection('category', <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />);
       case 'brands':
