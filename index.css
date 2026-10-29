@@ -804,6 +804,105 @@ h2 {
 .dashboard-stage-card:hover .dashboard-stage-bar {
   background: var(--sidvin-orange-hover);
 }
+.dashboard-histogram-scroll {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.dashboard-histogram {
+  display: grid;
+  grid-template-columns: 28px minmax(760px, 1fr);
+  min-height: 270px;
+}
+.dashboard-histogram-y-axis {
+  position: relative;
+  height: 198px;
+  color: color-mix(in srgb, var(--sidvin-ink) 62%, transparent);
+  font-size: 11px;
+}
+.dashboard-histogram-y-axis span {
+  position: absolute;
+  right: 8px;
+  transform: translateY(-50%);
+}
+.dashboard-histogram-main {
+  min-width: 0;
+}
+.dashboard-histogram-plot {
+  position: relative;
+  height: 198px;
+  border-bottom: 1px solid var(--sidvin-line);
+}
+.dashboard-histogram-gridline {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: 1px dashed color-mix(in srgb, var(--sidvin-line) 72%, transparent);
+  pointer-events: none;
+}
+.dashboard-histogram-column {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  align-items: flex-end;
+  justify-content: center;
+  border: 0;
+  padding: 0 8px;
+  background: transparent;
+  cursor: pointer;
+}
+.dashboard-histogram-plot {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+}
+.dashboard-histogram-count {
+  position: absolute;
+  z-index: 2;
+  color: var(--sidvin-ink);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+.dashboard-histogram-bar {
+  display: block;
+  width: min(40px, 65%);
+  min-height: 4px;
+  border-radius: 6px 6px 0 0;
+  background: var(--sidvin-orange);
+  transition: background-color .15s ease, filter .15s ease;
+}
+.dashboard-histogram-column:hover .dashboard-histogram-bar,
+.dashboard-histogram-column:focus-visible .dashboard-histogram-bar {
+  background: var(--sidvin-orange-hover);
+  filter: brightness(.95);
+}
+.dashboard-histogram-labels {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 2px;
+  padding-top: 9px;
+}
+.dashboard-histogram-labels button {
+  min-width: 0;
+  border: 0;
+  border-radius: 6px;
+  padding: 3px 4px;
+  background: transparent;
+  color: color-mix(in srgb, var(--sidvin-ink) 78%, transparent);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
+  cursor: pointer;
+}
+.dashboard-histogram-labels button:hover,
+.dashboard-histogram-labels button:focus-visible {
+  background: color-mix(in srgb, var(--sidvin-orange) 8%, var(--sidvin-card));
+  color: var(--sidvin-orange);
+  outline: none;
+}
 .sidvin-nav-logo {
   display: block;
   max-width: 184px;

@@ -44,7 +44,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     stage,
     count: proposals.filter((p) => p.currentStage === stage).length,
   }));
-  const maxStageCount = Math.max(1, ...stageCounts.map(({ count }) => count));
+  const maxStageCount = Math.max(3, ...stageCounts.map(({ count }) => count));
 
   const activeProposals = proposals.filter((p) => p.currentStage !== CurrentStageEnum.CompletedProposal).length;
   const pendingFollowUps = proposals.filter((p) => p.currentStage === CurrentStageEnum.PendingFollowUp).length;
@@ -92,33 +92,52 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         <MetricCard title="Billed Fees" value={formatCurrency(billedFees)} icon="₹" note="Total invoiced amount" />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <div className="space-y-6">
         <section className="dashboard-card rounded-xl border p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Proposal Stage Summary</h2>
-            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Proposal Stage Summary</h2>
             <span className="dashboard-count rounded-full border px-3 py-1 text-xs font-semibold">{proposals.length}</span>
           </div>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 xl:grid-cols-3 2xl:grid-cols-5">
-            {stageCounts.map(({ stage, count }) => (
-              <button
-                key={stage}
-                type="button"
-                onClick={() => onStageClick(stage)}
-                className="dashboard-stage-card group flex min-w-0 flex-col items-center rounded-xl border bg-white px-2 pb-2 pt-2 text-center transition"
-                title={`View proposals in ${stage}`}
-              >
-                <span className="flex h-24 w-full items-end justify-center border-b border-dashed border-gray-200">
-                  <span className="dashboard-stage-bar relative flex w-8 items-start justify-center rounded-t-md transition" style={{ height: count ? `${Math.max(10, (count / maxStageCount) * 76)}px` : '4px' }}>
-                    <span className="dashboard-count absolute -top-6 rounded-full border bg-white px-2 py-0.5 text-xs font-bold">{count}</span>
-                  </span>
-                </span>
-                <span className="mt-2 line-clamp-2 min-h-8 text-[11px] font-medium leading-4 text-gray-700">
-                  {stage.replace(/^\d+\.\s*/, '')}
-                </span>
-              </button>
-            ))}
+          <div className="dashboard-histogram-scroll" role="img" aria-label="Proposal counts by stage. Select a stage column to view its proposals.">
+            <div className="dashboard-histogram">
+              <div className="dashboard-histogram-y-axis" aria-hidden="true">
+                {Array.from({ length: maxStageCount + 1 }, (_, index) => maxStageCount - index).map((tick) => (
+                  <span key={tick} style={{ top: `${((maxStageCount - tick) / maxStageCount) * 100}%` }}>{tick}</span>
+                ))}
+              </div>
+              <div className="dashboard-histogram-main">
+                <div className="dashboard-histogram-plot">
+                  {Array.from({ length: maxStageCount + 1 }, (_, index) => maxStageCount - index).map((tick) => (
+                    <div key={tick} className="dashboard-histogram-gridline" style={{ top: `${((maxStageCount - tick) / maxStageCount) * 100}%` }} />
+                  ))}
+                  {stageCounts.map(({ stage, count }) => (
+                    (() => {
+                      const barHeight = Math.max(3, (count / maxStageCount) * 100);
+                      return (
+                        <button
+                          key={stage}
+                          type="button"
+                          onClick={() => onStageClick(stage)}
+                          className="dashboard-histogram-column"
+                          title={`View ${count} proposals in ${stage}`}
+                          aria-label={`${stage}: ${count} proposals`}
+                        >
+                          <span className="dashboard-histogram-count" style={{ bottom: `calc(${barHeight}% + 5px)` }}>{count}</span>
+                          <span className="dashboard-histogram-bar" style={{ height: `${barHeight}%` }} />
+                        </button>
+                      );
+                    })()
+                  ))}
+                </div>
+                <div className="dashboard-histogram-labels">
+                  {stageCounts.map(({ stage }) => (
+                    <button key={stage} type="button" onClick={() => onStageClick(stage)} title={`View proposals in ${stage}`}>
+                      {stage.replace(/^\d+\.\s*/, '')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
