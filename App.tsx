@@ -1024,26 +1024,38 @@ const App: React.FC = () => {
   };
 
   const renderProposalsView = () => (
-    <>
-      {renderPageHeader(selectedStageFilter === 'All' ? 'Proposal Workflow' : selectedStageFilter, {
-        onBack: () => handleViewChange('dashboard'),
-        backLabel: 'Back to Dashboard',
-      })}
-      <FilterTabs
-        ariaLabel="Filter proposals by stage"
-        activeId={selectedStageFilter}
-        items={[
-          { id: 'All', label: 'All', count: proposals.length },
-          ...allProposalStages.map((stage) => ({
-            id: stage,
-            label: stage.replace(/^\d+\.\s*/, ''),
-            count: stageCounts[stage] || 0,
-          })),
-        ]}
-        onChange={(stage) => setSelectedStageFilter(stage as CurrentStageEnum | 'All')}
-      />
-      <ProposalsTable proposals={proposals} properties={properties} brands={brands} followUps={followUps} termSheetAgreements={termSheetAgreements} onViewDetails={handleViewProposalDetails} onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onDelete={(id) => handleDeleteClick(id, 'proposal')} getUpdateAction={(p) => getProposalUpdateAction(p)} onUpdate={(p) => getProposalUpdateAction(p)?.open()} selectedStage={selectedStageFilter} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>} />
-    </>
+    <ProposalsTable
+      proposals={proposals}
+      properties={properties}
+      brands={brands}
+      followUps={followUps}
+      termSheetAgreements={termSheetAgreements}
+      onViewDetails={handleViewProposalDetails}
+      onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }}
+      onDelete={(id) => handleDeleteClick(id, 'proposal')}
+      getUpdateAction={(p) => getProposalUpdateAction(p)}
+      onUpdate={(p) => getProposalUpdateAction(p)?.open()}
+      selectedStage={selectedStageFilter}
+      toolbarInline
+      toolbarTitle={selectedStageFilter === 'All' ? 'Proposal Workflow' : selectedStageFilter}
+      toolbarLeadingAction={<Button onClick={() => handleViewChange('dashboard')}>Back to Dashboard</Button>}
+      toolbarTabs={(
+        <FilterTabs
+          ariaLabel="Filter proposals by stage"
+          activeId={selectedStageFilter}
+          items={[
+            { id: 'All', label: 'All', count: proposals.length },
+            ...allProposalStages.map((stage) => ({
+              id: stage,
+              label: stage.replace(/^\d+\.\s*/, ''),
+              count: stageCounts[stage] || 0,
+            })),
+          ]}
+          onChange={(stage) => setSelectedStageFilter(stage as CurrentStageEnum | 'All')}
+        />
+      )}
+      toolbarActions={<Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>}
+    />
   );
 
   const renderContent = () => {
@@ -1459,3 +1471,4 @@ const FilterTabs: React.FC<{
 );
 
 export default App;
+

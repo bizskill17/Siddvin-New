@@ -22,6 +22,9 @@ interface ProposalsTableProps {
   selectedStage?: CurrentStageEnum | 'All'; // Keep prop for external filtering
   toolbarInline?: boolean;
   toolbarActions?: React.ReactNode;
+  toolbarTitle?: string;
+  toolbarLeadingAction?: React.ReactNode;
+  toolbarTabs?: React.ReactNode;
 }
 
 const ProposalsTable: React.FC<ProposalsTableProps> = ({
@@ -38,6 +41,9 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
   selectedStage = 'All', // Default to 'All' if not provided
   toolbarInline = false,
   toolbarActions,
+  toolbarTitle,
+  toolbarLeadingAction,
+  toolbarTabs,
 }) => {
   const getPropertyName = (propertyId: string) =>
     properties.find(p => p.id === propertyId)?.address || 'N/A'; // Display address instead of owner
@@ -81,13 +87,19 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
     return text.includes(searchTerm.trim().toLowerCase());
   });
 
-  const toolbarClassName = `mb-4 flex flex-wrap items-center gap-3 ${toolbarInline ? 'justify-end sm:-mt-[4.25rem]' : 'justify-between'}`;
+  const toolbarClassName = `mb-4 flex flex-wrap items-center justify-between gap-3`;
+  const hasInlineHeader = toolbarInline && !!toolbarTitle;
 
   return (
     <div className="flex flex-col">
       <div className={toolbarClassName}>
-        {!toolbarInline && <h2 className="text-xl font-semibold text-gray-900">Proposals</h2>}
-        <div className="flex flex-wrap items-center gap-2">
+        {hasInlineHeader ? (
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            {toolbarLeadingAction}
+            <h1 className="text-2xl font-bold text-orange-700 sm:text-3xl">{toolbarTitle}</h1>
+          </div>
+        ) : !toolbarInline ? <h2 className="text-xl font-semibold text-gray-900">Proposals</h2> : null}
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <input
             type="text"
             value={searchTerm}
@@ -115,6 +127,7 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
           {toolbarActions}
         </div>
       </div>
+      {toolbarTabs}
 
       <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-black">
         <table id="proposals-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
@@ -224,6 +237,7 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
 };
 
 export default ProposalsTable;
+
 
 
 
