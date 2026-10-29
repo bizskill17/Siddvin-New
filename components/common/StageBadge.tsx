@@ -41,7 +41,7 @@ const StageBadge: React.FC<StageBadgeProps> = ({ stage, className }) => {
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass} ${className}`}>
-      {stage}
+      {stage.replace(/^\d+\.\s*/, '')}
     </span>
   );
 };
