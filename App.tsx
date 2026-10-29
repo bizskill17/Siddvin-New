@@ -143,8 +143,6 @@ const App: React.FC = () => {
   });
   const [expandedSections, setExpandedSections] = useState({
     deposit: false,
-    masterData: false,
-    companySettings: false,
   });
 
   const clearData = () => {
@@ -416,7 +414,7 @@ const App: React.FC = () => {
     setCurrentView('editProperty');
   };
 
-  const toggleSection = (section: 'deposit' | 'masterData' | 'companySettings') => {
+  const toggleSection = (section: 'deposit') => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
@@ -1072,6 +1070,52 @@ const App: React.FC = () => {
     />
   );
 
+  const masterViews: View[] = [
+    'companyMaster', 'categoryMaster', 'brands', 'addBrand', 'editBrand',
+    'sidvinTeam', 'addTeamMember', 'editTeamMember', 'viewSettings', 'whatsappTemplates',
+  ];
+  const isMasterView = masterViews.includes(currentView);
+
+  const renderMasterSection = (
+    active: 'company' | 'category' | 'brands' | 'team' | 'settings',
+    content: React.ReactNode,
+  ) => {
+    const tabs = [
+      { id: 'company', label: 'Company', view: 'companyMaster' as View },
+      { id: 'category', label: 'Category', view: 'categoryMaster' as View },
+      { id: 'brands', label: 'Brands', view: 'brands' as View },
+      { id: 'team', label: 'Sidvin Team', view: 'sidvinTeam' as View },
+      { id: 'settings', label: 'Company Settings', view: 'viewSettings' as View },
+    ] as const;
+
+    return (
+      <div className="sidvin-master-page">
+        <h1 className="sidvin-master-title">Master Data</h1>
+        <div className="sidvin-master-tabs" role="tablist" aria-label="Master data sections">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={active === tab.id}
+              className={`sidvin-master-tab ${active === tab.id ? 'is-active' : ''}`}
+              onClick={() => handleViewChange(tab.view)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        {active === 'settings' && (
+          <div className="sidvin-master-subtabs" aria-label="Company settings pages">
+            <button type="button" className={`sidvin-master-subtab ${currentView === 'viewSettings' ? 'is-active' : ''}`} onClick={() => handleViewChange('viewSettings')}>View Settings</button>
+            <button type="button" className={`sidvin-master-subtab ${currentView === 'whatsappTemplates' ? 'is-active' : ''}`} onClick={() => handleViewChange('whatsappTemplates')}>WhatsApp Templates</button>
+          </div>
+        )}
+        {content}
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
@@ -1145,41 +1189,35 @@ const App: React.FC = () => {
       case 'editProperty':
         return editingProperty ? <PropertyForm key={`${editingProperty.id}-${propertyFormSection || 'all'}`} initialData={editingProperty} focusField={propertyFocusField} section={propertyFormSection} onSubmit={(payload) => handleUpdateProperty({ ...editingProperty, ...payload })} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} /> : <div className="text-center py-8">Property not found for editing.</div>;
       case 'companyMaster':
-        return <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} onBack={() => handleViewChange('dashboard')} />;
+        return renderMasterSection('company', <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />);
       case 'whatsappTemplates':
-        return <WhatsAppTemplatesView onBack={() => handleViewChange('dashboard')} />;
+        return renderMasterSection('settings', <WhatsAppTemplatesView />);
       case 'viewSettings':
-        return <ViewSettingsView initialSettings={viewSettings} canEdit={['Admin', 'Super Admin'].includes(currentUserRole)} onSaved={setViewSettings} onBack={() => handleViewChange('dashboard')} />;
+        return renderMasterSection('settings', <ViewSettingsView initialSettings={viewSettings} canEdit={['Admin', 'Super Admin'].includes(currentUserRole)} onSaved={setViewSettings} onBack={() => handleViewChange('companyMaster')} />);
       case 'categoryMaster':
-        return <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} onBack={() => handleViewChange('dashboard')} />;
+        return renderMasterSection('category', <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />);
       case 'brands':
-        return (
+        return renderMasterSection('brands', (
           <>
-            {renderPageHeader('Brands', {
-              onBack: () => handleViewChange('dashboard'),
-              backLabel: 'Back to Dashboard',
-            })}
+            {renderPageHeader('Brands')}
             <BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button>} />
           </>
-        );
+        ));
       case 'addBrand':
-        return <BrandForm sidvinTeamMembers={sidvinTeamMembers} companyOptions={companyOptions} categoryOptions={categoryOptions} onSubmit={handleAddBrand} onCancel={handleCancelForm} currentUserName={currentUserName} />;
+        return renderMasterSection('brands', <BrandForm sidvinTeamMembers={sidvinTeamMembers} companyOptions={companyOptions} categoryOptions={categoryOptions} onSubmit={handleAddBrand} onCancel={handleCancelForm} currentUserName={currentUserName} />);
       case 'editBrand':
-        return editingBrand ? <BrandForm initialData={editingBrand} sidvinTeamMembers={sidvinTeamMembers} companyOptions={companyOptions} categoryOptions={categoryOptions} onSubmit={(payload) => handleUpdateBrand({ ...editingBrand, ...payload })} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Brand not found for editing.</div>;
+        return renderMasterSection('brands', editingBrand ? <BrandForm initialData={editingBrand} sidvinTeamMembers={sidvinTeamMembers} companyOptions={companyOptions} categoryOptions={categoryOptions} onSubmit={(payload) => handleUpdateBrand({ ...editingBrand, ...payload })} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Brand not found for editing.</div>);
       case 'sidvinTeam':
-        return (
+        return renderMasterSection('team', (
           <>
-            {renderPageHeader('Sidvin Team', {
-              onBack: () => handleViewChange('dashboard'),
-              backLabel: 'Back to Dashboard',
-            })}
+            {renderPageHeader('Sidvin Team')}
             <SidvinTeamTable teamMembers={sidvinTeamMembers} onEdit={(m) => { setEditingTeamMember(m); setCurrentView('editTeamMember'); }} onDelete={(id) => handleDeleteClick(id, 'teamMember')} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addTeamMember')}>Add New Team Member</Button>} />
           </>
-        );
+        ));
       case 'addTeamMember':
-        return <SidvinTeamForm onSubmit={handleAddTeamMember} onCancel={handleCancelForm} />;
+        return renderMasterSection('team', <SidvinTeamForm onSubmit={handleAddTeamMember} onCancel={handleCancelForm} />);
       case 'editTeamMember':
-        return editingTeamMember ? <SidvinTeamForm initialData={editingTeamMember} onSubmit={(payload) => handleUpdateTeamMember({ ...editingTeamMember, ...payload })} onCancel={handleCancelForm} /> : <div className="text-center py-8">Team Member not found for editing.</div>;
+        return renderMasterSection('team', editingTeamMember ? <SidvinTeamForm initialData={editingTeamMember} onSubmit={(payload) => handleUpdateTeamMember({ ...editingTeamMember, ...payload })} onCancel={handleCancelForm} /> : <div className="text-center py-8">Team Member not found for editing.</div>);
       case 'visits':
         return (
           <>
@@ -1319,22 +1357,7 @@ const App: React.FC = () => {
           {expandedSections.deposit && (
             <li><NavLink label={`Pending Deposit (${pendingDepositCount})`} onClick={() => handleViewChange('pendingDeposit')} isActive={currentView === 'pendingDeposit'} isSubItem /></li>
           )}
-          <li><SectionToggle icon="master" label="Master" isOpen={expandedSections.masterData} onClick={() => toggleSection('masterData')} /></li>
-          {expandedSections.masterData && (
-            <>
-              <li><NavLink icon="company" label={`Company (${companyMasterOptions.length})`} onClick={() => handleViewChange('companyMaster')} isActive={currentView === 'companyMaster'} isSubItem /></li>
-              <li><NavLink icon="category" label={`Category (${categoryMasterOptions.length})`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} isSubItem /></li>
-              <li><NavLink icon="brands" label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} isSubItem /></li>
-              <li><NavLink icon="team" label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} isSubItem /></li>
-            </>
-          )}
-          <li><SectionToggle icon="settings" label="Company Settings" isOpen={expandedSections.companySettings} onClick={() => toggleSection('companySettings')} /></li>
-          {expandedSections.companySettings && (
-            <>
-              <li><NavLink icon="settings" label="View Settings" onClick={() => handleViewChange('viewSettings')} isActive={currentView === 'viewSettings'} isSubItem /></li>
-              <li><NavLink icon="templates" label="WhatsApp Templates" onClick={() => handleViewChange('whatsappTemplates')} isActive={currentView === 'whatsappTemplates'} isSubItem /></li>
-            </>
-          )}
+          <li><NavLink icon="master" label="Master" onClick={() => handleViewChange('companyMaster')} isActive={isMasterView} /></li>
         </ul>
         <div className="sidvin-sidebar-profile">
           <div className="sidvin-profile-avatar">
