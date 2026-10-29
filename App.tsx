@@ -142,8 +142,6 @@ const App: React.FC = () => {
     return false;
   });
   const [expandedSections, setExpandedSections] = useState({
-    proposalStages: false,
-    propertyTasks: false,
     deposit: false,
     masterData: false,
   });
@@ -400,11 +398,6 @@ const App: React.FC = () => {
     });
   };
 
-  const handlePropertyTaskView = (status: PropertyTaskStatus) => {
-    setSelectedPropertyTaskFilter(status);
-    handleViewChange('properties');
-  };
-
   const handleAddPropertyView = () => {
     setPropertyReturnView('properties');
     handleViewChange('addProperty');
@@ -422,7 +415,7 @@ const App: React.FC = () => {
     setCurrentView('editProperty');
   };
 
-  const toggleSection = (section: 'proposalStages' | 'propertyTasks' | 'deposit' | 'masterData') => {
+  const toggleSection = (section: 'deposit' | 'masterData') => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
@@ -1036,6 +1029,19 @@ const App: React.FC = () => {
         onBack: () => handleViewChange('dashboard'),
         backLabel: 'Back to Dashboard',
       })}
+      <FilterTabs
+        ariaLabel="Filter proposals by stage"
+        activeId={selectedStageFilter}
+        items={[
+          { id: 'All', label: 'All', count: proposals.length },
+          ...allProposalStages.map((stage) => ({
+            id: stage,
+            label: stage.replace(/^\d+\.\s*/, ''),
+            count: stageCounts[stage] || 0,
+          })),
+        ]}
+        onChange={(stage) => setSelectedStageFilter(stage as CurrentStageEnum | 'All')}
+      />
       <ProposalsTable proposals={proposals} properties={properties} brands={brands} followUps={followUps} termSheetAgreements={termSheetAgreements} onViewDetails={handleViewProposalDetails} onEdit={(p) => { setEditingProposal(p); setCurrentView('editProposal'); }} onDelete={(id) => handleDeleteClick(id, 'proposal')} getUpdateAction={(p) => getProposalUpdateAction(p)} onUpdate={(p) => getProposalUpdateAction(p)?.open()} selectedStage={selectedStageFilter} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>} />
     </>
   );
@@ -1051,6 +1057,19 @@ const App: React.FC = () => {
               onBack: () => handleViewChange('dashboard'),
               backLabel: 'Back to Dashboard',
             })}
+            <FilterTabs
+              ariaLabel="Filter properties by status"
+              activeId={selectedPropertyTaskFilter}
+              items={[
+                { id: 'All', label: 'All Properties', count: properties.length },
+                ...propertyTaskStatuses.map((status) => ({
+                  id: status,
+                  label: getPropertyTaskLabel(status),
+                  count: propertyTaskCounts[status] || 0,
+                })),
+              ]}
+              onChange={(status) => setSelectedPropertyTaskFilter(status as PropertyTaskStatus | 'All')}
+            />
 
             <PropertiesTable 
               properties={selectedPropertyTaskFilter === 'All' ? properties : properties.filter(p => getPropertyTaskStatus(p) === selectedPropertyTaskFilter)} 
@@ -1268,34 +1287,11 @@ const App: React.FC = () => {
         </div>
         <ul className="sidvin-sidebar-menu space-y-1">
           <li><NavLink icon="dashboard" label="Dashboard" onClick={() => handleViewChange('dashboard')} isActive={currentView === 'dashboard'} /></li>
-          <li><SectionToggle icon="proposal" label="Proposal" isOpen={expandedSections.proposalStages} onClick={() => toggleSection('proposalStages')} /></li>
-          {expandedSections.proposalStages && (
-            <>
-              <li><NavLink label={`All Proposals (${proposals.length})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter('All'); }} isActive={currentView === 'proposals' && selectedStageFilter === 'All'} isSubItem /></li>
-              {allProposalStages.map(stage => <li key={stage}><NavLink label={`${stage} (${stageCounts[stage] || 0})`} onClick={() => { handleViewChange('proposals'); setSelectedStageFilter(stage); }} isActive={currentView === 'proposals' && selectedStageFilter === stage} isSubItem /></li>)}
-            </>
-          )}
-          <li><SectionToggle icon="property" label="Property" isOpen={expandedSections.propertyTasks} onClick={() => toggleSection('propertyTasks')} /></li>
-          {expandedSections.propertyTasks && (
-            <>
-              <li><NavLink label={`Properties (${properties.length})`} onClick={() => { handleViewChange('properties'); setSelectedPropertyTaskFilter('All'); }} isActive={currentView === 'properties' && selectedPropertyTaskFilter === 'All'} isSubItem /></li>
-              {propertyTaskStatuses.map((status) => (
-                <li key={status}>
-                  <NavLink
-                    label={`${getPropertyTaskLabel(status)} (${propertyTaskCounts[status] || 0})`}
-                    onClick={() => handlePropertyTaskView(status)}
-                    isActive={currentView === 'properties' && selectedPropertyTaskFilter === status}
-                    isSubItem
-                  />
-                </li>
-              ))}
-            </>
-          )}
+          <li><NavLink icon="proposal" label="Proposal" onClick={() => { setSelectedStageFilter('All'); handleViewChange('proposals'); }} isActive={currentView === 'proposals'} /></li>
+          <li><NavLink icon="property" label="Property" onClick={() => { setSelectedPropertyTaskFilter('All'); handleViewChange('properties'); }} isActive={currentView === 'properties'} /></li>
           <li><SectionToggle icon="deposit" label="Deposit" isOpen={expandedSections.deposit} onClick={() => toggleSection('deposit')} /></li>
           {expandedSections.deposit && (
-            <>
-              <li><NavLink label={`Pending Deposit (${pendingDepositCount})`} onClick={() => handleViewChange('pendingDeposit')} isActive={currentView === 'pendingDeposit'} isSubItem /></li>
-            </>
+            <li><NavLink label={`Pending Deposit (${pendingDepositCount})`} onClick={() => handleViewChange('pendingDeposit')} isActive={currentView === 'pendingDeposit'} isSubItem /></li>
           )}
           <li><SectionToggle icon="master" label="Master" isOpen={expandedSections.masterData} onClick={() => toggleSection('masterData')} /></li>
           {expandedSections.masterData && (
@@ -1432,5 +1428,34 @@ const NavLink: React.FC<NavLinkProps> = ({ label, onClick, isActive, isSubItem =
     </button>
   );
 };
+
+interface FilterTabItem {
+  id: string;
+  label: string;
+  count: number;
+}
+
+const FilterTabs: React.FC<{
+  ariaLabel: string;
+  activeId: string;
+  items: FilterTabItem[];
+  onChange: (id: string) => void;
+}> = ({ ariaLabel, activeId, items, onChange }) => (
+  <div className="sidvin-view-tabs" role="tablist" aria-label={ariaLabel}>
+    {items.map((item) => (
+      <button
+        key={item.id}
+        type="button"
+        role="tab"
+        aria-selected={activeId === item.id}
+        onClick={() => onChange(item.id)}
+        className={`sidvin-view-tab ${activeId === item.id ? 'is-active' : ''}`}
+      >
+        <span>{item.label}</span>
+        <span className="sidvin-view-tab-count">{item.count}</span>
+      </button>
+    ))}
+  </div>
+);
 
 export default App;
