@@ -141,10 +141,6 @@ const App: React.FC = () => {
     }
     return false;
   });
-  const [expandedSections, setExpandedSections] = useState({
-    deposit: false,
-  });
-
   const clearData = () => {
     setProperties([]);
     setBrands([]);
@@ -412,10 +408,6 @@ const App: React.FC = () => {
     setPropertyReturnView('properties'); // Always return to unified view
     setEditingProperty(property);
     setCurrentView('editProperty');
-  };
-
-  const toggleSection = (section: 'deposit') => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
   const getStageReceiptEntries = (stage: TermSheetAgreement['depositStages'][number]) => {
@@ -1434,13 +1426,6 @@ interface NavLinkProps {
   icon?: SidebarIconName;
 }
 
-interface SectionToggleProps {
-  label: string;
-  isOpen: boolean;
-  onClick: () => void;
-  icon: SidebarIconName;
-}
-
 const SidebarIcon: React.FC<{ name: SidebarIconName; className?: string }> = ({ name, className = 'h-5 w-5' }) => {
   const paths: Record<SidebarIconName, string> = {
     dashboard: 'M3 10.5 12 3l9 7.5M5.5 9v11h13V9M9 20v-6h6v6',
@@ -1458,17 +1443,8 @@ const SidebarIcon: React.FC<{ name: SidebarIconName; className?: string }> = ({ 
   return <svg aria-hidden="true" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={paths[name]} /></svg>;
 }
 
-const SectionToggle: React.FC<SectionToggleProps> = ({ label, isOpen, onClick, icon }) => (
-  <button type="button" onClick={onClick} aria-expanded={isOpen} className="sidvin-section-toggle">
-    <span className="sidvin-nav-label"><SidebarIcon name={icon} /><span>{label}</span></span>
-    <svg className={`sidvin-chevron ${isOpen ? 'is-open' : ''}`} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m6 8 4 4 4-4" />
-    </svg>
-  </button>
-);
-
 const NavLink: React.FC<NavLinkProps> = ({ label, onClick, isActive, isSubItem = false, icon }) => {
-  const countMatch = isSubItem ? label.match(/^(.*) \((\d+)\)$/) : null;
+  const countMatch = label.match(/^(.*) \((\d+)\)$/);
   return (
     <button type="button" onClick={onClick} className={`sidvin-nav-link ${isSubItem ? 'sidvin-nav-sub-link' : ''} ${isActive ? 'is-active' : ''}`}>
       <span className="sidvin-nav-label">
