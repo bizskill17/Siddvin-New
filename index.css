@@ -349,6 +349,54 @@ body {
   font-weight: 750;
 }
 
+.sidvin-proposal-menu-toggle {
+  background: var(--sidvin-orange);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--sidvin-orange) 22%, transparent);
+}
+.sidvin-proposal-menu-toggle:hover {
+  background: var(--sidvin-orange-hover);
+}
+
+@media (min-width: 1024px) {
+  .sidvin-proposal-toolbar {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .sidvin-proposal-toolbar > div:first-child {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+  }
+
+  .sidvin-proposal-toolbar-controls {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+  }
+
+  .sidvin-proposal-search {
+    flex: 1 1 180px;
+    min-width: 160px;
+    width: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .sidvin-proposal-toolbar {
+    align-items: flex-start;
+  }
+
+  .sidvin-proposal-toolbar-controls {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+
+  .sidvin-proposal-search {
+    flex-basis: 100%;
+  }
+}
+
 .sidvin-view-tab.is-active .sidvin-view-tab-count {
   background: rgba(255, 255, 255, .2);
 }

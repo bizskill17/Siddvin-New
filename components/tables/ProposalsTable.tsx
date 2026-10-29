@@ -87,7 +87,7 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
     return text.includes(searchTerm.trim().toLowerCase());
   });
 
-  const toolbarClassName = `mb-4 flex flex-wrap items-center justify-between gap-3`;
+  const toolbarClassName = `sidvin-proposal-toolbar mb-4 flex flex-wrap items-center justify-between gap-3`;
   const hasInlineHeader = toolbarInline && !!toolbarTitle;
 
   return (
@@ -96,16 +96,16 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
         {hasInlineHeader ? (
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             {toolbarLeadingAction}
-            <h1 className="text-2xl font-bold text-orange-700 sm:text-3xl">{toolbarTitle}</h1>
+            <h1 className="shrink-0 text-2xl font-bold sm:text-3xl" style={{ color: 'var(--sidvin-orange)' }}>{toolbarTitle}</h1>
           </div>
         ) : !toolbarInline ? <h2 className="text-xl font-semibold text-gray-900">Proposals</h2> : null}
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="sidvin-proposal-toolbar-controls flex flex-wrap items-center justify-end gap-2">
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search proposals..."
-            className="w-full sm:w-[min(28rem,40vw)] px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="sidvin-proposal-search w-full sm:w-[min(20rem,26vw)] px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
           <ExportIconButton
           kind="excel"

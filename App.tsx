@@ -1061,6 +1061,19 @@ const App: React.FC = () => {
       onUpdate={(p) => getProposalUpdateAction(p)?.open()}
       selectedStage={selectedStageFilter}
       toolbarInline
+      toolbarLeadingAction={(
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className="sidvin-proposal-menu-toggle inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white"
+          aria-label={isSidebarOpen ? 'Hide left menu' : 'Show left menu'}
+          title={isSidebarOpen ? 'Hide left menu' : 'Show left menu'}
+        >
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      )}
       toolbarTitle={selectedStageFilter === 'All' ? 'All Proposals' : selectedStageFilter.replace(/^\d+\.\s*/, '')}
       toolbarTabs={(
         <FilterTabs
@@ -1077,7 +1090,13 @@ const App: React.FC = () => {
           onChange={(stage) => setSelectedStageFilter(stage as CurrentStageEnum | 'All')}
         />
       )}
-      toolbarActions={<Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>}
+      toolbarActions={(
+        <div className="sidvin-proposal-toolbar-actions flex shrink-0 items-center gap-2">
+          <Button onClick={() => handleViewChange('addProposal')}>Create New Proposal</Button>
+          <button type="button" onClick={() => handleViewChange('dashboard')} className="rounded-lg border border-[var(--sidvin-line)] bg-[var(--sidvin-card)] px-3 py-2 text-sm font-semibold text-[var(--sidvin-orange)] hover:bg-[var(--sidvin-soft)]">Back</button>
+          <img src={viewSettings.logoDataUrl || "https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg"} alt={`${viewSettings.orgName || 'Sidvin'} Logo`} className="h-10 w-auto max-w-[64px] object-contain" />
+        </div>
+      )}
     />
   );
 
@@ -1378,7 +1397,7 @@ const App: React.FC = () => {
 
       <div className="flex-grow flex flex-col min-h-screen">
         <main className="flex-grow p-2 sm:p-4 overflow-y-auto">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
+          {currentView !== 'proposals' && <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -1396,7 +1415,7 @@ const App: React.FC = () => {
               {currentView !== 'dashboard' && <button type="button" onClick={() => handleViewChange('dashboard')} className="rounded-lg border border-[var(--sidvin-line)] bg-[var(--sidvin-card)] px-3 py-1.5 text-sm font-semibold text-[var(--sidvin-orange)] hover:bg-[var(--sidvin-soft)]">Back</button>}
               <img src={viewSettings.logoDataUrl || "https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg"} alt={`${viewSettings.orgName || 'Sidvin'} Logo`} className="h-12 md:h-16 w-auto max-w-[150px] object-contain" />
             </div>
-          </div>
+          </div>}
           {renderContent()}
         </main>
       </div>
