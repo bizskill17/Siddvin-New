@@ -1041,7 +1041,7 @@ const App: React.FC = () => {
           { id: 'All', label: 'All', count: proposals.length },
           ...allProposalStages.map((stage) => ({
             id: stage,
-            label: stage.replace(/^\\d+\\.\\s*/, ''),
+            label: stage.replace(/^\d+\.\s*/, ''),
             count: stageCounts[stage] || 0,
           })),
         ]}
