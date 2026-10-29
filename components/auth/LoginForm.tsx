@@ -47,7 +47,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToPropertyPortal
 	            className="h-24 w-auto object-contain"
 	          />
 	        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="sidvin-login-heading mt-6 text-center text-3xl font-extrabold">
           Sign in to {orgName}
         </h2>
       </div>
@@ -113,7 +113,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToPropertyPortal
                 <button
                   type="button"
                   onClick={onSwitchToPropertyPortal}
-                  className="w-full text-sm font-semibold text-slate-700 hover:text-slate-900 underline decoration-dotted"
+                  className="sidvin-login-link w-full text-sm font-semibold underline decoration-dotted"
                 >
                   Open Property Dashboard Login
                 </button>

@@ -612,6 +612,20 @@ h2 {
   border-radius: 16px;
   color: var(--sidvin-ink);
 }
+.sidvin-login-heading {
+  color: var(--sidvin-ink);
+}
+.sidvin-login-link {
+  color: var(--sidvin-orange);
+}
+.sidvin-login-link:hover {
+  color: var(--sidvin-orange-hover);
+}
+.sidvin-login-glow {
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--sidvin-orange) 24%, transparent), transparent 32%),
+    radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--sidvin-rust) 16%, transparent), transparent 35%);
+}
 .sidvin-login-submit {
   background: var(--sidvin-orange) !important;
 }
@@ -627,6 +641,38 @@ h2 {
 }
 .property-portal[data-color-theme] header {
   border-color: var(--sidvin-line) !important;
+}
+.property-portal[data-color-theme] input:focus {
+  border-color: var(--sidvin-orange) !important;
+  --tw-ring-color: var(--sidvin-orange) !important;
+}
+
+.dashboard-card {
+  border-color: var(--sidvin-line);
+  background: var(--sidvin-card);
+}
+.dashboard-accent-icon {
+  background: color-mix(in srgb, var(--sidvin-orange) 10%, var(--sidvin-card));
+  color: var(--sidvin-orange);
+}
+.dashboard-count {
+  border-color: color-mix(in srgb, var(--sidvin-orange) 28%, var(--sidvin-line));
+  background: color-mix(in srgb, var(--sidvin-orange) 8%, var(--sidvin-card));
+  color: var(--sidvin-orange);
+}
+.dashboard-stage-card {
+  border-color: color-mix(in srgb, var(--sidvin-orange) 20%, var(--sidvin-line));
+  color: var(--sidvin-ink);
+}
+.dashboard-stage-card:hover {
+  border-color: var(--sidvin-orange);
+  background: color-mix(in srgb, var(--sidvin-orange) 6%, var(--sidvin-card));
+}
+.dashboard-stage-bar {
+  background: var(--sidvin-orange);
+}
+.dashboard-stage-card:hover .dashboard-stage-bar {
+  background: var(--sidvin-orange-hover);
 }
 .sidvin-nav-logo {
   display: block;

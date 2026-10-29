@@ -135,11 +135,11 @@ const AuthGate: React.FC<{
 
   return (
     <div className="property-portal min-h-screen bg-slate-950 text-white relative overflow-hidden" data-color-theme={theme}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(245,158,11,0.25),transparent_30%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.2),transparent_35%)]" />
+      <div className="sidvin-login-glow absolute inset-0" />
       <div className="relative mx-auto max-w-xl min-h-screen flex items-center px-4 py-8">
-        <section className="w-full rounded-3xl bg-white p-8 text-black shadow-2xl">
+        <section className="sidvin-login-card w-full rounded-3xl p-8 text-black shadow-2xl">
           <img src={logoDataUrl || 'https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg'} alt={`${orgName} Logo`} className="mx-auto mb-5 h-16 w-auto max-w-[180px] object-contain" />
-          <h2 className="text-xl font-bold" style={{ color: 'var(--sidvin-orange)' }}>Property Login</h2>
+          <h2 className="sidvin-login-heading text-xl font-bold">Property Login</h2>
           <form className="mt-5 space-y-4" onSubmit={onSubmit}>
             <div>
               <label className="block text-sm font-semibold mb-1">Property ID / Code *</label>
@@ -155,7 +155,7 @@ const AuthGate: React.FC<{
           <div className="mt-4 text-center">
             <button
               type="button"
-              className="text-sm font-semibold text-black underline decoration-dotted underline-offset-4 hover:text-slate-700"
+              className="sidvin-login-link text-sm font-semibold underline decoration-dotted underline-offset-4"
               onClick={onBackToTeamLogin}
             >
               Back to Sidvin Team Login
