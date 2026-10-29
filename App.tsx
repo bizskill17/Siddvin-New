@@ -398,11 +398,6 @@ const App: React.FC = () => {
     });
   };
 
-  const handlePropertyTaskView = (status: PropertyTaskStatus) => {
-    setSelectedPropertyTaskFilter(status);
-    handleViewChange('properties');
-  };
-
   const handleAddPropertyView = () => {
     setPropertyReturnView('properties');
     handleViewChange('addProperty');
