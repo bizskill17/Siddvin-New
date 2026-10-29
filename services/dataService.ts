@@ -677,6 +677,11 @@ export const addCategoryMasterOption = async (name: string, updatedBy = 'System'
   const res: any = await postJson({ action: 'create', entity: ENTITY_MAP.categoryMaster, data: payload, updatedBy });
   return normalizeMasterOption(res.data);
 };
+export const updateCompanyMasterOption = async (id: string, name: string, updatedBy = 'System'): Promise<MasterOptionItem> => {
+  const payload = { name };
+  const res: any = await postJson({ action: 'update', entity: ENTITY_MAP.companyMaster, id, data: payload, updatedBy });
+  return normalizeMasterOption(res.data);
+};
 export const updateCategoryMasterOption = async (id: string, name: string, updatedBy = 'System'): Promise<MasterOptionItem> => {
   const payload = { name };
   const res: any = await postJson({ action: 'update', entity: ENTITY_MAP.categoryMaster, id, data: payload, updatedBy });

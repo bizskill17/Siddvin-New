@@ -422,6 +422,22 @@ const App: React.FC = () => {
       await refreshData();
     });
   };
+  const editCompanyOption = async (oldValue: string, nextValue: string) => {
+    const normalized = nextValue.trim();
+    if (!normalized || normalized === oldValue) return;
+    if (companyOptions.some((value) => value.toLowerCase() === normalized.toLowerCase() && value.toLowerCase() !== oldValue.toLowerCase())) {
+      window.alert('Company already exists.');
+      return;
+    }
+    const masterOption = companyMasterOptions.find((option) => option.name.toLowerCase() === oldValue.toLowerCase());
+    const linkedBrands = brands.filter((brand) => (brand.companyName || '').trim().toLowerCase() === oldValue.toLowerCase());
+    await runWithSaving('Updating Company...', async () => {
+      if (masterOption?.id) await dataService.updateCompanyMasterOption(masterOption.id, normalized, currentUserName);
+      await Promise.all(linkedBrands.map((brand) => dataService.updateBrand({ ...brand, companyName: normalized }, currentUserName)));
+      await refreshData();
+    });
+  };
+
   const editCategoryOption = async (oldValue: string, nextValue: string) => {
     const normalized = nextValue.trim();
     if (!normalized || normalized === oldValue) return;
@@ -1153,7 +1169,7 @@ const App: React.FC = () => {
       { id: 'company', label: 'Company', view: 'companyMaster' as View },
       { id: 'category', label: 'Category', view: 'categoryMaster' as View },
       { id: 'brands', label: 'Brands', view: 'brands' as View },
-      { id: 'team', label: 'Sidvin Team', view: 'sidvinTeam' as View },
+      { id: 'team', label: 'Team', view: 'sidvinTeam' as View },
       { id: 'settings', label: 'Company Settings', view: 'viewSettings' as View },
     ] as const;
 
@@ -1256,17 +1272,17 @@ const App: React.FC = () => {
       case 'editProperty':
         return editingProperty ? <PropertyForm key={`${editingProperty.id}-${propertyFormSection || 'all'}`} initialData={editingProperty} focusField={propertyFocusField} section={propertyFormSection} onSubmit={(payload) => handleUpdateProperty({ ...editingProperty, ...payload })} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} /> : <div className="text-center py-8">Property not found for editing.</div>;
       case 'companyMaster':
-        return renderMasterSection('company', <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />);
+        return renderMasterSection('company', <CompanyCategoryView mode="company" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onEditCompany={editCompanyOption} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />);
       case 'whatsappTemplates':
         return renderMasterSection('settings', <WhatsAppTemplatesView />);
       case 'viewSettings':
         return renderMasterSection('settings', <ViewSettingsView initialSettings={viewSettings} canEdit={['Admin', 'Super Admin'].includes(currentUserRole)} onSaved={setViewSettings} onBack={() => handleViewChange('companyMaster')} />);
       case 'categoryMaster':
-        return renderMasterSection('category', <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onEditCategory={editCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />);
+        return renderMasterSection('category', <CompanyCategoryView mode="category" companyOptions={companyOptions} categoryOptions={categoryOptions} brands={brands} onEditCompany={editCompanyOption} onAddCompany={addCompanyOption} onAddCategory={addCategoryOption} onEditCategory={editCategoryOption} onRemoveCompany={removeCompanyOption} onRemoveCategory={removeCategoryOption} />);
       case 'brands':
         return renderMasterSection('brands', (
           <>
-            <BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} toolbarTitle="Brands" toolbarLeadingAction={renderListMenuToggle} toolbarActions={renderListToolbarEnd(<Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button>)} />
+            <BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} toolbarTitle="Brands" toolbarActions={<Button onClick={() => handleViewChange('addBrand')}>+ Add Brand</Button>} />
           </>
         ));
       case 'addBrand':
@@ -1276,7 +1292,7 @@ const App: React.FC = () => {
       case 'sidvinTeam':
         return renderMasterSection('team', (
           <>
-            <SidvinTeamTable teamMembers={sidvinTeamMembers} onEdit={(m) => { setEditingTeamMember(m); setCurrentView('editTeamMember'); }} onDelete={(id) => handleDeleteClick(id, 'teamMember')} toolbarTitle="Sidvin Team" toolbarLeadingAction={renderListMenuToggle} toolbarActions={renderListToolbarEnd(<Button onClick={() => handleViewChange('addTeamMember')}>Add New Team Member</Button>)} />
+            <SidvinTeamTable teamMembers={sidvinTeamMembers} onEdit={(m) => { setEditingTeamMember(m); setCurrentView('editTeamMember'); }} onDelete={(id) => handleDeleteClick(id, 'teamMember')} toolbarTitle="Team" toolbarActions={<Button onClick={() => handleViewChange('addTeamMember')}>+ Add Team Member</Button>} />
           </>
         ));
       case 'addTeamMember':
@@ -1424,7 +1440,7 @@ const App: React.FC = () => {
         </div>
       </nav>
 
-      <div className="flex-grow flex flex-col min-h-screen">
+      <div className="flex-grow flex flex-col min-h-screen min-w-0">
         <main className="flex-grow p-2 sm:p-4 overflow-y-auto">
           {currentView !== 'proposals' && !hasListToolbar && !isMasterView && <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
             <div className="flex items-center gap-3">

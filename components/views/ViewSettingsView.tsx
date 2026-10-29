@@ -112,8 +112,6 @@ const ViewSettingsView: React.FC<ViewSettingsViewProps> = ({ initialSettings, ca
     <div className="mx-auto w-full max-w-5xl">
       <PageHeader
         title="View Settings"
-        onBack={onBack}
-        backLabel="Back to Dashboard"
       />
 
       {!canEdit && (

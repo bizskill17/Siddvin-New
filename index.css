@@ -1060,3 +1060,33 @@ h2 {
     min-width: 680px;
   }
 }
+
+/* Consistent master-data navigation and tables. */
+.sidvin-master-page { min-width: 0; --sidvin-orange: #165de8; --sidvin-line: #cbdcf5; --sidvin-card: #fff; --sidvin-soft: #f2f7ff; --sidvin-ink: #142b50; }
+.sidvin-master-page .sidvin-master-toolbar { display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
+.sidvin-master-page .sidvin-master-toolbar .sidvin-list-toolbar-controls { width: auto; flex: 0 0 auto; }
+.sidvin-master-page .sidvin-master-tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 0; gap: 8px; }
+.sidvin-master-page .sidvin-master-tab { flex: 0 0 auto; border: 0; border-bottom: 3px solid transparent; border-radius: 0; box-shadow: none; background: transparent; }
+.sidvin-master-page .sidvin-master-tab.is-active { color: #165de8; background: #f2f7ff; border-bottom-color: #165de8; }
+.sidvin-master-page .sidvin-list-toolbar { background: #fff; border-color: #cbdcf5; }
+.sidvin-master-page table { width: 100%; border-collapse: collapse; }
+.sidvin-master-page table th, .sidvin-master-page table td { border: 1px solid #cbdcf5 !important; padding: 12px 14px; }
+.sidvin-master-page table thead, .sidvin-master-page table th { background: #edf5ff !important; color: #142b50 !important; }
+.sidvin-master-page table tbody { background: #fff !important; }
+.sidvin-master-page table tbody tr:hover { background: #f5f9ff; }
+.sidvin-master-page .overflow-x-auto { border-color: #cbdcf5; max-width: 100%; }
+.sidvin-master-page .sidvin-list-toolbar-controls { gap: 8px; }
+.sidvin-master-editor { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid #cbdcf5; border-radius: 8px; background: #f2f7ff; }
+.sidvin-master-editor input { padding: 8px 12px; border: 1px solid #b6ccec; border-radius: 6px; min-width: 0; flex: 1; }
+.sidvin-master-page > div { min-width: 0; }
+@media (max-width: 640px) {
+  .sidvin-master-page .sidvin-master-toolbar .sidvin-list-toolbar-title { font-size: 18px; }
+  .sidvin-master-page .sidvin-master-toolbar .sidvin-list-toolbar-heading { gap: 6px; }
+  .sidvin-master-page .sidvin-master-toolbar img { max-width: 70px; height: 36px; }
+  .sidvin-master-page .sidvin-list-toolbar-controls > input[type="text"] { width: 100%; flex: 1 0 100%; }
+  .sidvin-master-page .sidvin-master-toolbar .sidvin-list-toolbar-controls { flex-wrap: nowrap; gap: 6px; }
+  .sidvin-master-page table { min-width: 540px; }
+  .sidvin-master-editor label { flex-basis: 100%; }
+}
+#root .sidvin-master-page table { border-collapse: collapse !important; }
+#root .sidvin-master-page table th, #root .sidvin-master-page table td { border-color: #cbdcf5 !important; }
