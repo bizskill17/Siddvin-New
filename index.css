@@ -284,6 +284,74 @@ body {
   outline-offset: 2px;
 }
 
+/* Status tabs inside Proposal and Property views */
+.sidvin-view-tabs {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 0 0 14px;
+  padding: 4px 2px 12px;
+  border-bottom: 1px solid var(--sidvin-line);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--sidvin-muted) 30%, transparent) transparent;
+}
+
+.sidvin-view-tab {
+  display: inline-flex;
+  min-height: 38px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 12px;
+  border: 1px solid var(--sidvin-line);
+  border-radius: 999px;
+  background: var(--sidvin-card);
+  color: var(--sidvin-ink);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease;
+}
+
+.sidvin-view-tab:hover {
+  border-color: var(--sidvin-orange);
+  color: var(--sidvin-orange);
+}
+
+.sidvin-view-tab.is-active {
+  border-color: var(--sidvin-orange);
+  background: var(--sidvin-orange);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--sidvin-orange) 22%, transparent);
+  color: #fff;
+}
+
+.sidvin-view-tab:focus-visible {
+  outline: 2px solid var(--sidvin-orange);
+  outline-offset: 2px;
+}
+
+.sidvin-view-tab-count {
+  display: inline-flex;
+  min-width: 21px;
+  height: 21px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sidvin-ink) 7%, transparent);
+  color: inherit;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.sidvin-view-tab.is-active .sidvin-view-tab-count {
+  background: rgba(255, 255, 255, .2);
+}
+
 /* Main workspace and top bar */
 #root > .min-h-screen.flex.relative main {
   padding: 24px 30px;
