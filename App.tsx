@@ -1353,10 +1353,7 @@ const App: React.FC = () => {
           <li><NavLink icon="dashboard" label="Dashboard" onClick={() => handleViewChange('dashboard')} isActive={currentView === 'dashboard'} /></li>
           <li><NavLink icon="proposal" label="Proposal" onClick={() => { setSelectedStageFilter('All'); handleViewChange('proposals'); }} isActive={currentView === 'proposals'} /></li>
           <li><NavLink icon="property" label="Property" onClick={() => { setSelectedPropertyTaskFilter('All'); handleViewChange('properties'); }} isActive={currentView === 'properties'} /></li>
-          <li><SectionToggle icon="deposit" label="Deposit" isOpen={expandedSections.deposit} onClick={() => toggleSection('deposit')} /></li>
-          {expandedSections.deposit && (
-            <li><NavLink label={`Pending Deposit (${pendingDepositCount})`} onClick={() => handleViewChange('pendingDeposit')} isActive={currentView === 'pendingDeposit'} isSubItem /></li>
-          )}
+          <li><NavLink icon="deposit" label={`Deposit (${pendingDepositCount})`} onClick={() => handleViewChange('pendingDeposit')} isActive={currentView === 'pendingDeposit'} /></li>
           <li><NavLink icon="master" label="Master" onClick={() => handleViewChange('companyMaster')} isActive={isMasterView} /></li>
         </ul>
         <div className="sidvin-sidebar-profile">
