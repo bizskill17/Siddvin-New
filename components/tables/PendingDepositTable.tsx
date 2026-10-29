@@ -158,7 +158,7 @@ const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
     closeReceiptForm();
   };
 
-  const toolbarClassName = `mb-4 flex flex-wrap items-center justify-end gap-2 ${toolbarInline ? 'sm:-mt-[4.25rem]' : ''}`;
+  const toolbarClassName = 'mb-4 flex w-full flex-wrap items-center justify-end gap-2';
 
   return (
     <div>
@@ -168,7 +168,7 @@ const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search deposits..."
-          className="px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="w-full sm:w-[min(28rem,40vw)] px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
         />
         <ExportIconButton
           kind="excel"

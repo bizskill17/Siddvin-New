@@ -105,7 +105,7 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search proposals..."
-            className="px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full sm:w-[min(28rem,40vw)] px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
           <ExportIconButton
           kind="excel"

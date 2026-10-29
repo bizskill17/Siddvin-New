@@ -160,6 +160,21 @@ try {
     ok(true);
   }
 
+  // Branding is public so both login screens can use the saved organization theme.
+  if ($method === 'GET' && $action === 'viewSettings') {
+    $stored = read_settings($pdo, ['view_settings'])['view_settings'] ?? null;
+    $saved = is_array($stored) ? json_decode((string)($stored['value'] ?? ''), true) : [];
+    if (!is_array($saved)) $saved = [];
+    $theme = (string)($saved['theme'] ?? 'terracotta');
+    $allowedThemes = ['terracotta', 'ocean', 'forest', 'plum'];
+    if (!in_array($theme, $allowedThemes, true)) $theme = 'terracotta';
+    $logoDataUrl = (string)($saved['logoDataUrl'] ?? '');
+    if (strlen($logoDataUrl) > 48000 || ($logoDataUrl !== '' && !preg_match('/^data:image\\/(?:png|jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/', $logoDataUrl))) $logoDataUrl = '';
+    $orgName = trim((string)($saved['orgName'] ?? 'Sidvin'));
+    if ($orgName === '' || strlen($orgName) > 240) $orgName = 'Sidvin';
+    ok(['settings' => ['logoDataUrl' => $logoDataUrl, 'orgName' => $orgName, 'theme' => $theme, 'updatedAt' => $stored['updated_at'] ?? null, 'updatedBy' => $stored['updated_by'] ?? null], 'canEditSettings' => false]);
+  }
+
   // ---- Everything below requires a valid session ----
   $session = current_session($pdo);
   if (!$session) fail(401, 'Please sign in again.');
@@ -170,32 +185,6 @@ try {
   if ($action === 'viewSettings' || $action === 'saveViewSettings') {
     if ($session['kind'] !== 'team') fail(403, 'Not allowed');
     $isAdmin = in_array($session['role'], ['Admin', 'Super Admin'], true);
-
-    if ($action === 'viewSettings') {
-      if ($method !== 'GET') fail(405, 'Method not allowed');
-      $stored = read_settings($pdo, ['view_settings'])['view_settings'] ?? null;
-      $saved = is_array($stored) ? json_decode((string)($stored['value'] ?? ''), true) : [];
-      if (!is_array($saved)) $saved = [];
-      $theme = (string)($saved['theme'] ?? 'terracotta');
-      $allowedThemes = ['terracotta', 'ocean', 'forest', 'plum'];
-      if (!in_array($theme, $allowedThemes, true)) $theme = 'terracotta';
-      $logoDataUrl = (string)($saved['logoDataUrl'] ?? '');
-      if (strlen($logoDataUrl) > 48000 || ($logoDataUrl !== '' && !preg_match('/^data:image\\/(?:png|jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/', $logoDataUrl))) {
-        $logoDataUrl = '';
-      }
-      $orgName = trim((string)($saved['orgName'] ?? 'Sidvin'));
-      if ($orgName === '' || strlen($orgName) > 240) $orgName = 'Sidvin';
-      ok([
-        'settings' => [
-          'logoDataUrl' => $logoDataUrl,
-          'orgName' => $orgName,
-          'theme' => $theme,
-          'updatedAt' => $stored['updated_at'] ?? null,
-          'updatedBy' => $stored['updated_by'] ?? null,
-        ],
-        'canEditSettings' => $isAdmin,
-      ]);
-    }
 
     if ($method !== 'POST') fail(405, 'Method not allowed');
     if (!$isAdmin) fail(403, 'Only Admin or Super Admin can change view settings.');

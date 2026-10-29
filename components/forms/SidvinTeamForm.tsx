@@ -24,6 +24,7 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
           email: initialData.email,
           role: initialData.role,
           password: initialData.password,
+          photoDataUrl: initialData.photoDataUrl || '',
         }
       : {
           name: '',
@@ -32,6 +33,7 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
           email: '',
           role: '',
           password: '',
+          photoDataUrl: '',
         }
   );
 
@@ -44,6 +46,7 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
         email: initialData.email,
         role: initialData.role,
         password: initialData.password,
+        photoDataUrl: initialData.photoDataUrl || '',
       });
     }
   }, [initialData]);
@@ -60,6 +63,28 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
     e.preventDefault();
     if (!formData.role) return;
     onSubmit(formData as Omit<SidvinTeamMember, 'id' | 'createdAt' | 'updatedAt' | 'updatedBy'>);
+  };
+
+  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return window.alert('Choose an image file.');
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const scale = Math.min(1, 320 / Math.max(image.width, image.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height);
+        const photoDataUrl = canvas.toDataURL('image/webp', 0.72);
+        if (photoDataUrl.length > 90000) return window.alert('This photo is still too large. Please choose a smaller image.');
+        setFormData((prev) => ({ ...prev, photoDataUrl }));
+      };
+      image.src = String(reader.result || '');
+    };
+    reader.readAsDataURL(file);
   };
 
   const roleOptions = [
@@ -79,6 +104,15 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
       <Input id="designation" label="Designation" value={formData.designation} onChange={handleChange} required />
       <Input id="mobile" label="Mobile" value={formData.mobile} onChange={handleChange} type="tel" required />
       <Input id="email" label="Email" value={formData.email} onChange={handleChange} type="email" required />
+      <div className="mb-4">
+        <label htmlFor="team-photo" className="mb-1 block text-sm font-medium text-gray-700">Profile Photo</label>
+        <div className="flex items-center gap-4">
+          {formData.photoDataUrl ? <img src={formData.photoDataUrl} alt="Profile preview" className="h-14 w-14 rounded-full border border-orange-200 object-cover" /> : <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-orange-700">Photo</div>}
+          <input id="team-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-orange-100 file:px-3 file:py-2 file:font-semibold file:text-orange-800" />
+          {formData.photoDataUrl && <Button type="button" variant="secondary" onClick={() => setFormData((prev) => ({ ...prev, photoDataUrl: '' }))}>Remove</Button>}
+        </div>
+        <p className="mt-1 text-xs text-gray-500">The photo appears beside the team member’s name in the left menu.</p>
+      </div>
       <SelectInput id="role" label="Role" options={roleOptions} value={formData.role} onChange={handleChange} required placeholder="Select Role" />
       <Input
         id="password"

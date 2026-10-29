@@ -114,6 +114,7 @@ function current_session(PDO $pdo): ?array {
       'name' => trim((string)($data['name'] ?? '')) ?: 'Unknown',
       'role' => trim((string)($data['role'] ?? '')) ?: 'Employee',
       'email' => trim((string)($data['email'] ?? '')),
+      'photoDataUrl' => trim((string)($data['photoDataUrl'] ?? '')),
     ];
   }
   return [
@@ -126,7 +127,7 @@ function current_session(PDO $pdo): ?array {
 
 function session_public(array $session): array {
   if ($session['kind'] === 'team') {
-    return ['kind' => 'team', 'user' => ['id' => $session['id'], 'name' => $session['name'], 'role' => $session['role'], 'email' => $session['email'] ?? '']];
+    return ['kind' => 'team', 'user' => ['id' => $session['id'], 'name' => $session['name'], 'role' => $session['role'], 'email' => $session['email'] ?? '', 'photoDataUrl' => $session['photoDataUrl'] ?? '']];
   }
   return ['kind' => 'property', 'property' => ['id' => $session['id'], 'name' => $session['name']]];
 }

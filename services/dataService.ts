@@ -117,7 +117,7 @@ const postJson = async <T>(body: any): Promise<T> => {
 };
 
 export type SessionInfo =
-  | { kind: 'team'; user: { id: string; name: string; role: UserRole; email: string } }
+  | { kind: 'team'; user: { id: string; name: string; role: UserRole; email: string; photoDataUrl?: string } }
   | { kind: 'property'; property: { id: string; name: string } };
 
 const startSession = (res: any): SessionInfo => {
@@ -358,6 +358,7 @@ const normalizeMember = (m: any): SidvinTeamMember => ({
   mobile: toCleanString(m?.mobile),
   email: toCleanString(m?.email),
   role: toCleanString(m?.role) as SidvinTeamMember['role'],
+  photoDataUrl: toCleanString(m?.photoDataUrl),
   // The API never returns passwords; this field is only used when submitting a new one.
   password: '',
   createdAt: m?.createdAt ? String(m.createdAt) : undefined,

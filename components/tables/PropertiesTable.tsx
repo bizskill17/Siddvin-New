@@ -35,7 +35,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onRowClic
     return text.includes(searchTerm.trim().toLowerCase());
   });
 
-  const toolbarClassName = `mb-4 flex flex-wrap items-center justify-end gap-2 ${toolbarInline ? 'sm:-mt-[4.25rem]' : ''}`;
+  const toolbarClassName = 'mb-4 flex w-full flex-wrap items-center justify-end gap-2';
 
   return (
     <div>
@@ -45,7 +45,7 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onRowClic
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search properties..."
-          className="px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="w-full sm:w-[min(28rem,40vw)] px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
         />
         <ExportIconButton
           kind="excel"

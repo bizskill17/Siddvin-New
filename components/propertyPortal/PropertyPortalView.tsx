@@ -16,6 +16,9 @@ interface PropertyPortalViewProps {
   onSessionEnd: () => void;
   onRefresh: () => Promise<void>;
   onBackToTeamLogin: () => void;
+  theme?: string;
+  logoDataUrl?: string;
+  orgName?: string;
 }
 
 interface ActivityItem {
@@ -104,7 +107,10 @@ const AuthGate: React.FC<{
   onAuthenticate: (session: SessionInfo) => void;
   onBackToTeamLogin: () => void;
   initialPropertyId?: string;
-}> = ({ onAuthenticate, onBackToTeamLogin, initialPropertyId = '' }) => {
+  theme?: string;
+  logoDataUrl?: string;
+  orgName?: string;
+}> = ({ onAuthenticate, onBackToTeamLogin, initialPropertyId = '', theme = 'terracotta', logoDataUrl, orgName = 'Sidvin' }) => {
   const [propertyId, setPropertyId] = useState(initialPropertyId);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -128,11 +134,12 @@ const AuthGate: React.FC<{
   };
 
   return (
-    <div className="property-portal min-h-screen bg-slate-950 text-white relative overflow-hidden">
+    <div className="property-portal min-h-screen bg-slate-950 text-white relative overflow-hidden" data-color-theme={theme}>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(245,158,11,0.25),transparent_30%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.2),transparent_35%)]" />
       <div className="relative mx-auto max-w-xl min-h-screen flex items-center px-4 py-8">
         <section className="w-full rounded-3xl bg-white p-8 text-black shadow-2xl">
-          <h2 className="text-xl font-bold">Property Login</h2>
+          <img src={logoDataUrl || 'https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg'} alt={`${orgName} Logo`} className="mx-auto mb-5 h-16 w-auto max-w-[180px] object-contain" />
+          <h2 className="text-xl font-bold" style={{ color: 'var(--sidvin-orange)' }}>Property Login</h2>
           <form className="mt-5 space-y-4" onSubmit={onSubmit}>
             <div>
               <label className="block text-sm font-semibold mb-1">Property ID / Code *</label>
@@ -143,7 +150,7 @@ const AuthGate: React.FC<{
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-500" placeholder="Enter password" required />
             </div>
             {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>}
-            <button type="submit" disabled={isSubmitting} className="w-full rounded-xl bg-slate-900 text-white py-2.5 font-semibold hover:bg-slate-700 disabled:opacity-60">{isSubmitting ? 'Signing in...' : 'Access Dashboard'}</button>
+            <button type="submit" disabled={isSubmitting} className="w-full rounded-xl text-white py-2.5 font-semibold disabled:opacity-60" style={{ background: 'var(--sidvin-orange)' }}>{isSubmitting ? 'Signing in...' : 'Access Dashboard'}</button>
           </form>
           <div className="mt-4 text-center">
             <button
@@ -214,6 +221,9 @@ const PropertyPortalView: React.FC<PropertyPortalViewProps> = ({
   onSessionEnd,
   onRefresh,
   onBackToTeamLogin,
+  theme = 'terracotta',
+  logoDataUrl,
+  orgName = 'Sidvin',
 }) => {
   const [sessionPropertyId, setSessionPropertyId] = useState(initialPropertyId || '');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -296,7 +306,7 @@ const PropertyPortalView: React.FC<PropertyPortalViewProps> = ({
   }, [bundles, masterRows]);
 
   if (!sessionPropertyId) {
-    return <AuthGate initialPropertyId={initialPropertyId} onAuthenticate={(session) => { if (session.kind === 'property') setSessionPropertyId(session.property.id); onSessionStart(session); }} onBackToTeamLogin={onBackToTeamLogin} />;
+    return <AuthGate initialPropertyId={initialPropertyId} onAuthenticate={(session) => { if (session.kind === 'property') setSessionPropertyId(session.property.id); onSessionStart(session); }} onBackToTeamLogin={onBackToTeamLogin} theme={theme} logoDataUrl={logoDataUrl} orgName={orgName} />;
   }
 
   if (!property) {
@@ -304,12 +314,12 @@ const PropertyPortalView: React.FC<PropertyPortalViewProps> = ({
   }
 
   return (
-    <div className="property-portal min-h-screen bg-amber-50 text-black">
+    <div className="property-portal min-h-screen bg-amber-50 text-black" data-color-theme={theme}>
       <header className="sticky top-0 z-20 bg-white border-b border-amber-300 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-2.5">
           <div className="grid grid-cols-[56px_1fr] items-start gap-3">
             <div className="flex justify-start">
-	              <img src="https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg" alt="Sidvin Logo" className="h-16 md:h-20 w-auto object-contain" />
+	              <img src={logoDataUrl || 'https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg'} alt={`${orgName} Logo`} className="h-16 md:h-20 w-auto object-contain" />
             </div>
             <div className="flex flex-col">
               <h1 className="portal-heading text-2xl font-bold text-[#7a5916] text-center">Property Dashboard</h1>

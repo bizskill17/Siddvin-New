@@ -127,7 +127,12 @@ const App: React.FC = () => {
 
   // The signed-in session comes from the server (see dataService.getSession); nothing here is trusted from localStorage.
   const [session, setSession] = useState<dataService.SessionInfo | null>(null);
-  const [portalMode, setPortalMode] = useState<PortalMode>(localStorage.getItem('sidvinPortalMode') === 'property' ? 'property' : 'team');
+  const [portalMode, setPortalMode] = useState<PortalMode>(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('portal') === 'property' || window.location.pathname === '/property-login') return 'property';
+    if (params.get('portal') === 'team' || window.location.pathname === '/team-login') return 'team';
+    return localStorage.getItem('sidvinPortalMode') === 'property' ? 'property' : 'team';
+  });
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('Submitting...');
@@ -151,7 +156,6 @@ const App: React.FC = () => {
     setProposals([]);
     setCompanyMasterOptions([]);
     setCategoryMasterOptions([]);
-    setViewSettings(DEFAULT_VIEW_SETTINGS);
   };
 
   const fetchData = useCallback(async (kind: dataService.SessionInfo['kind']) => {
@@ -184,7 +188,7 @@ const App: React.FC = () => {
     setProposals(calculated);
     setCompanyMasterOptions(companies);
     setCategoryMasterOptions(categories);
-    setViewSettings(viewSettingsResponse.settings);
+    if (isTeam) setViewSettings(viewSettingsResponse.settings);
   }, []);
 
   const signedOut = useCallback(() => {
@@ -209,11 +213,35 @@ const App: React.FC = () => {
 
   // Restore an existing session (if the stored token is still valid) on page load.
   useEffect(() => {
+    dataService.getViewSettings().then((result) => setViewSettings(result.settings)).catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    const syncPortalRoute = () => {
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('portal') === 'property' || window.location.pathname === '/property-login'
+        ? 'property'
+        : params.get('portal') === 'team' || window.location.pathname === '/team-login' ? 'team' : null;
+      if (mode) setPortalMode(mode);
+    };
+    window.addEventListener('popstate', syncPortalRoute);
+    return () => window.removeEventListener('popstate', syncPortalRoute);
+  }, []);
+
+  useEffect(() => {
     dataService.setUnauthorizedHandler(signedOut);
     let cancelled = false;
     dataService.getSession()
       .then((existing) => {
         if (cancelled) return;
+        const requested = new URLSearchParams(window.location.search).get('portal');
+        const explicitMode = requested === 'property' || window.location.pathname === '/property-login'
+          ? 'property'
+          : requested === 'team' || window.location.pathname === '/team-login' ? 'team' : null;
+        if (existing && explicitMode && existing.kind !== explicitMode) {
+          setIsInitialLoading(false);
+          return;
+        }
         if (existing) return beginSession(existing);
         setIsInitialLoading(false);
       })
@@ -258,12 +286,14 @@ const App: React.FC = () => {
     if (session?.kind === 'property') void logout();
     setPortalMode('team');
     localStorage.setItem('sidvinPortalMode', 'team');
+    window.history.pushState({}, '', '/?portal=team');
   };
 
   const switchToPropertyPortal = () => {
     if (session?.kind === 'team') void logout();
     setPortalMode('property');
     localStorage.setItem('sidvinPortalMode', 'property');
+    window.history.pushState({}, '', '/?portal=property');
   };
 
   const endPropertySession = () => {
@@ -891,6 +921,9 @@ const App: React.FC = () => {
     handleViewChange('sidvinTeam');
     await runWithSaving('Updating Team Member...', async () => {
       await dataService.updateSidvinTeamMember(updatedMember, currentUserName);
+      setSession((previous) => previous?.kind === 'team' && previous.user.id === updatedMember.id
+        ? { ...previous, user: { ...previous.user, name: updatedMember.name, role: updatedMember.role, email: updatedMember.email, photoDataUrl: updatedMember.photoDataUrl || '' } }
+        : previous);
       await refreshData();
     });
   };
@@ -1028,28 +1061,14 @@ const App: React.FC = () => {
       onUpdate={(p) => getProposalUpdateAction(p)?.open()}
       selectedStage={selectedStageFilter}
       toolbarInline
-      toolbarTitle={selectedStageFilter === 'All' ? 'Proposal Workflow' : selectedStageFilter}
-      toolbarLeadingAction={(
-        <Button
-          type="button"
-          size="sm"
-          onClick={() => handleViewChange('dashboard')}
-          aria-label="Back to Dashboard"
-          title="Back to Dashboard"
-          className="!h-9 !w-10 !p-0 inline-flex items-center justify-center"
-        >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M19 12H5m7 7-7-7 7-7" />
-          </svg>
-        </Button>
-      )}
+      toolbarTitle={selectedStageFilter === 'All' ? 'All Proposals' : selectedStageFilter.replace(/^\d+\.\s*/, '')}
       toolbarTabs={(
         <FilterTabs
           ariaLabel="Filter proposals by stage"
           activeId={selectedStageFilter}
           items={[
             { id: 'All', label: 'All', count: proposals.length },
-            ...allProposalStages.map((stage) => ({
+            ...allProposalStages.filter((stage) => (stageCounts[stage] || 0) > 0).map((stage) => ({
               id: stage,
               label: stage.replace(/^\d+\.\s*/, ''),
               count: stageCounts[stage] || 0,
@@ -1115,16 +1134,13 @@ const App: React.FC = () => {
       case 'properties':
         return (
           <div className="space-y-6">
-            {renderPageHeader('Properties', {
-              onBack: () => handleViewChange('dashboard'),
-              backLabel: 'Back to Dashboard',
-            })}
+            {renderPageHeader('Properties')}
             <FilterTabs
               ariaLabel="Filter properties by status"
               activeId={selectedPropertyTaskFilter}
               items={[
                 { id: 'All', label: 'All Properties', count: properties.length },
-                ...propertyTaskStatuses.map((status) => ({
+                ...propertyTaskStatuses.filter((status) => (propertyTaskCounts[status] || 0) > 0).map((status) => ({
                   id: status,
                   label: getPropertyTaskLabel(status),
                   count: propertyTaskCounts[status] || 0,
@@ -1169,10 +1185,7 @@ const App: React.FC = () => {
       case 'pendingDeposit':
         return (
           <>
-            {renderPageHeader('Pending Deposit', {
-              onBack: () => handleViewChange('dashboard'),
-              backLabel: 'Back to Dashboard',
-            })}
+            {renderPageHeader('Pending Deposit')}
             <PendingDepositTable proposals={proposals} properties={properties} brands={brands} termSheetAgreements={termSheetAgreements} onUpdateDepositReceived={handleUpdateDepositReceived} toolbarInline />
           </>
         );
@@ -1300,6 +1313,9 @@ const App: React.FC = () => {
         onSessionEnd={endPropertySession}
         onRefresh={refreshData}
         onBackToTeamLogin={switchToTeamPortal}
+        theme={viewSettings.theme}
+        logoDataUrl={viewSettings.logoDataUrl}
+        orgName={viewSettings.orgName}
       />
     );
   }
@@ -1309,6 +1325,9 @@ const App: React.FC = () => {
       <LoginForm
         onSwitchToPropertyPortal={switchToPropertyPortal}
         onLogin={(next) => { void beginSession(next); }}
+        theme={viewSettings.theme}
+        logoDataUrl={viewSettings.logoDataUrl}
+        orgName={viewSettings.orgName}
       />
     );
   }
@@ -1326,7 +1345,6 @@ const App: React.FC = () => {
       <nav className={`sidvin-sidebar fixed inset-y-0 left-0 w-72 text-white p-4 shadow-lg z-40 transform transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain [scrollbar-gutter:stable] flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="sidvin-sidebar-header">
           <div className="sidvin-nav-brand">
-            <span className="sidvin-workspace-label">WORKSPACE</span>
             <span className="sidvin-nav-brand-name">{viewSettings.orgName || 'Sidvin'}</span>
           </div>
           <button
@@ -1343,19 +1361,18 @@ const App: React.FC = () => {
         </div>
         <ul className="sidvin-sidebar-menu space-y-1">
           <li><NavLink icon="dashboard" label="Dashboard" onClick={() => handleViewChange('dashboard')} isActive={currentView === 'dashboard'} /></li>
-          <li><NavLink icon="proposal" label="Proposal" onClick={() => { setSelectedStageFilter('All'); handleViewChange('proposals'); }} isActive={currentView === 'proposals'} /></li>
-          <li><NavLink icon="property" label="Property" onClick={() => { setSelectedPropertyTaskFilter('All'); handleViewChange('properties'); }} isActive={currentView === 'properties'} /></li>
+          <li><NavLink icon="proposal" label="Proposals" onClick={() => { setSelectedStageFilter('All'); handleViewChange('proposals'); }} isActive={currentView === 'proposals'} /></li>
+          <li><NavLink icon="property" label="Properties" onClick={() => { setSelectedPropertyTaskFilter('All'); handleViewChange('properties'); }} isActive={currentView === 'properties'} /></li>
           <li><NavLink icon="deposit" label={`Deposit (${pendingDepositCount})`} onClick={() => handleViewChange('pendingDeposit')} isActive={currentView === 'pendingDeposit'} /></li>
-          <li><NavLink icon="master" label="Master" onClick={() => handleViewChange('companyMaster')} isActive={isMasterView} /></li>
+          <li><NavLink icon="master" label="Masters" onClick={() => handleViewChange('companyMaster')} isActive={isMasterView} /></li>
         </ul>
         <div className="sidvin-sidebar-profile">
-          <div className="sidvin-profile-avatar">
-            {currentUserName.split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'U'}
-          </div>
+          {teamUser?.photoDataUrl ? <img src={teamUser.photoDataUrl} alt={`${currentUserName} profile`} className="sidvin-profile-avatar object-cover" /> : <div className="sidvin-profile-avatar">{currentUserName.split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'U'}</div>}
           <div className="min-w-0">
             <div className="sidvin-profile-name">{currentUserName}</div>
             <div className="sidvin-profile-role">{currentUserRole}</div>
           </div>
+          <button type="button" onClick={() => { void logout(); }} className="ml-auto rounded-lg border border-white/15 px-2.5 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/10">Logout</button>
         </div>
       </nav>
 
@@ -1374,19 +1391,10 @@ const App: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
-              <div className="text-sm px-3 py-2 bg-amber-50 text-amber-900 rounded-md font-medium border border-amber-200 flex items-center justify-between gap-3">
-                <span>Welcome, {currentUserName} {currentUserRole ? `(${currentUserRole})` : ''}</span>
-                <button
-                  type="button"
-                  onClick={() => { void logout(); }}
-                  className="text-xs bg-red-100 text-red-700 hover:bg-red-200 px-2 py-1 rounded border border-red-200 font-semibold transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
             </div>
             <div className="flex items-center gap-3">
-	              <img src={viewSettings.logoDataUrl || "https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg"} alt="Sidvin Logo" className="h-16 md:h-20 w-auto object-contain" />
+              {currentView !== 'dashboard' && <button type="button" onClick={() => handleViewChange('dashboard')} className="rounded-lg border border-[var(--sidvin-line)] bg-[var(--sidvin-card)] px-3 py-1.5 text-sm font-semibold text-[var(--sidvin-orange)] hover:bg-[var(--sidvin-soft)]">Back</button>}
+              <img src={viewSettings.logoDataUrl || "https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg"} alt={`${viewSettings.orgName || 'Sidvin'} Logo`} className="h-12 md:h-16 w-auto max-w-[150px] object-contain" />
             </div>
           </div>
           {renderContent()}

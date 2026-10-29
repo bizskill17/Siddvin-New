@@ -72,6 +72,7 @@ export interface SidvinTeamMember extends AuditFields {
   email: string;
   role: UserRole;
   password: string;
+  photoDataUrl?: string;
 }
 
 export enum CurrentStageEnum {

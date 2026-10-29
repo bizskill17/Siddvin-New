@@ -1,6 +1,5 @@
 import React from 'react';
 import { Brand, CurrentStageEnum, Proposal, Property, Visit } from '../../types';
-import StageBadge from '../common/StageBadge';
 import { formatDateDisplay } from '../common/dateUtils';
 
 interface DashboardViewProps {
@@ -83,7 +82,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-600">Your proposal pipeline at a glance</p>
         </div>
       </div>
 
@@ -99,28 +97,25 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Proposal Stage Summary</h2>
-              <p className="mt-1 text-xs text-gray-500">Select a stage to open its proposal list.</p>
             </div>
-            <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-800">{proposals.length} total</span>
+            <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-800">{proposals.length}</span>
           </div>
-          <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 xl:grid-cols-3 2xl:grid-cols-5">
             {stageCounts.map(({ stage, count }) => (
               <button
                 key={stage}
                 type="button"
                 onClick={() => onStageClick(stage)}
-                className="group w-full rounded-lg px-2 py-2 text-left transition hover:bg-orange-50"
+                className="group flex min-w-0 flex-col items-center rounded-xl border border-orange-100 bg-white px-2 pb-2 pt-2 text-center transition hover:border-orange-300 hover:bg-orange-50"
                 title={`View proposals in ${stage}`}
               >
-                <span className="mb-1.5 flex items-center justify-between gap-3">
-                  <StageBadge stage={stage} />
-                  <span className="min-w-7 text-right text-sm font-bold text-gray-700">{count}</span>
+                <span className="flex h-24 w-full items-end justify-center border-b border-dashed border-gray-200">
+                  <span className="relative flex w-8 items-start justify-center rounded-t-md bg-orange-500 transition group-hover:bg-orange-600" style={{ height: count ? `${Math.max(10, (count / maxStageCount) * 76)}px` : '4px' }}>
+                    <span className="absolute -top-6 rounded-full border border-orange-200 bg-white px-2 py-0.5 text-xs font-bold text-gray-800">{count}</span>
+                  </span>
                 </span>
-                <span className="block h-2 overflow-hidden rounded-full bg-gray-100">
-                  <span
-                    className="block h-full rounded-full bg-orange-600 transition-all"
-                    style={{ width: count ? `${Math.max(7, (count / maxStageCount) * 100)}%` : '0%' }}
-                  />
+                <span className="mt-2 line-clamp-2 min-h-8 text-[11px] font-medium leading-4 text-gray-700">
+                  {stage.replace(/^\d+\.\s*/, '')}
                 </span>
               </button>
             ))}
