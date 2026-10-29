@@ -3,6 +3,7 @@ import { SidvinTeamMember } from '../../types';
 import Button from '../common/Button';
 import ExportIconButton from '../common/ExportIconButton';
 import { downloadTableAsPdf, exportRowsToCsv } from '../common/exportUtils';
+import ListPageToolbar from '../common/ListPageToolbar';
 
 interface SidvinTeamTableProps {
   teamMembers: SidvinTeamMember[];
@@ -10,20 +11,20 @@ interface SidvinTeamTableProps {
   onDelete?: (memberId: string) => void; // New prop for delete
   toolbarInline?: boolean;
   toolbarActions?: React.ReactNode;
+  toolbarTitle?: string;
+  toolbarLeadingAction?: React.ReactNode;
 }
 
-const SidvinTeamTable: React.FC<SidvinTeamTableProps> = ({ teamMembers, onEdit, onDelete , toolbarInline = false, toolbarActions}) => {
+const SidvinTeamTable: React.FC<SidvinTeamTableProps> = ({ teamMembers, onEdit, onDelete , toolbarInline = false, toolbarActions, toolbarTitle, toolbarLeadingAction}) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const visibleTeamMembers = teamMembers.filter((member) => {
     const text = [member.name, member.designation, member.mobile, member.email, member.role].join(' ').toLowerCase();
     return text.includes(searchTerm.trim().toLowerCase());
   });
 
-  const toolbarClassName = `mb-4 flex flex-wrap items-center justify-end gap-2 ${toolbarInline ? 'sm:-mt-[4.25rem]' : ''}`;
-
   return (
     <div>
-      <div className={toolbarClassName}>
+      {toolbarTitle ? <ListPageToolbar title={toolbarTitle} leadingAction={toolbarLeadingAction}>
         <input
           type="text"
           value={searchTerm}
@@ -43,7 +44,12 @@ const SidvinTeamTable: React.FC<SidvinTeamTableProps> = ({ teamMembers, onEdit, 
         />
         <ExportIconButton kind="pdf" onClick={() => downloadTableAsPdf('sidvin-team-table', 'Sidvin Team')} />
         {toolbarActions}
-      </div>
+      </ListPageToolbar> : <div className={`mb-4 flex flex-wrap items-center justify-end gap-2 ${toolbarInline ? 'sm:-mt-[4.25rem]' : ''}`}>
+        <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search team members..." className="px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+        <ExportIconButton kind="excel" onClick={() => exportRowsToCsv('sidvin-team', ['No.', 'Name', 'Designation', 'Mobile', 'Email', 'Role'], visibleTeamMembers.map((m, i) => [i + 1, m.name, m.designation, m.mobile, m.email, m.role]))} />
+        <ExportIconButton kind="pdf" onClick={() => downloadTableAsPdf('sidvin-team-table', 'Sidvin Team')} />
+        {toolbarActions}
+      </div>}
       <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-black">
       <table id="sidvin-team-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
         <thead className="bg-orange-700 text-white">

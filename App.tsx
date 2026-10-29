@@ -1007,6 +1007,30 @@ const App: React.FC = () => {
     />
   );
 
+  const renderListMenuToggle = (
+    <button
+      type="button"
+      onClick={toggleSidebar}
+      className="sidvin-proposal-menu-toggle inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white"
+      aria-label={isSidebarOpen ? 'Hide left menu' : 'Show left menu'}
+      title={isSidebarOpen ? 'Hide left menu' : 'Show left menu'}
+    >
+      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  );
+
+  const renderListToolbarEnd = (actions?: React.ReactNode) => (
+    <div className="sidvin-proposal-toolbar-actions flex shrink-0 items-center gap-2">
+      {actions}
+      <button type="button" onClick={() => handleViewChange('dashboard')} className="rounded-lg border border-[var(--sidvin-line)] bg-[var(--sidvin-card)] px-3 py-2 text-sm font-semibold text-[var(--sidvin-orange)] hover:bg-[var(--sidvin-soft)]">Back</button>
+      <img src={viewSettings.logoDataUrl || "https://i.ibb.co/kVFQsG9R/Whats-App-Image-2026-04-06-at-4-35-52-PM-1.jpg"} alt={`${viewSettings.orgName || 'Sidvin'} Logo`} className="h-10 w-auto max-w-[64px] object-contain" />
+    </div>
+  );
+
+  const hasListToolbar = ['properties', 'pendingDeposit', 'brands', 'sidvinTeam', 'visits', 'termSheets'].includes(currentView);
+
   /** The next step for a proposal at its current stage (green update icon in the lists). */
   const getProposalUpdateAction = (proposal: Proposal): { label: string; icon: StageActionIconName; open: () => void } | null => {
     const pendingVisit = visits
@@ -1153,21 +1177,6 @@ const App: React.FC = () => {
       case 'properties':
         return (
           <div className="space-y-6">
-            {renderPageHeader('Properties')}
-            <FilterTabs
-              ariaLabel="Filter properties by status"
-              activeId={selectedPropertyTaskFilter}
-              items={[
-                { id: 'All', label: 'All Properties', count: properties.length },
-                ...propertyTaskStatuses.filter((status) => (propertyTaskCounts[status] || 0) > 0).map((status) => ({
-                  id: status,
-                  label: getPropertyTaskLabel(status),
-                  count: propertyTaskCounts[status] || 0,
-                })),
-              ]}
-              onChange={(status) => setSelectedPropertyTaskFilter(status as PropertyTaskStatus | 'All')}
-            />
-
             <PropertiesTable 
               properties={selectedPropertyTaskFilter === 'All' ? properties : properties.filter(p => getPropertyTaskStatus(p) === selectedPropertyTaskFilter)} 
               onRowClick={handleViewPropertyDetails}
@@ -1176,8 +1185,22 @@ const App: React.FC = () => {
               onUpdate={(p) => handleEditPropertyView(p, 'properties', getPropertyUpdateAction(p) ?? undefined)} 
               onDelete={(id) => handleDeleteClick(id, 'property')} 
               getStatusLabel={(property) => getPropertyTaskLabel(getPropertyTaskStatus(property))} 
-              toolbarInline 
-              toolbarActions={<Button onClick={handleAddPropertyView}>Add New Property</Button>} 
+              toolbarTitle="Properties"
+              toolbarLeadingAction={renderListMenuToggle}
+              toolbarTabs={<FilterTabs
+                ariaLabel="Filter properties by status"
+                activeId={selectedPropertyTaskFilter}
+                items={[
+                  { id: 'All', label: 'All Properties', count: properties.length },
+                  ...propertyTaskStatuses.filter((status) => (propertyTaskCounts[status] || 0) > 0).map((status) => ({
+                    id: status,
+                    label: getPropertyTaskLabel(status),
+                    count: propertyTaskCounts[status] || 0,
+                  })),
+                ]}
+                onChange={(status) => setSelectedPropertyTaskFilter(status as PropertyTaskStatus | 'All')}
+              />}
+              toolbarActions={renderListToolbarEnd(<Button onClick={handleAddPropertyView}>Add New Property</Button>)}
             />
           </div>
         );
@@ -1203,10 +1226,7 @@ const App: React.FC = () => {
         return null;
       case 'pendingDeposit':
         return (
-          <>
-            {renderPageHeader('Pending Deposit')}
-            <PendingDepositTable proposals={proposals} properties={properties} brands={brands} termSheetAgreements={termSheetAgreements} onUpdateDepositReceived={handleUpdateDepositReceived} toolbarInline />
-          </>
+          <PendingDepositTable proposals={proposals} properties={properties} brands={brands} termSheetAgreements={termSheetAgreements} onUpdateDepositReceived={handleUpdateDepositReceived} toolbarTitle="Pending Deposit" toolbarLeadingAction={renderListMenuToggle} toolbarActions={renderListToolbarEnd()} />
         );
       case 'addProperty':
         return <PropertyForm onSubmit={handleAddProperty} onCancel={handleCancelForm} currentUserRole={currentUserRole} currentUserName={currentUserName} />;
@@ -1223,8 +1243,7 @@ const App: React.FC = () => {
       case 'brands':
         return renderMasterSection('brands', (
           <>
-            {renderPageHeader('Brands')}
-            <BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button>} />
+            <BrandsTable brands={brands} onEdit={(b) => { setEditingBrand(b); setCurrentView('editBrand'); }} onDelete={(id) => handleDeleteClick(id, 'brand')} toolbarTitle="Brands" toolbarLeadingAction={renderListMenuToggle} toolbarActions={renderListToolbarEnd(<Button onClick={() => handleViewChange('addBrand')}>Add New Brand</Button>)} />
           </>
         ));
       case 'addBrand':
@@ -1234,8 +1253,7 @@ const App: React.FC = () => {
       case 'sidvinTeam':
         return renderMasterSection('team', (
           <>
-            {renderPageHeader('Sidvin Team')}
-            <SidvinTeamTable teamMembers={sidvinTeamMembers} onEdit={(m) => { setEditingTeamMember(m); setCurrentView('editTeamMember'); }} onDelete={(id) => handleDeleteClick(id, 'teamMember')} toolbarInline toolbarActions={<Button onClick={() => handleViewChange('addTeamMember')}>Add New Team Member</Button>} />
+            <SidvinTeamTable teamMembers={sidvinTeamMembers} onEdit={(m) => { setEditingTeamMember(m); setCurrentView('editTeamMember'); }} onDelete={(id) => handleDeleteClick(id, 'teamMember')} toolbarTitle="Sidvin Team" toolbarLeadingAction={renderListMenuToggle} toolbarActions={renderListToolbarEnd(<Button onClick={() => handleViewChange('addTeamMember')}>Add New Team Member</Button>)} />
           </>
         ));
       case 'addTeamMember':
@@ -1244,13 +1262,7 @@ const App: React.FC = () => {
         return renderMasterSection('team', editingTeamMember ? <SidvinTeamForm initialData={editingTeamMember} onSubmit={(payload) => handleUpdateTeamMember({ ...editingTeamMember, ...payload })} onCancel={handleCancelForm} /> : <div className="text-center py-8">Team Member not found for editing.</div>);
       case 'visits':
         return (
-          <>
-            {renderPageHeader('All Site Visits', {
-              onBack: () => handleViewChange('dashboard'),
-              backLabel: 'Back to Dashboard',
-            })}
-            <VisitsTable visits={visits} onEdit={(v) => { setEditingVisit(v); setCurrentView('editVisit'); }} onDelete={(id) => handleDeleteClick(id, 'visit')} toolbarInline />
-          </>
+          <VisitsTable visits={visits} onEdit={(v) => { setEditingVisit(v); setCurrentView('editVisit'); }} onDelete={(id) => handleDeleteClick(id, 'visit')} toolbarTitle="All Site Visits" toolbarLeadingAction={renderListMenuToggle} toolbarActions={renderListToolbarEnd()} />
         );
       case 'editVisit':
         return editingVisit ? <EditVisitForm proposalId={editingVisit.proposalId} initialData={editingVisit} sidvinTeamMembers={sidvinTeamMembers} onSubmit={handleUpdateVisit} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">Visit not found for editing.</div>;
@@ -1258,13 +1270,7 @@ const App: React.FC = () => {
         return selectedProposalId ? <ScheduleVisitForm proposalId={selectedProposalId} onSubmit={handleScheduleVisit} onCancel={handleCancelForm} currentUserName={currentUserName} /> : <div className="text-center py-8">No proposal selected to schedule visit.</div>;
       case 'termSheets':
         return (
-          <>
-            {renderPageHeader('All Terms', {
-              onBack: () => handleViewChange('dashboard'),
-              backLabel: 'Back to Dashboard',
-            })}
-            <TermSheetAgreementsTable termSheets={termSheetAgreements} onEdit={(ts) => { setEditingTermSheet(ts); setCurrentView('editTermSheetDetails'); }} onDelete={(id) => handleDeleteClick(id, 'termSheet')} toolbarInline />
-          </>
+          <TermSheetAgreementsTable termSheets={termSheetAgreements} onEdit={(ts) => { setEditingTermSheet(ts); setCurrentView('editTermSheetDetails'); }} onDelete={(id) => handleDeleteClick(id, 'termSheet')} toolbarTitle="All Terms" toolbarLeadingAction={renderListMenuToggle} toolbarActions={renderListToolbarEnd()} />
         );
       case 'addTermSheetDetails':
       case 'editTermSheetDetails':
@@ -1397,7 +1403,7 @@ const App: React.FC = () => {
 
       <div className="flex-grow flex flex-col min-h-screen">
         <main className="flex-grow p-2 sm:p-4 overflow-y-auto">
-          {currentView !== 'proposals' && <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
+          {currentView !== 'proposals' && !hasListToolbar && <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
             <div className="flex items-center gap-3">
               <button
                 type="button"

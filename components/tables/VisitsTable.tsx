@@ -4,6 +4,7 @@ import Button from '../common/Button';
 import ExportIconButton from '../common/ExportIconButton';
 import { formatDateDisplay } from '../common/dateUtils';
 import { downloadTableAsPdf, exportRowsToCsv } from '../common/exportUtils';
+import ListPageToolbar from '../common/ListPageToolbar';
 
 interface VisitsTableProps {
   visits: Visit[];
@@ -11,9 +12,11 @@ interface VisitsTableProps {
   onDelete?: (visitId: string) => void; // New prop for delete
   toolbarInline?: boolean;
   toolbarActions?: React.ReactNode;
+  toolbarTitle?: string;
+  toolbarLeadingAction?: React.ReactNode;
 }
 
-const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete , toolbarInline = false, toolbarActions}) => {
+const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete , toolbarInline = false, toolbarActions, toolbarTitle, toolbarLeadingAction}) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const visibleVisits = visits.filter((visit) => {
     const text = [
@@ -30,11 +33,9 @@ const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete , to
     return text.includes(searchTerm.trim().toLowerCase());
   });
 
-  const toolbarClassName = `mb-4 flex flex-wrap items-center justify-end gap-2 ${toolbarInline ? 'sm:-mt-[4.25rem]' : ''}`;
-
   return (
     <div>
-      <div className={toolbarClassName}>
+      {toolbarTitle ? <ListPageToolbar title={toolbarTitle} leadingAction={toolbarLeadingAction}>
         <input
           type="text"
           value={searchTerm}
@@ -65,7 +66,12 @@ const VisitsTable: React.FC<VisitsTableProps> = ({ visits, onEdit, onDelete , to
         />
         <ExportIconButton kind="pdf" onClick={() => downloadTableAsPdf('visits-table', 'Visits')} />
         {toolbarActions}
-      </div>
+      </ListPageToolbar> : <div className={`mb-4 flex flex-wrap items-center justify-end gap-2 ${toolbarInline ? 'sm:-mt-[4.25rem]' : ''}`}>
+        <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search visits..." className="px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+        <ExportIconButton kind="excel" onClick={() => exportRowsToCsv('visits', ['No.', 'Scheduled Date', 'Scheduled Time', 'Meeting Type', 'Meeting Agenda', 'Visit Date', 'Developer Attendees', 'Brand Attendees', 'Sidvin Attendees', 'Visit Outcome'], visibleVisits.map((v, i) => [i + 1, formatDateDisplay(v.scheduledDate), v.scheduledTime || 'N/A', v.meetingType || 'N/A', v.meetingAgenda || 'N/A', formatDateDisplay(v.visitDate), v.developerAttendees || 'N/A', v.brandAttendees || 'N/A', v.sidvinAttendees || 'N/A', v.visitOutcome || 'N/A']))} />
+        <ExportIconButton kind="pdf" onClick={() => downloadTableAsPdf('visits-table', 'Visits')} />
+        {toolbarActions}
+      </div>}
       <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-black">
       <table id="visits-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
         <thead className="bg-orange-700 text-white">

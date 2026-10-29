@@ -4,6 +4,7 @@ import StageActionIcon, { StageActionIconName } from '../common/StageActionIcon'
 import Button from '../common/Button';
 import ExportIconButton from '../common/ExportIconButton';
 import { downloadTableAsPdf, exportRowsToCsv } from '../common/exportUtils';
+import ListPageToolbar from '../common/ListPageToolbar';
 
 interface PropertiesTableProps {
   properties: Property[];
@@ -16,9 +17,12 @@ interface PropertiesTableProps {
   onUpdate?: (property: Property) => void;
   toolbarInline?: boolean;
   toolbarActions?: React.ReactNode;
+  toolbarTitle?: string;
+  toolbarLeadingAction?: React.ReactNode;
+  toolbarTabs?: React.ReactNode;
 }
 
-const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onRowClick, onEdit, onDelete, getStatusLabel, getUpdateAction, onUpdate, toolbarInline = false, toolbarActions}) => {
+const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onRowClick, onEdit, onDelete, getStatusLabel, getUpdateAction, onUpdate, toolbarInline = false, toolbarActions, toolbarTitle, toolbarLeadingAction, toolbarTabs}) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const resolveStatus = (property: Property) => (getStatusLabel ? getStatusLabel(property) : property.propertyFeeStatus);
   const visibleProperties = properties.filter((property) => {
@@ -35,11 +39,9 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onRowClic
     return text.includes(searchTerm.trim().toLowerCase());
   });
 
-  const toolbarClassName = 'mb-4 flex w-full flex-wrap items-center justify-end gap-2';
-
   return (
     <div>
-      <div className={toolbarClassName}>
+      {toolbarTitle ? <ListPageToolbar title={toolbarTitle} leadingAction={toolbarLeadingAction}>
         <input
           type="text"
           value={searchTerm}
@@ -69,7 +71,13 @@ const PropertiesTable: React.FC<PropertiesTableProps> = ({ properties, onRowClic
         />
         <ExportIconButton kind="pdf" onClick={() => downloadTableAsPdf('properties-table', 'Properties')} />
         {toolbarActions}
-      </div>
+      </ListPageToolbar> : <div className="mb-4 flex w-full flex-wrap items-center justify-end gap-2">
+        <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search properties..." className="w-full sm:w-[min(28rem,40vw)] px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+        <ExportIconButton kind="excel" onClick={() => exportRowsToCsv('properties', ['Property Code', 'Address', 'Contact Name', 'Contact Mobile', 'Proposed Rent', 'Proposed Area', 'Property Status', 'Service Fee Proposed', 'Notes'], visibleProperties.map((p, i) => [`P-${p.serialNo || i + 1}`, p.address, p.contactPersons[0]?.name || 'N/A', p.contactPersons[0]?.mobile || 'N/A', p.proposedRent ?? 'N/A', p.proposedArea ?? 'N/A', resolveStatus(p), p.serviceFeeProposed, p.notes]))} />
+        <ExportIconButton kind="pdf" onClick={() => downloadTableAsPdf('properties-table', 'Properties')} />
+        {toolbarActions}
+      </div>}
+      {toolbarTabs && <div className="mb-4">{toolbarTabs}</div>}
       <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg border border-black">
       <table id="properties-table" className="min-w-full divide-y divide-gray-300 border-collapse [&_th]:border [&_th]:border-black [&_td]:border [&_td]:border-black">
         <thead className="bg-orange-700 text-white">

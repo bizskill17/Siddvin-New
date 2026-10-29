@@ -5,6 +5,7 @@ import DateInput from '../common/DateInput';
 import ExportIconButton from '../common/ExportIconButton';
 import { downloadTableAsPdf, exportRowsToCsv } from '../common/exportUtils';
 import Input from '../common/Input';
+import ListPageToolbar from '../common/ListPageToolbar';
 
 interface PendingDepositRow {
   proposal: Proposal;
@@ -28,6 +29,8 @@ interface PendingDepositTableProps {
   onUpdateDepositReceived: (termSheet: TermSheetAgreement, depositStageId: string, receiptDate: string, receiptAmount: number) => void;
   toolbarInline?: boolean;
   toolbarActions?: React.ReactNode;
+  toolbarTitle?: string;
+  toolbarLeadingAction?: React.ReactNode;
 }
 
 interface ReceiptFormState {
@@ -54,6 +57,8 @@ const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
   onUpdateDepositReceived,
   toolbarInline = false,
   toolbarActions,
+  toolbarTitle,
+  toolbarLeadingAction,
 }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [receiptForm, setReceiptForm] = React.useState<ReceiptFormState | null>(null);
@@ -158,11 +163,9 @@ const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
     closeReceiptForm();
   };
 
-  const toolbarClassName = 'mb-4 flex w-full flex-wrap items-center justify-end gap-2';
-
   return (
     <div>
-      <div className={toolbarClassName}>
+      {toolbarTitle ? <ListPageToolbar title={toolbarTitle} leadingAction={toolbarLeadingAction}>
         <input
           type="text"
           value={searchTerm}
@@ -190,7 +193,12 @@ const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
         />
         <ExportIconButton kind="pdf" onClick={() => downloadTableAsPdf('pending-deposit-table', 'Pending Deposits')} />
         {toolbarActions}
-      </div>
+      </ListPageToolbar> : <div className="mb-4 flex w-full flex-wrap items-center justify-end gap-2">
+        <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search deposits..." className="w-full sm:w-[min(28rem,40vw)] px-3 py-2 rounded-md border border-black text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+        <ExportIconButton kind="excel" onClick={() => exportRowsToCsv('pending_deposits', ['Proposal Code', 'Property Address', 'Brand Name', 'Total Deposit', 'Deposit Received', 'Next Deposit', 'Amount'], visibleRows.map((r) => [`Q-${r.proposal.serialNo || ''}`, r.propertyAddress, r.brandName, r.totalDeposit.toString(), r.depositReceived.toString(), r.nextDepositName, r.nextDepositAmount.toString()]))} />
+        <ExportIconButton kind="pdf" onClick={() => downloadTableAsPdf('pending-deposit-table', 'Pending Deposits')} />
+        {toolbarActions}
+      </div>}
       {receiptForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" role="dialog" aria-modal="true" aria-labelledby="update-receipt-title">
           <div className="w-full max-w-2xl rounded-xl bg-[#ece8e3] p-6 shadow-2xl">
