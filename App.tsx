@@ -144,6 +144,7 @@ const App: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState({
     deposit: false,
     masterData: false,
+    companySettings: false,
   });
 
   const clearData = () => {
@@ -415,7 +416,7 @@ const App: React.FC = () => {
     setCurrentView('editProperty');
   };
 
-  const toggleSection = (section: 'deposit' | 'masterData') => {
+  const toggleSection = (section: 'deposit' | 'masterData' | 'companySettings') => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
@@ -1038,7 +1039,20 @@ const App: React.FC = () => {
       selectedStage={selectedStageFilter}
       toolbarInline
       toolbarTitle={selectedStageFilter === 'All' ? 'Proposal Workflow' : selectedStageFilter}
-      toolbarLeadingAction={<Button onClick={() => handleViewChange('dashboard')}>Back to Dashboard</Button>}
+      toolbarLeadingAction={(
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => handleViewChange('dashboard')}
+          aria-label="Back to Dashboard"
+          title="Back to Dashboard"
+          className="!h-9 !w-10 !p-0 inline-flex items-center justify-center"
+        >
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M19 12H5m7 7-7-7 7-7" />
+          </svg>
+        </Button>
+      )}
       toolbarTabs={(
         <FilterTabs
           ariaLabel="Filter proposals by stage"
@@ -1312,6 +1326,11 @@ const App: React.FC = () => {
               <li><NavLink icon="category" label={`Category (${categoryMasterOptions.length})`} onClick={() => handleViewChange('categoryMaster')} isActive={currentView === 'categoryMaster'} isSubItem /></li>
               <li><NavLink icon="brands" label={`Brands (${brands.length})`} onClick={() => handleViewChange('brands')} isActive={currentView === 'brands'} isSubItem /></li>
               <li><NavLink icon="team" label={`Sidvin Team (${sidvinTeamMembers.length})`} onClick={() => handleViewChange('sidvinTeam')} isActive={currentView === 'sidvinTeam'} isSubItem /></li>
+            </>
+          )}
+          <li><SectionToggle icon="settings" label="Company Settings" isOpen={expandedSections.companySettings} onClick={() => toggleSection('companySettings')} /></li>
+          {expandedSections.companySettings && (
+            <>
               <li><NavLink icon="settings" label="View Settings" onClick={() => handleViewChange('viewSettings')} isActive={currentView === 'viewSettings'} isSubItem /></li>
               <li><NavLink icon="templates" label="WhatsApp Templates" onClick={() => handleViewChange('whatsappTemplates')} isActive={currentView === 'whatsappTemplates'} isSubItem /></li>
             </>
@@ -1471,4 +1490,5 @@ const FilterTabs: React.FC<{
 );
 
 export default App;
+
 
