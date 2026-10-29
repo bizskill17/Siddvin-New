@@ -931,6 +931,9 @@ h2 {
   flex-direction: column;
   gap: 16px;
 }
+.sidvin-master-toolbar {
+  margin-bottom: 0;
+}
 .sidvin-master-title {
   margin: 0;
   color: var(--sidvin-ink);

@@ -1144,7 +1144,15 @@ const App: React.FC = () => {
 
     return (
       <div className="sidvin-master-page">
-        <h1 className="sidvin-master-title">Master Data</h1>
+        <div className="sidvin-list-toolbar sidvin-master-toolbar">
+          <div className="sidvin-list-toolbar-heading">
+            {renderListMenuToggle}
+            <h1 className="sidvin-list-toolbar-title">Master Data</h1>
+          </div>
+          <div className="sidvin-list-toolbar-controls">
+            {renderListToolbarEnd()}
+          </div>
+        </div>
         <div className="sidvin-master-tabs" role="tablist" aria-label="Master data sections">
           {tabs.map((tab) => (
             <button
@@ -1403,7 +1411,7 @@ const App: React.FC = () => {
 
       <div className="flex-grow flex flex-col min-h-screen">
         <main className="flex-grow p-2 sm:p-4 overflow-y-auto">
-          {currentView !== 'proposals' && !hasListToolbar && <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
+          {currentView !== 'proposals' && !hasListToolbar && !isMasterView && <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
             <div className="flex items-center gap-3">
               <button
                 type="button"
