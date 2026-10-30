@@ -20,15 +20,11 @@ const parseLocalDate = (value: string | null | undefined): Date | null => {
   return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
 };
 
-const MetricCard: React.FC<{ title: string; value: string; icon: string; note?: string }> = ({ title, value, icon, note }) => (
+const MetricCard: React.FC<{ title: string; value: string }> = ({ title, value }) => (
   <section className="dashboard-card rounded-xl border p-4 shadow-sm">
-    <div className="flex items-start justify-between gap-3">
-      <div>
-        <p className="text-sm font-medium text-gray-600">{title}</p>
-        <p className="mt-2 text-2xl font-extrabold tracking-tight text-gray-900">{value}</p>
-        {note && <p className="mt-1 text-xs text-gray-500">{note}</p>}
-      </div>
-      <span className="dashboard-accent-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg font-bold" aria-hidden="true">{icon}</span>
+    <div className="flex items-center justify-between gap-4">
+      <p className="min-w-0 text-sm font-medium text-gray-600">{title}</p>
+      <p className="shrink-0 text-right text-2xl font-extrabold tracking-tight text-gray-900">{value}</p>
     </div>
   </section>
 );
@@ -86,10 +82,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-        <MetricCard title="Active Proposals" value={String(activeProposals)} icon="▤" note="Not yet completed" />
-        <MetricCard title="Visits This Week" value={String(visitsThisWeek)} icon="▦" note="Scheduled or completed this week" />
-        <MetricCard title="Pending Follow-ups" value={String(pendingFollowUps)} icon="◷" note="Proposals awaiting follow-up" />
-        <MetricCard title="Billed Fees" value={formatCurrency(billedFees)} icon="₹" note="Total invoiced amount" />
+        <MetricCard title="Active Proposals" value={String(activeProposals)} />
+        <MetricCard title="Visits This Week" value={String(visitsThisWeek)} />
+        <MetricCard title="Pending Follow-ups" value={String(pendingFollowUps)} />
+        <MetricCard title="Billed Fees" value={formatCurrency(billedFees)} />
       </div>
 
       <div className="space-y-6">
