@@ -12,7 +12,7 @@ import {
 import * as dataService from './services/dataService';
 import { MasterOptionItem } from './services/dataService';
 import PropertiesTable from './components/tables/PropertiesTable';
-import PendingDepositTable from './components/tables/PendingDepositTable';
+import PendingDepositTable, { getPendingDepositRows } from './components/tables/PendingDepositTable';
 import BrandsTable from './components/tables/BrandsTable';
 import ProposalsTable from './components/tables/ProposalsTable';
 import VisitsTable from './components/tables/VisitsTable';
@@ -1350,7 +1350,7 @@ const App: React.FC = () => {
     acc[status] = properties.filter((p) => getPropertyTaskStatus(p) === status).length;
     return acc;
   }, {} as Record<PropertyTaskStatus, number>);
-  const pendingDepositCount = termSheetAgreements.filter(ts => (ts.depositStages || []).some(ds => !ds.received)).length;
+  const pendingDepositCount = getPendingDepositRows(proposals, properties, brands, termSheetAgreements).length;
 
   if (isInitialLoading) {
     return (

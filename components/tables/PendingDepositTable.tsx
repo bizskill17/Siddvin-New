@@ -49,21 +49,9 @@ const getStageReceivedAmount = (stage: DepositStage): number => {
   return Math.max(0, fallbackAmount);
 };
 
-const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
-  proposals,
-  properties,
-  brands,
-  termSheetAgreements,
-  onUpdateDepositReceived,
-  toolbarInline = false,
-  toolbarActions,
-  toolbarTitle,
-  toolbarLeadingAction,
-}) => {
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [receiptForm, setReceiptForm] = React.useState<ReceiptFormState | null>(null);
-
-  const rows: PendingDepositRow[] = React.useMemo(() => {
+export const getPendingDepositRows = (
+  proposals: Proposal[], properties: Property[], brands: Brand[], termSheetAgreements: TermSheetAgreement[],
+): PendingDepositRow[] => {
     const result: PendingDepositRow[] = [];
     for (const ts of termSheetAgreements) {
       const stages = ts.depositStages || [];
@@ -113,6 +101,24 @@ const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
       });
     }
     return result;
+};
+
+const PendingDepositTable: React.FC<PendingDepositTableProps> = ({
+  proposals,
+  properties,
+  brands,
+  termSheetAgreements,
+  onUpdateDepositReceived,
+  toolbarInline = false,
+  toolbarActions,
+  toolbarTitle,
+  toolbarLeadingAction,
+}) => {
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [receiptForm, setReceiptForm] = React.useState<ReceiptFormState | null>(null);
+
+  const rows: PendingDepositRow[] = React.useMemo(() => {
+    return getPendingDepositRows(proposals, properties, brands, termSheetAgreements);
   }, [proposals, properties, brands, termSheetAgreements]);
 
   const visibleRows = rows.filter((row) => {
