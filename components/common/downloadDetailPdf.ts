@@ -22,6 +22,24 @@ export const downloadDetailPdf = async (elementId: string, filename: string): Pr
         node.style.overflow = 'visible';
         node.style.maxHeight = 'none';
       });
+      const isBlank = (value: string | null) => ['', 'N/A', '—', '-'].includes((value || '').trim().toUpperCase());
+      detail.querySelectorAll<HTMLTableElement>('table').forEach(table => {
+        const rows = Array.from(table.querySelectorAll<HTMLTableRowElement>('tbody tr'));
+        const headers = Array.from(table.querySelectorAll<HTMLTableCellElement>('thead tr:first-child th'));
+        for (let index = headers.length - 1; index >= 0; index--) {
+          const cells = rows.map(row => row.cells[index]).filter(Boolean);
+          if (cells.length && cells.every(cell => cell.colSpan === 1 && isBlank(cell.textContent))) {
+            headers[index].remove(); cells.forEach(cell => cell.remove());
+          }
+        }
+        table.style.width = '100%';
+        table.style.tableLayout = 'auto';
+        table.querySelectorAll<HTMLElement>('th, td').forEach(cell => {
+          cell.style.whiteSpace = 'normal'; cell.style.overflowWrap = 'anywhere';
+          cell.style.fontSize = '14px'; cell.style.padding = '10px';
+          cell.style.color = '#142b50'; cell.style.border = '1px solid #b8cbdc';
+        });
+      });
       // Keep section titles while excluding their interactive controls.
       detail.querySelectorAll<HTMLImageElement>('img').forEach(img => { img.loading = 'eager'; });
       await Promise.all(Array.from(detail.querySelectorAll<HTMLImageElement>('img')).map(img =>
@@ -32,7 +50,7 @@ export const downloadDetailPdf = async (elementId: string, filename: string): Pr
       ));
     },
   });
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const margin = 10;
   const pageWidth = pdf.internal.pageSize.getWidth() - margin * 2;
   const pageHeight = pdf.internal.pageSize.getHeight() - margin * 2;
@@ -52,3 +70,4 @@ export const downloadDetailPdf = async (elementId: string, filename: string): Pr
   }
   pdf.save(`${filename.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`);
 };
+

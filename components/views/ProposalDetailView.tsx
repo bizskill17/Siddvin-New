@@ -1,4 +1,5 @@
 import React from 'react';
+import { BACKEND_URL } from '../../services/dataService';
 import { Proposal, Property, Brand, Visit, TermSheetAgreement, ContactPerson, FollowUp, CurrentStageEnum, DepositStage } from '../../types';
 import StageBadge from '../common/StageBadge';
 import Button from '../common/Button';
@@ -82,6 +83,7 @@ const getPropertyPhotoSources = (rawUrl: string): string[] => {
       if (fileId) {
         const id = encodeURIComponent(fileId);
         return [
+          new URL(`property_photo.php?id=${id}`, new URL(BACKEND_URL, window.location.origin)).toString(),
           `https://drive.google.com/thumbnail?id=${id}&sz=w1200`,
           `https://drive.google.com/uc?export=view&id=${id}`,
           rawUrl,
@@ -230,9 +232,9 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-          <div><p className="font-medium text-gray-700">Property Code:</p><p className="text-gray-900">{property?.serialNo ? `P-${property.serialNo}` : 'N/A'}</p></div>
-          <div><p className="font-medium text-gray-700">Brand Code:</p><p className="text-gray-900">{brand?.serialNo ? `B-${brand.serialNo}` : 'N/A'}</p></div>
-          <div><p className="font-medium text-gray-700">Proposal Code:</p><p className="text-gray-900">{proposal.serialNo ? `Q-${proposal.serialNo}` : 'N/A'}</p></div>
+          <div data-export-ignore="true"><p className="font-medium text-gray-700">Property Code:</p><p className="text-gray-900">{property?.serialNo ? `P-${property.serialNo}` : 'N/A'}</p></div>
+          <div data-export-ignore="true"><p className="font-medium text-gray-700">Brand Code:</p><p className="text-gray-900">{brand?.serialNo ? `B-${brand.serialNo}` : 'N/A'}</p></div>
+          <div data-export-ignore="true"><p className="font-medium text-gray-700">Proposal Code:</p><p className="text-gray-900">{proposal.serialNo ? `Q-${proposal.serialNo}` : 'N/A'}</p></div>
 
           <div><p className="font-medium text-gray-700">Property Address:</p><p className="text-gray-900">{property?.address || 'N/A'}</p></div>
           <div><p className="font-medium text-gray-700">Property Contacts:</p><ContactList contacts={property?.contactPersons || []} /></div>
@@ -265,7 +267,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
       </div>
 
       <div className="mb-8">
-        <div className="flex justify-between items-center mb-4" data-export-ignore="true">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Follow-ups</h2>
           <Button onClick={() => onAddFollowUp(proposal.id)} disabled={hasScheduledVisit} title={hasScheduledVisit ? 'Cannot add follow-up while a visit is already scheduled.' : 'Add New Follow Up'}>Add New Follow Up</Button>
         </div>
@@ -273,7 +275,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
       </div>
 
       <div className="mb-8">
-        <div className="flex justify-between items-center mb-4" data-export-ignore="true">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Site Visits</h2>
           <Button onClick={() => onScheduleVisit(proposal.id)}>Schedule New Visit</Button>
         </div>
@@ -281,7 +283,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
       </div>
 
       <div>
-        <div className="flex justify-between items-center mb-4" data-export-ignore="true">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Terms</h2>
           <div className="flex gap-2">
             <Button size="sm" onClick={() => onAddOrEditTermSheetDetails(proposal.id, termSheetAgreement)}>{hasTermSheet ? 'Edit Terms' : 'Add Terms'}</Button>
@@ -378,6 +380,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
 };
 
 export default ProposalDetailView;
+
 
 
 
