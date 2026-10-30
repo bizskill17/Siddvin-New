@@ -113,7 +113,7 @@ const PropertyPhoto: React.FC<{ property?: Property }> = ({ property }) => {
   };
 
   return (
-    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg border border-gray-200 bg-[#f7eee5] sm:max-w-[220px]">
+    <div data-property-photo-url={rawPhotoUrl} className="relative aspect-[16/10] w-full overflow-hidden rounded-lg border border-gray-200 bg-[#f7eee5] sm:max-w-[220px]">
       {photoSources.length > 0 && !imageFailed ? (
         <img
           src={photoSources[sourceIndex]}
@@ -380,6 +380,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
 };
 
 export default ProposalDetailView;
+
 
 
 
