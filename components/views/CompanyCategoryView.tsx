@@ -83,8 +83,8 @@ const MasterTable: React.FC<CompanyCategoryViewProps & { kind: 'company' | 'cate
           <td>{name}</td>
           {kind === 'category' && <td><button type="button" className="sidvin-category-brand-count" disabled={!linked(name).length} aria-expanded={selected === name} onClick={() => setSelected(selected === name ? null : name)}>{linked(name).length} brands</button></td>}
           <td><div className="flex items-center gap-2 whitespace-nowrap">
-            <Button size="sm" onClick={() => setEditor({ original: name, value: name })}>Edit</Button>
-            <Button size="sm" variant="danger" onClick={() => requestRemove(name)}>Remove</Button>
+            <Button type="button" size="sm" className="p-1" title="Edit" aria-label={`Edit ${name}`} onClick={() => setEditor({ original: name, value: name })}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931ZM19.5 7.125 16.862 4.487M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg></Button>
+            <Button type="button" size="sm" variant="danger" className="p-1" title="Delete" aria-label={`Delete ${name}`} onClick={() => requestRemove(name)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6m4-6v6" /></svg></Button>
           </div></td>
         </tr>{selected === name && <tr><td colSpan={3}>Brands: {linked(name).map(brand => brand.name).join(' · ')}</td></tr>}</React.Fragment>)}
         {!visible.length && <tr><td colSpan={kind === 'category' ? 3 : 2}>No {kind === 'company' ? 'companies' : 'categories'} found.</td></tr>}
