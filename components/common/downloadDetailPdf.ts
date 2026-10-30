@@ -42,6 +42,17 @@ export const downloadDetailPdf = async (elementId: string, filename: string): Pr
           if (id) candidates.unshift(new URL(`property_photo.php?id=${encodeURIComponent(id)}`, new URL(BACKEND_URL, location.origin)).toString());
         }
       } catch { /* A regular image URL can still be fetched above. */ }
+      // Public images may render in an <img> while browser fetch is blocked by CORS.
+      // Request the displayed URL through the same-origin, host-restricted image endpoint.
+      const proxyBase = new URL('property_photo.php', new URL(BACKEND_URL, location.origin));
+      for (const candidate of [...candidates]) {
+        try {
+          const url = new URL(candidate, location.origin);
+          if (url.protocol === 'https:' && url.origin !== location.origin) {
+            const proxy = new URL(proxyBase); proxy.searchParams.set('url', url.toString()); candidates.unshift(proxy.toString());
+          }
+        } catch { /* Keep other available sources. */ }
+      }
       let blob: Blob | undefined;
       for (const candidate of new Set(candidates)) {
         try {
