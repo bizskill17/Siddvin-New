@@ -59,23 +59,24 @@ const MasterTable: React.FC<CompanyCategoryViewProps & { kind: 'company' | 'cate
     } finally { setBusy(false); }
   };
   return <section>
-    <ListPageToolbar title={title}>
+    {!editor && <ListPageToolbar title={title}>
       <input type="text" aria-label={`Search ${title.toLowerCase()}`} placeholder={`Search ${title.toLowerCase()}...`} value={search} onChange={event => setSearch(event.target.value)} />
       <ExportIconButton kind="excel" onClick={() => exportRowsToCsv(kind, kind === 'company' ? ['Company Name'] : ['Category', 'Brands'], visible.map(name => kind === 'company' ? [name] : [name, linked(name).length]))} />
       <ExportIconButton kind="pdf" onClick={() => downloadTableAsPdf(`${kind}-master-table`, title)} />
       <Button onClick={() => setEditor({ original: null, value: '' })}>+ Add {title}</Button>
-    </ListPageToolbar>
+    </ListPageToolbar>}
     {deleteError && <div className="mb-4 flex items-start justify-between gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
       <span>{deleteError}</span>
       <button type="button" className="shrink-0 font-semibold text-red-700 hover:text-red-900" onClick={() => setDeleteError(null)} aria-label="Dismiss delete validation message">Dismiss</button>
     </div>}
-    {editor && <form onSubmit={save} className="sidvin-master-editor">
+    {editor && <form onSubmit={save} className="sidvin-form sidvin-master-form">
+      <div className="sidvin-form-heading"><h2>{editor.original === null ? 'Add' : 'Edit'} {title}</h2></div>
       <label htmlFor={`${kind}-name`}>{editor.original === null ? 'Add' : 'Edit'} {title} Name</label>
       <input id={`${kind}-name`} autoFocus required value={editor.value} onChange={event => setEditor({ ...editor, value: event.target.value })} />
-      <Button type="submit" disabled={busy || !editor.value.trim()}>Save</Button>
-      <Button type="button" variant="secondary" disabled={busy} onClick={() => setEditor(null)}>Cancel</Button>
+      <div className="sidvin-form-footer"><Button type="submit" disabled={busy || !editor.value.trim()}>Save</Button>
+      <Button type="button" variant="secondary" disabled={busy} onClick={() => setEditor(null)}>Cancel</Button></div>
     </form>}
-    <div className="overflow-x-auto rounded-lg border border-blue-200">
+    {!editor && <div className="overflow-x-auto rounded-lg border border-blue-200">
       <table id={`${kind}-master-table`} className="sidvin-category-table min-w-full">
         <thead><tr><th scope="col">{kind === 'company' ? 'Company Name' : 'Category'}</th>{kind === 'category' && <th scope="col">Brands</th>}<th scope="col">Actions</th></tr></thead>
         <tbody>{visible.map(name => <React.Fragment key={name}><tr>
@@ -89,7 +90,7 @@ const MasterTable: React.FC<CompanyCategoryViewProps & { kind: 'company' | 'cate
         {!visible.length && <tr><td colSpan={kind === 'category' ? 3 : 2}>No {kind === 'company' ? 'companies' : 'categories'} found.</td></tr>}
         </tbody>
       </table>
-    </div>
+    </div>}
     <DeleteConfirmationModal confirmText="Remove" isOpen={removing !== null} onClose={() => setRemoving(null)} title={`Remove ${title}?`} message={`Remove “${removing || title}”? This action cannot be undone.`} onConfirm={async () => { if (!removing || busy) return; setBusy(true); try { await (kind === 'company' ? onRemoveCompany : onRemoveCategory)(removing); setRemoving(null); } finally { setBusy(false); } }} isProcessing={busy} />
   </section>;
 };

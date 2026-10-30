@@ -97,16 +97,19 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-[#ece8e3] rounded-lg shadow-md max-w-lg mx-auto">
-      <div className="flex items-center justify-between mb-4">
+    <form onSubmit={handleSubmit} className="sidvin-form">
+      <div className="sidvin-form-heading">
         <h2 className="text-2xl font-bold text-gray-800">{initialData ? 'Edit Follow Up' : 'Add New Follow Up'}</h2>
-        <Button type="button" variant="primary" onClick={onCancel}>Back</Button>
       </div>
 
+      <div className="sidvin-form-grid">
       <DateInput id="followUpDate" label="Follow Up Date" value={formData.followUpDate || ''} onChange={handleChange} required />
-      <LongTextInput id="remarks" label="Remarks" value={formData.remarks} onChange={handleChange} />
+
 
       <SelectInput id="status" label="Status" options={statusOptions} value={formData.status} onChange={handleStatusChange} required placeholder="Select Status" />
+      </div>
+      <LongTextInput id="remarks" label="Remarks" value={formData.remarks} onChange={handleChange} />
+      <div className="sidvin-form-grid">
 
       {(formData.status === 'Follow Up Again' || formData.status === 'Pending Details & Documentation') && (
         <DateInput id="nextFollowUpDate" label="Next Follow Up Date" value={formData.nextFollowUpDate || ''} onChange={handleChange} required />
@@ -122,7 +125,8 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
 
       <Input id="updatedByDisplay" label="Updated By" value={currentUserName} readOnly />
 
-      <div className="flex justify-end gap-3 mt-6">
+      </div>
+      <div className="sidvin-form-footer">
         <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
         <Button type="submit">{initialData ? 'Update Follow Up' : 'Add Follow Up'}</Button>
       </div>
@@ -131,6 +135,3 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ proposalId, initialData, on
 };
 
 export default FollowUpForm;
-
-
-

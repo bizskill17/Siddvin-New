@@ -95,15 +95,16 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-3xl p-6 bg-[#ece8e3] rounded-lg shadow-md mx-auto">
-      <div className="flex items-center justify-between mb-4">
+    <form onSubmit={handleSubmit} className="sidvin-form">
+      <div className="sidvin-form-heading">
         <h2 className="text-2xl font-bold text-gray-800">{initialData ? 'Edit Team Member' : 'Add New Team Member'}</h2>
-        <Button type="button" variant="primary" onClick={onCancel}>Back</Button>
       </div>
+      <section className="sidvin-form-section"><h3>Personal details</h3><div className="sidvin-form-grid">
       <Input id="name" label="Name" value={formData.name} onChange={handleChange} required />
       <Input id="designation" label="Designation" value={formData.designation} onChange={handleChange} required />
       <Input id="mobile" label="Mobile" value={formData.mobile} onChange={handleChange} type="tel" required />
       <Input id="email" label="Email" value={formData.email} onChange={handleChange} type="email" required />
+      </div></section><section className="sidvin-form-section">
       <div className="mb-4">
         <label htmlFor="team-photo" className="mb-1 block text-sm font-medium text-gray-700">Profile Photo</label>
         <div className="flex items-center gap-4">
@@ -113,6 +114,7 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
         </div>
         <p className="mt-1 text-xs text-gray-500">The photo appears beside the team member’s name in the left menu.</p>
       </div>
+      </section><section className="sidvin-form-section"><h3>Account access</h3><div className="sidvin-form-grid">
       <SelectInput id="role" label="Role" options={roleOptions} value={formData.role} onChange={handleChange} required placeholder="Select Role" />
       <Input
         id="password"
@@ -125,7 +127,8 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
         required={!initialData}
       />
 
-      <div className="flex justify-end gap-3 mt-6">
+      </div></section>
+      <div className="sidvin-form-footer">
         <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
         <Button type="submit">{initialData ? 'Update Member' : 'Add Member'}</Button>
       </div>
@@ -134,6 +137,3 @@ const SidvinTeamForm: React.FC<SidvinTeamFormProps> = ({ initialData, onSubmit, 
 };
 
 export default SidvinTeamForm;
-
-
-

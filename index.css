@@ -1090,3 +1090,29 @@ h2 {
 }
 #root .sidvin-master-page table { border-collapse: collapse !important; }
 #root .sidvin-master-page table th, #root .sidvin-master-page table td { border-color: #cbdcf5 !important; }
+
+
+/* Spacious responsive forms, shared by master and follow-up screens. */
+#root form.sidvin-form {
+  display: block; width: 100%; max-width: 1200px; margin: 0 auto;
+  padding: 24px; background: var(--sidvin-card, #fff) !important;
+  border: 1px solid var(--sidvin-line, #cbdcf5); border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(20, 43, 80, .05);
+}
+.sidvin-form-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.sidvin-form-heading h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--sidvin-ink); }
+.sidvin-form-section { padding: 0 0 18px; margin-bottom: 18px; border-bottom: 1px solid var(--sidvin-line); }
+.sidvin-form-section > h3 { margin: 0 0 14px; font-size: 16px; font-weight: 700; color: var(--sidvin-ink); }
+.sidvin-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.sidvin-form-grid > * { min-width: 0; }
+.sidvin-contact-card { padding: 16px; margin-bottom: 14px; border: 1px solid var(--sidvin-line); border-radius: 10px; background: var(--sidvin-soft); }
+.sidvin-contact-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sidvin-form-footer { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 10px; padding-top: 16px; border-top: 1px solid var(--sidvin-line); }
+#root .sidvin-master-form { max-width: none; }
+.sidvin-master-form > label { display: block; margin-bottom: 8px; font-weight: 600; }
+.sidvin-master-form > input { display: block; width: 100%; max-width: 640px; padding: 10px 12px; margin-bottom: 22px; border: 1px solid var(--sidvin-line); border-radius: 8px; }
+@media (max-width: 700px) {
+  #root form.sidvin-form { padding: 16px; }
+  .sidvin-form-grid, .sidvin-contact-grid { grid-template-columns: minmax(0, 1fr); }
+  .sidvin-form-heading h2 { font-size: 21px; }
+}
