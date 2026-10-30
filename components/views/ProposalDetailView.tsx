@@ -6,7 +6,7 @@ import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
 import VisitsTable from '../tables/VisitsTable';
 import FollowUpsTable from '../tables/FollowUpsTable';
 import { formatDateDisplay, formatDateTimeDisplay } from '../common/dateUtils';
-import { downloadElementAsPdf } from '../common/exportUtils';
+import { downloadDetailPdf } from '../common/downloadDetailPdf';
 
 interface ProposalDetailViewProps {
   proposal: Proposal;
@@ -154,6 +154,13 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
   onDeleteTermSheet,
   onDeleteReceipt,
 }) => {
+  const [isDownloadingPdf, setIsDownloadingPdf] = React.useState(false);
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+    try { await downloadDetailPdf('proposal-detail-export', `Proposal-Q-${proposal.serialNo || proposal.id}`); }
+    catch (error) { console.error(error); window.alert('Could not download the PDF. Please try again.'); }
+    finally { setIsDownloadingPdf(false); }
+  };
   const hasTermSheet = !!termSheetAgreement;
   const hasScheduledVisit = visits.some(v => !!v.scheduledDate && !v.visitDate);
 
@@ -195,13 +202,13 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{brand?.name || 'N/A Brand'} ({property?.address || 'N/A Property'})</h1>
         <div className="flex gap-2" data-export-ignore="true">
-          <Button variant="secondary" onClick={() => downloadElementAsPdf('proposal-detail-export', 'Proposal View')}>Download PDF</Button>
+          <Button variant="secondary" disabled={isDownloadingPdf} onClick={handleDownloadPdf}>{isDownloadingPdf ? 'Downloading...' : 'Download PDF'}</Button>
           <Button variant="primary" onClick={onBack}>Back to Proposals</Button>
         </div>
       </div>
 
       <div className="mb-8 p-6 bg-[#ece8e3] rounded-lg border border-gray-200">
-        <div className="flex flex-wrap justify-between items-center mb-4" data-export-ignore="true">
+        <div className="flex flex-wrap justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Summary</h2>
           <Button variant="secondary" size="sm" onClick={() => onEditProposal(proposal)}>Edit Proposal</Button>
         </div>
@@ -371,6 +378,7 @@ const ProposalDetailView: React.FC<ProposalDetailViewProps> = ({
 };
 
 export default ProposalDetailView;
+
 
 
 
