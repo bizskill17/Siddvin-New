@@ -22,8 +22,8 @@ const StageActionIcon: React.FC<{ name: StageActionIconName; className?: string 
       return <svg {...common}><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5-2.5l5 2v4a2 2 0 0 1-2 2a16 16 0 0 1-15-15a2 2 0 0 1 2-2" /></svg>;
     case 'schedule': // calendar with plus: schedule a visit
       return <svg {...common}><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M16 3v4M8 3v4M4 11h16M12 14v4M10 16h4" /></svg>;
-    case 'visit': // map pin: record the site visit
-      return <svg {...common}><path d="M12 21s-6-5.6-6-10.5a6 6 0 0 1 12 0C18 15.4 12 21 12 21z" /><circle cx="12" cy="10.5" r="2.2" /></svg>;
+    case 'visit': // clipboard with check: record the site visit
+      return <svg {...common}><path d="M9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3" /><rect x="9" y="2" width="6" height="5" rx="1" /><path d="m8 14 3 3 5-6" /></svg>;
     case 'terms': // document with lines: terms
       return <svg {...common}><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></svg>;
     case 'agreement': // document with tick: agreement signed / store opened
