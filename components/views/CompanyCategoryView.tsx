@@ -32,10 +32,22 @@ const MasterTable: React.FC<CompanyCategoryViewProps & { kind: 'company' | 'cate
   const [editor, setEditor] = useState<{ original: string | null; value: string } | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const options = kind === 'company' ? companyOptions : categoryOptions;
   const visible = options.filter(name => name.toLowerCase().includes(search.trim().toLowerCase()));
   const linked = (name: string) => brands.filter(brand => (kind === 'company' ? brand.companyName || '' : brand.category || '').trim().toLowerCase() === name.trim().toLowerCase());
+  const requestRemove = (name: string) => {
+    const linkedBrands = linked(name);
+    if (linkedBrands.length) {
+      const brandNames = linkedBrands.map(brand => brand.name).join(', ');
+      setDeleteError(`${title} “${name}” cannot be removed because it is linked to ${linkedBrands.length === 1 ? 'this brand' : 'these brands'}: ${brandNames}. Update the linked brand${linkedBrands.length === 1 ? '' : 's'} first, then try again.`);
+      setRemoving(null);
+      return;
+    }
+    setDeleteError(null);
+    setRemoving(name);
+  };
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!editor?.value.trim() || busy) return;
@@ -53,6 +65,10 @@ const MasterTable: React.FC<CompanyCategoryViewProps & { kind: 'company' | 'cate
       <ExportIconButton kind="pdf" onClick={() => downloadTableAsPdf(`${kind}-master-table`, title)} />
       <Button onClick={() => setEditor({ original: null, value: '' })}>+ Add {title}</Button>
     </ListPageToolbar>
+    {deleteError && <div className="mb-4 flex items-start justify-between gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+      <span>{deleteError}</span>
+      <button type="button" className="shrink-0 font-semibold text-red-700 hover:text-red-900" onClick={() => setDeleteError(null)} aria-label="Dismiss delete validation message">Dismiss</button>
+    </div>}
     {editor && <form onSubmit={save} className="sidvin-master-editor">
       <label htmlFor={`${kind}-name`}>{editor.original === null ? 'Add' : 'Edit'} {title} Name</label>
       <input id={`${kind}-name`} autoFocus required value={editor.value} onChange={event => setEditor({ ...editor, value: event.target.value })} />
@@ -67,14 +83,14 @@ const MasterTable: React.FC<CompanyCategoryViewProps & { kind: 'company' | 'cate
           {kind === 'category' && <td><button type="button" className="sidvin-category-brand-count" disabled={!linked(name).length} aria-expanded={selected === name} onClick={() => setSelected(selected === name ? null : name)}>{linked(name).length} brands</button></td>}
           <td><div className="flex items-center gap-2 whitespace-nowrap">
             <Button size="sm" onClick={() => setEditor({ original: name, value: name })}>Edit</Button>
-            <Button size="sm" variant="danger" onClick={() => setRemoving(name)}>Remove</Button>
+            <Button size="sm" variant="danger" onClick={() => requestRemove(name)}>Remove</Button>
           </div></td>
         </tr>{selected === name && <tr><td colSpan={3}>Brands: {linked(name).map(brand => brand.name).join(' · ')}</td></tr>}</React.Fragment>)}
         {!visible.length && <tr><td colSpan={kind === 'category' ? 3 : 2}>No {kind === 'company' ? 'companies' : 'categories'} found.</td></tr>}
         </tbody>
       </table>
     </div>
-    <DeleteConfirmationModal confirmText="Remove" isOpen={removing !== null} onClose={() => setRemoving(null)} title={`Remove ${title}?`} message={removing && linked(removing).length ? `${removing} is in use by ${linked(removing).length} brand(s). Removing the master entry will not remove it from linked brands. Continue?` : `Remove ${removing || title}?`} onConfirm={async () => { if (!removing || busy) return; setBusy(true); try { await (kind === 'company' ? onRemoveCompany : onRemoveCategory)(removing); setRemoving(null); } finally { setBusy(false); } }} isProcessing={busy} />
+    <DeleteConfirmationModal confirmText="Remove" isOpen={removing !== null} onClose={() => setRemoving(null)} title={`Remove ${title}?`} message={`Remove “${removing || title}”? This action cannot be undone.`} onConfirm={async () => { if (!removing || busy) return; setBusy(true); try { await (kind === 'company' ? onRemoveCompany : onRemoveCategory)(removing); setRemoving(null); } finally { setBusy(false); } }} isProcessing={busy} />
   </section>;
 };
 export default CompanyCategoryView;
