@@ -1436,7 +1436,7 @@ const App: React.FC = () => {
             <div className="sidvin-profile-name">{currentUserName}</div>
             <div className="sidvin-profile-role">{currentUserRole}</div>
           </div>
-          <button type="button" onClick={() => { void logout(); }} className="ml-auto rounded-lg border border-white/15 px-2.5 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/10">Logout</button>
+          <button type="button" onClick={() => { void logout(); }} className="ml-auto rounded-lg border border-red-600 px-2.5 py-1.5 text-xs font-semibold text-white" style={{ backgroundColor: '#dc2626' }}>Logout</button>
         </div>
       </nav>
 
