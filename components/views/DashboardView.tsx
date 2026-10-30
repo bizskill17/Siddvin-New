@@ -75,12 +75,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
         <MetricCard title="Active Proposals" value={String(activeProposals)} />
         <MetricCard title="Visits This Week" value={String(visitsThisWeek)} />
