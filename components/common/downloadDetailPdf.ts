@@ -72,7 +72,7 @@ export const downloadDetailPdf = async (elementId: string, filename: string): Pr
       const height = Math.min(42, 65 * canvas.height / canvas.width);
       pdf.addImage(canvas.toDataURL('image/jpeg', .92), 'JPEG', margin, y, Math.min(65, height * canvas.width / canvas.height), height);
       y += height + 6;
-    } catch { write('Property photo unavailable. Check that the saved photo link is publicly accessible.', 9); }
+    } catch { /* Omit unavailable photos from the PDF. */ }
   }
   const walk = (node: Element) => {
     if (/^H[1-4]$/.test(node.tagName)) { space(25); write(text(node), node.tagName === 'H1' ? 17 : 12); return; }
