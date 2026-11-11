@@ -46,3 +46,5 @@ Version 1.0.7: Masters interface uses consistent teal theme instead of bright bl
 Version 1.0.8: Logout has a permanent red background; removed redundant sidebar header collapse icon, retaining page header menu toggle.
 
 Version 1.0.11: removed the built-in Super Admin login and the one-time password reset. The first Super Admin is created from WordPress admin > Sidvin Proposal. Existing accounts and passwords are not changed.
+
+Version 1.0.12: the sidebar user card (name, role, Log out) uses the selected theme colour.

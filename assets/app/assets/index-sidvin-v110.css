@@ -71,3 +71,8 @@
 #root>[data-color-theme=ocean]{--sidvin-selected-accent:#147f89;--sidvin-selected-accent-hover:#0e6872;--sidvin-selected-line:#b9dce2;--sidvin-selected-soft:#eaf6f7;--sidvin-selected-ink:#173e50}
 #root>[data-color-theme=forest]{--sidvin-selected-accent:#327858;--sidvin-selected-accent-hover:#275e45;--sidvin-selected-line:#c8dfce;--sidvin-selected-soft:#eaf3ec;--sidvin-selected-ink:#203f33}
 #root>[data-color-theme=plum]{--sidvin-selected-accent:#8b557e;--sidvin-selected-accent-hover:#704363;--sidvin-selected-line:#ebdfeb;--sidvin-selected-soft:#f4ebf3;--sidvin-selected-ink:#3f3043}
+/* v1.0.12: sidebar user card in the theme colour (same as the active menu item) */
+#root>[data-color-theme] .sidvin-sidebar-profile,.sidvin-sidebar-profile{margin:18px 0 0;padding:12px;border:0;border-radius:14px;background:var(--sidvin-orange)!important;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+#root>[data-color-theme] .sidvin-profile-avatar,.sidvin-profile-avatar{background:var(--sidvin-rust)!important;border:2px solid rgba(255,255,255,.85);color:#fff}
+.sidvin-sidebar-profile .sidvin-profile-name{color:#fff}
+.sidvin-sidebar-profile .sidvin-profile-role{color:rgba(255,255,255,.82)}
