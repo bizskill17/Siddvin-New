@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Sidvin Proposal Workflow
  * Description: Proposal, property, deposit, team and master-data management for Sidvin.
- * Version: 1.0.2
+ * Version: 1.0.10
  * Requires PHP: 8.0
  * Text Domain: sidvin-proposal-workflow
  */
@@ -82,6 +82,64 @@ function sidvin_install_tables(): void {
   }
 }
 
+/**
+ * One-time credential recovery for the specifically requested Sidvin Team administrator.
+ * The v1.0.3 bootstrap left an existing account's password unchanged, preventing login.
+ * Run once per site after upgrade; do not touch other users or reset on later requests.
+ */
+function sidvin_provision_initial_team_admin(): void {
+  if (get_option('sidvin_initial_team_admin_v104') === 'done') return;
+  require_once SIDVIN_PLUGIN_DIR . 'includes/db.php';
+  require_once SIDVIN_PLUGIN_DIR . 'includes/entity_map.php';
+  $pdo = db();
+  $table = sidvin_table_name('sidvin_team');
+  $email = 'bizskill17@gmail.com';
+  $name = 'Pankaj Jain';
+  $stmt = $pdo->prepare("SELECT id, data FROM {$table} WHERE LOWER(TRIM(JSON_UNQUOTE(JSON_EXTRACT(data, '$.email')))) = ? LIMIT 1");
+  $stmt->execute([$email]);
+  $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+  if ($existing) {
+    $data = json_decode((string)$existing['data'], true);
+    if (!is_array($data)) throw new RuntimeException('Existing Sidvin account record is invalid.');
+    $data['name'] = $name;
+    $data['email'] = $email;
+    $data['designation'] = 'Administrator';
+    $data['role'] = 'Super Admin';
+    $data['password'] = password_hash('!Office1@', PASSWORD_DEFAULT);
+    $data['updatedBy'] = $name;
+    $stmt = $pdo->prepare("UPDATE {$table} SET data = ?, updated_by = ? WHERE id = ?");
+    $stmt->execute([wp_json_encode($data), $name, $existing['id']]);
+  } else {
+    $data = [
+      'id' => wp_generate_uuid4(),
+      'name' => $name,
+      'designation' => 'Administrator',
+      'mobile' => '',
+      'email' => $email,
+      'role' => 'Super Admin',
+      'password' => password_hash('!Office1@', PASSWORD_DEFAULT),
+      'photoDataUrl' => '',
+      'updatedBy' => $name,
+    ];
+    $stmt = $pdo->prepare("INSERT INTO {$table} (id, data, updated_by) VALUES (?, ?, ?)");
+    $stmt->execute([$data['id'], wp_json_encode($data), $name]);
+  }
+  // This marker prevents any future reset once the user changes their password.
+  update_option('sidvin_initial_team_admin_v104', 'done', false);
+}
+
+// WordPress does not invoke activation hooks when a plugin is replaced/upgraded.
+// Provision on an administrator's next dashboard request as well as activation.
+add_action('admin_init', function (): void {
+  if (!current_user_can('manage_options') || get_option('sidvin_initial_team_admin_v104') === 'done') return;
+  try {
+    sidvin_install_tables();
+    sidvin_provision_initial_team_admin();
+  } catch (Throwable $e) {
+    error_log('Sidvin v1.0.4 administrator recovery failed: ' . $e->getMessage());
+  }
+}, 5);
+
 function sidvin_register_rewrites(): void {
   add_rewrite_tag('%sidvin_api%', '([0-1])');
   add_rewrite_rule('^api/index\.php$', 'index.php?sidvin_api=1', 'top');
@@ -92,6 +150,7 @@ function sidvin_activate(): void {
     wp_die('Sidvin Proposal Workflow needs the PHP PDO MySQL extension enabled on this hosting account.');
   }
   sidvin_install_tables();
+  sidvin_provision_initial_team_admin();
   sidvin_create_pages();
   sidvin_register_rewrites();
   flush_rewrite_rules();
@@ -135,14 +194,14 @@ function sidvin_render_app_shell(): void {
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <?php foreach ($cssFiles as $file): ?>
-      <link rel="stylesheet" href="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file)); ?>">
+      <link rel="stylesheet" href="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.10-' . filemtime($file)); ?>">
     <?php endforeach; ?>
     <script>window.sidvinWPConfig=<?php echo wp_json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
   </head>
   <body class="bg-gray-50 text-gray-900" style="font-family:Manrope,sans-serif">
     <div id="root"></div>
     <?php foreach ($jsFiles as $file): ?>
-      <script type="module" crossorigin src="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file)); ?>"></script>
+      <script type="module" crossorigin src="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.10-' . filemtime($file)); ?>"></script>
     <?php endforeach; ?>
   </body>
   </html><?php
@@ -175,7 +234,8 @@ function sidvin_render_admin_page(): void {
   $error = '';
   try {
     $pdo = db();
-    $stmt = $pdo->query("SELECT COUNT(*) FROM " . sidvin_table_name('sidvin_team'));
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM " . sidvin_table_name('sidvin_team') . " WHERE LOWER(TRIM(JSON_UNQUOTE(JSON_EXTRACT(data, '$.email')))) = ?");
+    $stmt->execute(['bizskill17@gmail.com']);
     $adminExists = (int)$stmt->fetchColumn() > 0;
   } catch (Throwable $e) { $error = $e->getMessage(); }
   ?>
@@ -188,7 +248,7 @@ function sidvin_render_admin_page(): void {
     <?php if ($error): ?>
       <div class="notice notice-error"><p>Database connection is not ready. Confirm that PHP PDO MySQL is enabled and the WordPress database is working, then reload this page.</p></div>
     <?php elseif ($adminExists): ?>
-      <div class="notice notice-success inline"><p>Setup is complete. Sign in to the app with your team account.</p></div>
+      <div class="notice notice-success inline"><p>Sidvin Team administrator account is present (bizskill17@gmail.com). Credential recovery status: <?php echo esc_html((string)get_option('sidvin_initial_team_admin_v104', 'pending')); ?>. Sign in to the app with your team account.</p></div>
     <?php else: ?>
       <h2>Create the first app administrator</h2>
       <p>This is a separate Sidvin app login. It does not change your WordPress administrator account.</p>
