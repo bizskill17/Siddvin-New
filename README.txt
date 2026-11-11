@@ -48,3 +48,5 @@ Version 1.0.8: Logout has a permanent red background; removed redundant sidebar 
 Version 1.0.11: removed the built-in Super Admin login and the one-time password reset. The first Super Admin is created from WordPress admin > Sidvin Proposal. Existing accounts and passwords are not changed.
 
 Version 1.0.12: the sidebar user card (name, role, Log out) uses the selected theme colour.
+
+Version 1.0.13: app pages use the WordPress Site Icon (Appearance > Customize > Site Identity) as the browser tab icon instead of the WordPress logo.
