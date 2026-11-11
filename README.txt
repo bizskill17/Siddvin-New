@@ -54,3 +54,5 @@ Version 1.0.13: app pages use the WordPress Site Icon (Appearance > Customize > 
 Version 1.0.14: property login form says "Login" (heading and button); removed the "Back to Sidvin Team Login" link.
 
 Version 1.0.15: pages other than Property Login always open the team login form (the last-used portal is no longer remembered).
+
+Version 1.0.16: property login field label is "Property ID *".
