@@ -56,3 +56,5 @@ Version 1.0.14: property login form says "Login" (heading and button); removed t
 Version 1.0.15: pages other than Property Login always open the team login form (the last-used portal is no longer remembered).
 
 Version 1.0.16: property login field label is "Property ID *".
+
+Version 1.0.17: the saved colour theme, logo and name are sent with each page, so the login and app open in your theme straight away (no brief flash of the default colours).

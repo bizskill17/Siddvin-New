@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Sidvin Proposal Workflow
  * Description: Proposal, property, deposit, team and master-data management for Sidvin.
- * Version: 1.0.16
+ * Version: 1.0.17
  * Requires PHP: 8.0
  * Text Domain: sidvin-proposal-workflow
  */
@@ -101,6 +101,28 @@ register_activation_hook(__FILE__, 'sidvin_activate');
 add_action('init', 'sidvin_register_rewrites');
 add_filter('query_vars', function (array $vars): array { $vars[] = 'sidvin_api'; return $vars; });
 
+/**
+ * The saved logo, organization name and colour theme, sent with the page so the first paint
+ * already uses them (otherwise the default theme flashes until the app asks the API).
+ */
+function sidvin_initial_view_settings(): array {
+  global $wpdb;
+  $themes = ['terracotta', 'ocean', 'forest', 'plum'];
+  $out = ['theme' => 'terracotta', 'orgName' => 'Sidvin', 'logoDataUrl' => ''];
+  $table = SIDVIN_WP_TABLE_PREFIX . 'app_settings';
+  $suppress = $wpdb->suppress_errors(true);
+  $value = $wpdb->get_var($wpdb->prepare("SELECT value FROM {$table} WHERE name = %s", 'view_settings'));
+  $wpdb->suppress_errors($suppress);
+  $saved = is_string($value) ? json_decode($value, true) : null;
+  if (!is_array($saved)) return $out;
+  if (in_array($saved['theme'] ?? '', $themes, true)) $out['theme'] = $saved['theme'];
+  $org = trim((string)($saved['orgName'] ?? ''));
+  if ($org !== '' && strlen($org) <= 240) $out['orgName'] = $org;
+  $logo = (string)($saved['logoDataUrl'] ?? '');
+  if ($logo !== '' && strlen($logo) <= 48000 && preg_match('/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/', $logo)) $out['logoDataUrl'] = $logo;
+  return $out;
+}
+
 function sidvin_render_app_shell(): void {
   $pageId = get_queried_object_id();
   $key = (string)get_post_meta($pageId, '_sidvin_app_page', true);
@@ -118,6 +140,7 @@ function sidvin_render_app_shell(): void {
     'teamLoginUrl' => $url('team_login'),
     'propertyLoginUrl' => $url('property_login'),
     'appUrl' => $url('dashboard'),
+    'viewSettings' => sidvin_initial_view_settings(),
   ];
   $cssFiles = glob(SIDVIN_PLUGIN_DIR . 'assets/app/assets/*.css') ?: [];
   $jsFiles = glob(SIDVIN_PLUGIN_DIR . 'assets/app/assets/*.js') ?: [];
@@ -136,14 +159,15 @@ function sidvin_render_app_shell(): void {
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <?php foreach ($cssFiles as $file): ?>
-      <link rel="stylesheet" href="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.16-' . filemtime($file)); ?>">
+      <link rel="stylesheet" href="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.17-' . filemtime($file)); ?>">
     <?php endforeach; ?>
     <script>window.sidvinWPConfig=<?php echo wp_json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
   </head>
-  <body class="bg-gray-50 text-gray-900" style="font-family:Manrope,sans-serif">
+  <?php $sidvinBg = ['terracotta' => '#fbf7f1', 'ocean' => '#f3f7fa', 'forest' => '#f3f8f4', 'plum' => '#faf6fa'][$config['viewSettings']['theme']] ?? '#fbf7f1'; ?>
+  <body class="text-gray-900" style="font-family:Manrope,sans-serif;background:<?php echo esc_attr($sidvinBg); ?>">
     <div id="root"></div>
     <?php foreach ($jsFiles as $file): ?>
-      <script type="module" crossorigin src="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.16-' . filemtime($file)); ?>"></script>
+      <script type="module" crossorigin src="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.17-' . filemtime($file)); ?>"></script>
     <?php endforeach; ?>
   </body>
   </html><?php
