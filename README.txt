@@ -50,3 +50,5 @@ Version 1.0.11: removed the built-in Super Admin login and the one-time password
 Version 1.0.12: the sidebar user card (name, role, Log out) uses the selected theme colour.
 
 Version 1.0.13: app pages use the WordPress Site Icon (Appearance > Customize > Site Identity) as the browser tab icon instead of the WordPress logo.
+
+Version 1.0.14: property login form says "Login" (heading and button); removed the "Back to Sidvin Team Login" link.

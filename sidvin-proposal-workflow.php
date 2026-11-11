@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Sidvin Proposal Workflow
  * Description: Proposal, property, deposit, team and master-data management for Sidvin.
- * Version: 1.0.13
+ * Version: 1.0.14
  * Requires PHP: 8.0
  * Text Domain: sidvin-proposal-workflow
  */
@@ -136,14 +136,14 @@ function sidvin_render_app_shell(): void {
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <?php foreach ($cssFiles as $file): ?>
-      <link rel="stylesheet" href="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.13-' . filemtime($file)); ?>">
+      <link rel="stylesheet" href="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.14-' . filemtime($file)); ?>">
     <?php endforeach; ?>
     <script>window.sidvinWPConfig=<?php echo wp_json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
   </head>
   <body class="bg-gray-50 text-gray-900" style="font-family:Manrope,sans-serif">
     <div id="root"></div>
     <?php foreach ($jsFiles as $file): ?>
-      <script type="module" crossorigin src="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.13-' . filemtime($file)); ?>"></script>
+      <script type="module" crossorigin src="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.14-' . filemtime($file)); ?>"></script>
     <?php endforeach; ?>
   </body>
   </html><?php
