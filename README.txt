@@ -84,3 +84,5 @@ Version 1.0.28: "Update" removed from the follow-up Status list (still shown onl
 Version 1.0.29: Edit Visit requires Developer Attendees, Brand Attendees, Actual Visit Date and Visit Outcome.
 
 Version 1.0.30: Edit Visit also requires Sidvin Attendees.
+
+Version 1.0.31: a proposal in Pending Terms Finalization shows "Pending Terms Progress" once any terms field has been saved.
