@@ -76,3 +76,5 @@ Version 1.0.24: property PDF photo rows alternate 3 then 2 photos (3, 2, 3, 2 ..
 Version 1.0.25: property PDF photos in a row are aligned at the bottom, with captions on one line.
 
 Version 1.0.26: Download PDF icon next to Delete on each row of the Properties list.
+
+Version 1.0.27: "Company Settings" renamed to "Organization Settings"; "Category" renamed to "Brand Category" (Masters tab, list, form field, messages).
