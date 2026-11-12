@@ -96,3 +96,5 @@ Version 1.0.34: Property Dashboard activity table shows Date as dd/mm/yyyy hh:mm
 Version 1.0.35: proposal Download PDF now downloads a designed A4 PDF directly (theme header, summary with property photo, follow-ups, site visits, terms, deposit and receipts tables, page numbers); property PDF uses the correct photo when some photo fields are empty.
 
 Version 1.0.36: property view has a Property Dashboard button (next to Download PDF) that opens the same dashboard the owner sees after Property Login; the Close button returns to the team app.
+
+Version 1.0.37: property view Download PDF and Edit Property buttons show icons only (names show on hover).

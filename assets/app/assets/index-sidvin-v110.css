@@ -81,3 +81,4 @@
 #root input[readonly]:not([type=checkbox]):not([type=radio]),#root input:disabled:not([type=checkbox]):not([type=radio]),#root select:disabled,#root textarea[readonly],#root textarea:disabled{background-color:#ececec!important;border-color:#d4d4d4!important;color:#5b5b5b!important;cursor:not-allowed;box-shadow:none!important}
 #root input[readonly]:focus,#root textarea[readonly]:focus{border-color:#d4d4d4!important;box-shadow:none!important}
 .sidvin-field-error>div>button{border-color:#dc2626!important}
+.sidvin-icon-btn{padding:.5rem!important;display:inline-flex!important;align-items:center;justify-content:center}.sidvin-icon-btn svg{width:1.5rem;height:1.5rem}
