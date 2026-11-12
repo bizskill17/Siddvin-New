@@ -60,3 +60,5 @@ Version 1.0.16: property login field label is "Property ID *".
 Version 1.0.17: the saved colour theme, logo and name are sent with each page, so the login and app open in your theme straight away (no brief flash of the default colours).
 
 Version 1.0.18: browser tab title is just the WordPress site name (no " — Sidvin").
+
+Version 1.0.19: read-only and disabled form fields have a grey background.
