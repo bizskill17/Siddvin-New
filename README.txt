@@ -66,3 +66,5 @@ Version 1.0.19: read-only and disabled form fields have a grey background.
 Version 1.0.20: "Download PDF" button on the property view (summary, contacts, photos, documents; A4, theme colour).
 
 Version 1.0.21: property PDF loads photos the same way as the screen (Google Drive backups), waits for them, and shows a link when a photo cannot load.
+
+Version 1.0.22: property "Download PDF" saves the PDF file directly (no print window); photos are shown uncropped at full page width; photos are fetched by the server (propertyPhoto API action). Falls back to the print window if the PDF tool cannot load.

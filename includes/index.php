@@ -183,6 +183,55 @@ try {
 
   if ($action === 'me') ok(session_public($session));
 
+  // ---- A property photo as base64, for building PDFs in the browser ----
+  // Only photos saved on the property are fetched (no arbitrary URLs), only for team members.
+  if ($method === 'GET' && $action === 'propertyPhoto') {
+    if ($session['kind'] !== 'team') fail(403, 'Not allowed');
+    $propertyId = trim((string)($_GET['propertyId'] ?? ''));
+    $index = (int)($_GET['index'] ?? -1);
+    $stmt = $pdo->prepare("SELECT data FROM " . sidvin_table_name('properties') . " WHERE id = ? LIMIT 1");
+    $stmt->execute([$propertyId]);
+    $row = $stmt->fetch();
+    if (!$row) fail(404, 'Property not found.');
+    $data = json_decode((string)($row['data'] ?? '{}'), true) ?: [];
+    $photos = array_values(array_filter(array_map('strval', (array)($data['propertyPhotos'] ?? [])), fn($u) => trim($u) !== ''));
+    if ($index < 0 || $index >= count($photos)) fail(404, 'Photo not found.');
+    $url = trim($photos[$index]);
+    if (!preg_match('#^https?://#i', $url)) fail(400, 'Not a web link.');
+
+    $candidates = [$url];
+    $parts = parse_url($url);
+    $host = strtolower((string)($parts['host'] ?? ''));
+    if ($host === 'drive.google.com' || substr($host, -17) === '.drive.google.com') {
+      $id = '';
+      if (preg_match('#/file/d/([^/]+)#', (string)($parts['path'] ?? ''), $m)) $id = $m[1];
+      if ($id === '') { parse_str((string)($parts['query'] ?? ''), $q); $id = (string)($q['id'] ?? ''); }
+      if ($id !== '') {
+        $e = rawurlencode($id);
+        $candidates = ["https://drive.google.com/thumbnail?id={$e}&sz=w2000", "https://drive.google.com/uc?export=view&id={$e}", $url];
+      }
+    }
+
+    @set_time_limit(60);
+    foreach ($candidates as $c) {
+      $ch = curl_init($c);
+      curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_MAXREDIRS => 5,
+        CURLOPT_CONNECTTIMEOUT => 8, CURLOPT_TIMEOUT => 20, CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS, CURLOPT_USERAGENT => 'Mozilla/5.0 (Sidvin PDF)',
+      ]);
+      $bytes = curl_exec($ch);
+      $code = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+      curl_close($ch);
+      if ($bytes === false || $code < 200 || $code >= 300 || strlen($bytes) < 100 || strlen($bytes) > 12 * 1024 * 1024) continue;
+      $info = @getimagesizefromstring($bytes);
+      $mime = is_array($info) ? (string)($info['mime'] ?? '') : '';
+      if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) continue;
+      ok(['mime' => $mime, 'width' => (int)$info[0], 'height' => (int)$info[1], 'base64' => base64_encode($bytes)]);
+    }
+    fail(404, 'Photo could not be loaded. Check that it is shared as "Anyone with the link".');
+  }
+
   // ---- Shared branding and color theme for the team workspace ----
   if ($action === 'viewSettings' || $action === 'saveViewSettings') {
     if ($session['kind'] !== 'team') fail(403, 'Not allowed');
