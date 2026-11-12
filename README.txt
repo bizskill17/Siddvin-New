@@ -98,3 +98,5 @@ Version 1.0.35: proposal Download PDF now downloads a designed A4 PDF directly (
 Version 1.0.36: property view has a Property Dashboard button (next to Download PDF) that opens the same dashboard the owner sees after Property Login; the Close button returns to the team app.
 
 Version 1.0.37: property view Download PDF and Edit Property buttons show icons only (names show on hover).
+
+Version 1.0.38: Property Dashboard PDF icon downloads a designed PDF directly (stats, property summary, filtered activity table with page numbers).
