@@ -72,3 +72,5 @@ Version 1.0.22: property "Download PDF" saves the PDF file directly (no print wi
 Version 1.0.23: property PDF shows photos two per row, reduced to fit while keeping each photo's proportions.
 
 Version 1.0.24: property PDF photo rows alternate 3 then 2 photos (3, 2, 3, 2 ...), each scaled to fit with its proportions kept.
+
+Version 1.0.25: property PDF photos in a row are aligned at the bottom, with captions on one line.
