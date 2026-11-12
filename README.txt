@@ -88,3 +88,5 @@ Version 1.0.30: Edit Visit also requires Sidvin Attendees.
 Version 1.0.31: a proposal in Pending Terms Finalization shows "Pending Terms Progress" once any terms field has been saved.
 
 Version 1.0.32: "Pending Terms Progress" label renamed to "Terms In Progress".
+
+Version 1.0.33: proposal view labels are bold; proposal PDF shows the property photo fully loaded and uncropped (up to 11 cm tall) with bold labels.
