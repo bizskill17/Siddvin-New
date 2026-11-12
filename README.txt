@@ -64,3 +64,5 @@ Version 1.0.18: browser tab title is just the WordPress site name (no " — Sidv
 Version 1.0.19: read-only and disabled form fields have a grey background.
 
 Version 1.0.20: "Download PDF" button on the property view (summary, contacts, photos, documents; A4, theme colour).
+
+Version 1.0.21: property PDF loads photos the same way as the screen (Google Drive backups), waits for them, and shows a link when a photo cannot load.
