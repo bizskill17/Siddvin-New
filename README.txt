@@ -108,3 +108,5 @@ Version 1.0.40: property view field labels (and contact Mobile/Email labels) are
 Version 1.0.41: pagination on every list table (25 rows per page by default, choice of 10/25/50/100 remembered per browser, Prev/Next and page numbers, "Showing x-y of n"). Search and filters still cover all rows and jump back to page 1; Excel/PDF downloads include all rows.
 
 Version 1.0.42: "Add New Property" renamed to "Add Property"; "Create New Proposal" renamed to "Add Proposal".
+
+Version 1.0.43: Organization Settings has a Super Admin-only "Clear All Data" section (type CLEAR to confirm). Deletes properties, brands, proposals, follow-ups, visits, terms/deposits/receipts, Company and Brand Category masters and the WhatsApp message log; keeps Sidvin Team users, Organization Settings and the Red Lava connection.

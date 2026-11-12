@@ -263,6 +263,34 @@ try {
     ]);
   }
 
+  // ---- Clear all data except Sidvin Team users and Organization Settings (Super Admin only) ----
+  if ($action === 'clearAllData') {
+    if ($method !== 'POST') fail(405, 'Method not allowed');
+    if ($session['kind'] !== 'team' || $session['role'] !== 'Super Admin') fail(403, 'Only Super Admin can clear data.');
+    if (trim((string)($body['confirm'] ?? '')) !== 'CLEAR') fail(400, 'Type CLEAR to confirm.');
+    $tables = ['term_sheets', 'follow_ups', 'visits', 'proposals', 'brands', 'properties', 'company_master', 'category_master', 'wa_messages'];
+    $counts = [];
+    $pdo->beginTransaction();
+    try {
+      foreach ($tables as $t) {
+        $name = sidvin_table_name($t);
+        $exists = $pdo->prepare('SHOW TABLES LIKE ?');
+        $exists->execute([$name]);
+        if (!$exists->fetchColumn()) continue;
+        $counts[$t] = $pdo->exec("DELETE FROM `{$name}`");
+      }
+      // Property Portal logins belonged to the deleted properties.
+      $pdo->exec("DELETE FROM " . sidvin_table_name('auth_sessions') . " WHERE kind = 'property'");
+      $pdo->commit();
+    } catch (Throwable $e) {
+      if ($pdo->inTransaction()) $pdo->rollBack();
+      error_log('[sidvin-api] clearAllData failed: ' . $e->getMessage());
+      fail(500, 'Could not clear data. Nothing was deleted.');
+    }
+    error_log("[sidvin-api] All data cleared by {$session['name']}: " . json_encode($counts));
+    ok(['deleted' => $counts]);
+  }
+
   // ---- WhatsApp messages for an event (any team member) ----
   // waPreview: build the messages from form data that isn't saved yet (nothing is sent).
   // waSend: send the chosen sides for a saved record.
