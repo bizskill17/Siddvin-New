@@ -62,3 +62,5 @@ Version 1.0.17: the saved colour theme, logo and name are sent with each page, s
 Version 1.0.18: browser tab title is just the WordPress site name (no " — Sidvin").
 
 Version 1.0.19: read-only and disabled form fields have a grey background.
+
+Version 1.0.20: "Download PDF" button on the property view (summary, contacts, photos, documents; A4, theme colour).
