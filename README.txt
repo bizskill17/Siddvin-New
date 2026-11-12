@@ -78,3 +78,5 @@ Version 1.0.25: property PDF photos in a row are aligned at the bottom, with cap
 Version 1.0.26: Download PDF icon next to Delete on each row of the Properties list.
 
 Version 1.0.27: "Company Settings" renamed to "Organization Settings"; "Category" renamed to "Brand Category" (Masters tab, list, form field, messages).
+
+Version 1.0.28: "Update" removed from the follow-up Status list (still shown only when editing an old follow-up already saved as Update).
