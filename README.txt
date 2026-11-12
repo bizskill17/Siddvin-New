@@ -106,3 +106,5 @@ Version 1.0.39: All Proposals table has no View Detail (eye) icon; clicking a ro
 Version 1.0.40: property view field labels (and contact Mobile/Email labels) are bold.
 
 Version 1.0.41: pagination on every list table (25 rows per page by default, choice of 10/25/50/100 remembered per browser, Prev/Next and page numbers, "Showing x-y of n"). Search and filters still cover all rows and jump back to page 1; Excel/PDF downloads include all rows.
+
+Version 1.0.42: "Add New Property" renamed to "Add Property"; "Create New Proposal" renamed to "Add Proposal".
