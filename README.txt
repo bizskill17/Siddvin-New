@@ -104,3 +104,5 @@ Version 1.0.38: Property Dashboard PDF icon downloads a designed PDF directly (s
 Version 1.0.39: All Proposals table has no View Detail (eye) icon; clicking a row opens the proposal detail. Edit and Delete icons still work without opening the row.
 
 Version 1.0.40: property view field labels (and contact Mobile/Email labels) are bold.
+
+Version 1.0.41: pagination on every list table (25 rows per page by default, choice of 10/25/50/100 remembered per browser, Prev/Next and page numbers, "Showing x-y of n"). Search and filters still cover all rows and jump back to page 1; Excel/PDF downloads include all rows.
