@@ -90,3 +90,5 @@ Version 1.0.31: a proposal in Pending Terms Finalization shows "Pending Terms Pr
 Version 1.0.32: "Pending Terms Progress" label renamed to "Terms In Progress".
 
 Version 1.0.33: proposal view labels are bold; proposal PDF shows the property photo fully loaded and uncropped (up to 11 cm tall) with bold labels.
+
+Version 1.0.34: Property Dashboard activity table shows Date as dd/mm/yyyy hh:mm:ss (scheduled time for visit scheduling, otherwise the time the entry was last saved); rows on the same day are ordered by time; the To Date filter includes the whole day.
