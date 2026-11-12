@@ -100,3 +100,5 @@ Version 1.0.36: property view has a Property Dashboard button (next to Download 
 Version 1.0.37: property view Download PDF and Edit Property buttons show icons only (names show on hover).
 
 Version 1.0.38: Property Dashboard PDF icon downloads a designed PDF directly (stats, property summary, filtered activity table with page numbers).
+
+Version 1.0.39: All Proposals table has no View Detail (eye) icon; clicking a row opens the proposal detail. Edit and Delete icons still work without opening the row.
