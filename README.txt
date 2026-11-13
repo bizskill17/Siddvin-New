@@ -122,3 +122,4 @@ Version 1.0.47: Training progress is saved on the server for each team member. U
 Version 1.0.48: property photos (1-5), PDF drawing, CAD drawing, property presentation and brand logo are uploaded from the computer instead of pasting links. Files are saved in wp-content/uploads/sidvin-files (scripts blocked there); large photos are resized in the browser before upload; old Google Drive links keep working and can be replaced. Property PDF reads uploaded photos straight from the server.
 
 Version 1.0.49: Training Scoreboard leaves out team members whose designation is MD; the "+ Add Lesson" button is removed from the Training header.
+Version 1.0.50: Removed the file-type hint lines under the property photo and brand logo upload fields.
