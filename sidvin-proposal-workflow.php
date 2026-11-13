@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Sidvin Proposal Workflow
  * Description: Proposal, property, deposit, team and master-data management for Sidvin.
- * Version: 1.0.43
+ * Version: 1.0.44
  * Requires PHP: 8.0
  * Text Domain: sidvin-proposal-workflow
  */
@@ -29,6 +29,7 @@ function sidvin_app_pages(): array {
     'visits' => ['Site Visits', 'sidvin-visits', 'visits', ''],
     'terms' => ['Terms and Agreements', 'sidvin-terms', 'termSheets', ''],
     'deposits' => ['Deposit', 'sidvin-deposits', 'pendingDeposit', ''],
+    'training' => ['Training', 'sidvin-training', 'training', ''],
     'company_master' => ['Company Master', 'sidvin-company-master', 'companyMaster', ''],
     'category_master' => ['Brand Category Master', 'sidvin-category-master', 'categoryMaster', ''],
     'brands' => ['Brands', 'sidvin-brands', 'brands', ''],
@@ -99,6 +100,12 @@ function sidvin_activate(): void {
 register_activation_hook(__FILE__, 'sidvin_activate');
 
 add_action('init', 'sidvin_register_rewrites');
+// Pages added in later versions (such as Training) are created once after an update.
+add_action('init', function (): void {
+  if (get_option('sidvin_pages_version') === '2') return;
+  sidvin_create_pages();
+  update_option('sidvin_pages_version', '2', false);
+}, 20);
 add_filter('query_vars', function (array $vars): array { $vars[] = 'sidvin_api'; return $vars; });
 
 /**
@@ -159,7 +166,7 @@ function sidvin_render_app_shell(): void {
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <?php foreach ($cssFiles as $file): ?>
-      <link rel="stylesheet" href="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.43-' . filemtime($file)); ?>">
+      <link rel="stylesheet" href="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.44-' . filemtime($file)); ?>">
     <?php endforeach; ?>
     <script>window.sidvinWPConfig=<?php echo wp_json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
   </head>
@@ -167,7 +174,7 @@ function sidvin_render_app_shell(): void {
   <body class="text-gray-900" style="font-family:Manrope,sans-serif;background:<?php echo esc_attr($sidvinBg); ?>">
     <div id="root"></div>
     <?php foreach ($jsFiles as $file): ?>
-      <script type="module" crossorigin src="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.43-' . filemtime($file)); ?>"></script>
+      <script type="module" crossorigin src="<?php echo esc_url(SIDVIN_PLUGIN_URL . 'assets/app/assets/' . basename($file) . '?v=1.0.44-' . filemtime($file)); ?>"></script>
     <?php endforeach; ?>
   </body>
   </html><?php

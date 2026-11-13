@@ -5,6 +5,7 @@ require_once __DIR__ . '/entity_map.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/redlava.php';
 require_once __DIR__ . '/whatsapp_send.php';
+require_once __DIR__ . '/training.php';
 
 function json_out(int $status, $payload): void {
   http_response_code($status);
@@ -129,7 +130,12 @@ try {
   $method = $_SERVER['REQUEST_METHOD'];
 
   $body = [];
-  if ($method === 'POST') {
+  if ($method === 'POST' && stripos((string)($_SERVER['CONTENT_TYPE'] ?? ''), 'multipart/form-data') === 0) {
+    // File uploads (training videos) arrive as a form, not JSON.
+    $body = $_POST;
+    $action = trim((string)($body['action'] ?? ''));
+    if ($action === '' && empty($_FILES) && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) fail(413, 'The video is larger than this website allows (' . round(training_max_upload() / 1048576) . ' MB).');
+  } elseif ($method === 'POST') {
     $body = json_decode(file_get_contents('php://input'), true);
     if (!is_array($body)) fail(400, 'Invalid JSON body');
     $action = trim((string)($body['action'] ?? ''));
@@ -182,6 +188,8 @@ try {
   if (!$session) fail(401, 'Please sign in again.');
 
   if ($action === 'me') ok(session_public($session));
+
+  if (strpos($action, 'training') === 0) training_handle($pdo, $method, $action, $body, $session);
 
   // ---- A property photo as base64, for building PDFs in the browser ----
   // Only photos saved on the property are fetched (no arbitrary URLs), only for team members.

@@ -94,3 +94,5 @@
 .sp-btn.sp-on{background:var(--sp-accent,#c2410c);border-color:var(--sp-accent,#c2410c);color:#fff}
 [data-color-theme="terracotta"]{--sp-accent:#c2410c}[data-color-theme="ocean"]{--sp-accent:#0e7490}[data-color-theme="forest"]{--sp-accent:#2f6f4f}[data-color-theme="plum"]{--sp-accent:#7e3a72}
 .property-portal{--sp-accent:#a16207}.property-portal .sp-btn{border-color:#f59e0b}
+.sidvin-training-progress{background:var(--sp-accent,#c2410c)}
+.sidvin-training-item.is-active{background:color-mix(in srgb,var(--sp-accent,#c2410c) 14%,#fff);color:#111827}

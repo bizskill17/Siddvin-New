@@ -110,3 +110,5 @@ Version 1.0.41: pagination on every list table (25 rows per page by default, cho
 Version 1.0.42: "Add New Property" renamed to "Add Property"; "Create New Proposal" renamed to "Add Proposal".
 
 Version 1.0.43: Organization Settings has a Super Admin-only "Clear All Data" section (type CLEAR to confirm). Deletes properties, brands, proposals, follow-ups, visits, terms/deposits/receipts, Company and Brand Category masters and the WhatsApp message log; keeps Sidvin Team users, Organization Settings and the Red Lava connection.
+
+Version 1.0.44: new Training section (left menu and a WordPress "Training" page). Lessons have text and a video; Admin/Super Admin can add, edit, delete and order lessons, paste a YouTube/Drive/Vimeo link (shown first) or upload an MP4 to this website. "Add the standard Siddvin course" creates the 23 lessons and copies their videos from the repo branch training-media into wp-content/uploads/sidvin-training.
