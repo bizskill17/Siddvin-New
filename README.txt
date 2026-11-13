@@ -123,3 +123,4 @@ Version 1.0.48: property photos (1-5), PDF drawing, CAD drawing, property presen
 
 Version 1.0.49: Training Scoreboard leaves out team members whose designation is MD; the "+ Add Lesson" button is removed from the Training header.
 Version 1.0.50: Removed the file-type hint lines under the property photo and brand logo upload fields.
+Version 1.0.51: Add/Edit Brand form has a + button beside Company Name and Brand Category to add a new one on the spot; it is saved to the master and selected.
