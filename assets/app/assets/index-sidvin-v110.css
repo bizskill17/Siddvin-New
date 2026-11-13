@@ -96,3 +96,4 @@
 .property-portal{--sp-accent:#a16207}.property-portal .sp-btn{border-color:#f59e0b}
 .sidvin-training-progress{background:var(--sp-accent,#c2410c)}
 .sidvin-training-item.is-active{background:color-mix(in srgb,var(--sp-accent,#c2410c) 14%,#fff);color:#111827}
+.sidvin-training-play{color:var(--sp-accent,#c2410c)}

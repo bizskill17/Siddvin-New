@@ -4,160 +4,183 @@
   "module": "Masters",
   "title": "How to Add a Company",
   "body": "This lesson shows how to add a new company in the Siddvin System.\n\n## What to do\n\n1. Company names are kept in Masters. So first, click Masters in the left menu.\n2. The Company tab opens, with the list of every company we already have.\n3. Before adding a new company, always search for it first, to make sure it is not already in the list. Here, Tata Trent is not in the list.\n4. So, clear the search, and click Add Company, at the top right.\n5. A box opens. Type the company name exactly as the company writes it. For example, Tata Trent Limited.\n6. Now click Save.\n7. The company is saved, and it appears in the list straight away. From now on, you can choose this company whenever you add a new brand.",
-  "videoSource": "01.mp4"
+  "videoSource": "01.mp4",
+  "thumbSource": "01.jpg"
  },
  {
   "order": 2,
   "module": "Masters",
   "title": "How to Edit a Company",
   "body": "This lesson shows how to edit a company name in the Siddvin System.\n\n## What to do\n\n1. We are in Masters, on the Company tab. Here, Tata Trent has been saved with a spelling mistake. Limited is spelt wrong.\n2. To find a company quickly, type a part of its name in the search box.\n3. Now click the Edit button, next to the company name.\n4. The name opens in a box at the top. Correct the name, so it now reads, Tata Trent Limited.\n5. Then click Save.\n6. The corrected name is saved straight away. Clear the search, and you can see it in the full list.\n7. If you open Edit by mistake, just click Cancel, and nothing is changed. And use Remove only for a company that was added by mistake.",
-  "videoSource": "02.mp4"
+  "videoSource": "02.mp4",
+  "thumbSource": "02.jpg"
  },
  {
   "order": 3,
   "module": "Masters",
   "title": "How to Add and Edit a Brand Category",
   "body": "This lesson shows how to add and edit a brand category.\n\n## What to do\n\n1. A brand category tells us what a brand sells, such as fashion, electronics, or food. Every brand is linked to one category, so that our lists and reports stay clean.\n2. In Masters, open the Brand Category tab. Next to each category, you can see how many brands use it.\n3. Before adding a category, search for it first, so that we never have the same category twice.\n4. Food is not in the list. So click Add Brand Category, type the name, Food and Beverage, and click Save.\n5. The new category is added, with zero brands for now.\n6. To change a category name, click Edit next to it. Here, we will rename Fashion to Fashion and Apparel, and click Save.\n7. Use Remove only for a category that was added by mistake, and is not used by any brand.",
-  "videoSource": "03.mp4"
+  "videoSource": "03.mp4",
+  "thumbSource": "03.jpg"
  },
  {
   "order": 4,
   "module": "Masters",
   "title": "How to Add and Edit a Brand",
   "body": "This lesson shows how to add a new brand, and how to edit it later.\n\n## What to do\n\n1. In Masters, open the Brands tab. Here is every brand we work with, with its code, main contact, service fee, and the team member assigned to it.\n2. Search first to make sure the brand is not already there. Then click Add Brand.\n3. Type the brand name. Then choose the company it belongs to, and its brand category. These lists come from the Company and Brand Category masters.\n4. The brand logo link is optional.\n5. Next, add the contact person at the brand: salutation, name, designation, mobile number and email. All of these are required.\n6. If the brand has more than one contact, click Add Another Contact Person.\n7. Now enter the service fee agreed with the brand, and choose the assigned representative from our team, who will look after this brand.\n8. Updated By is filled in automatically with your name. Click Add Brand, check the details in the box that opens, and click Save.\n9. The new brand appears in the list, with its own brand code.\n10. To change a brand's details later, click the pencil icon on its row. Here, we will change the service fee, and click Update Brand, then Save.",
-  "videoSource": "04.mp4"
+  "videoSource": "04.mp4",
+  "thumbSource": "04.jpg"
  },
  {
   "order": 5,
   "module": "Masters",
   "title": "How to Add a Team Member and Roles Explained",
   "body": "This lesson shows how to add a team member, what each role means, and how to change a member's details.\n\n## What to do\n\n1. In Masters, open the Team tab. Every person who uses the Siddvin System is listed here, with their designation, mobile, email and role.\n2. Click Add Team Member.\n3. Enter the person's name, designation, mobile number and email. The email is what they will use to sign in.\n4. A profile photo is optional.\n5. Now choose the role. There are four roles.\n6. Employee is for our everyday team. An employee can add and update properties, brands, proposals, follow-ups, site visits, terms and deposits.\n7. Property Fee Coordinator is for the team member who looks after the service fee with property owners. In the system, this role has the same access as an employee.\n8. Admin can do everything an employee can, and can also change the Organization Settings, such as our name, logo and colours, and the WhatsApp connection.\n9. Super Admin has full control, including the option to clear all data. Give this role only to the owner of the business.\n10. For Manash, we choose Employee.\n11. Set a password for the member, and share it with them privately. Then click Add Member.\n12. Manash is now in the team list, and can sign in with his email and password.\n13. To change a member's details or role later, click the pencil icon on their row, make the change, and click Update Member. Here, we make Manash an Admin.",
-  "videoSource": "05.mp4"
+  "videoSource": "05.mp4",
+  "thumbSource": "05.jpg"
  },
  {
   "order": 6,
   "module": "Properties",
   "title": "How to Add a Property",
   "body": "This lesson shows how to add a new property to the Siddvin System.\n\n## What to do\n\n1. Open Properties from the left menu, and click Add Property.\n2. First, enter the full property address, and paste the Google Maps link of the location.\n3. Next, add the property owner as the contact person: salutation, name, designation, mobile and email. Use Add Another Contact Person if there is more than one.\n4. Now enter the proposed rent per month, the area in square feet, the frontage, and the number of floors.\n5. Enter our proposed service fee for this property. The site visit date and notes are optional.\n6. Set a property password. The owner will use this password to sign in to their own Property Login, and see our work on their property.\n7. Paste the links of up to five property photos, and the links of the PDF drawing, the CAD drawing and the property presentation, if we have them.\n8. Tick MOU Signing Applicable if the owner will sign an MOU with us. The fee section below is filled in later, as the fee discussion moves forward. We will cover it in its own lesson.\n9. Click Add Property, check the details in the box that opens, and click Save.\n10. The property is saved with its own property code, and appears in the property list.",
-  "videoSource": "06.mp4"
+  "videoSource": "06.mp4",
+  "thumbSource": "06.jpg"
  },
  {
   "order": 7,
   "module": "Properties",
   "title": "Property List, Search and Downloads",
   "body": "This lesson shows how to use the property list: the status tabs, search, downloads and pages.\n\n## What to do\n\n1. Open Properties from the left menu. Each row shows the property code, address, owner contact, rent, area, the fee status, the service fee, and notes.\n2. The tabs at the top group the properties by fee status, with a count on each tab. Click a tab to see only those properties. Here, Pending Negotiation.\n3. Click All Properties to see everything again.\n4. To find a property quickly, type anything in the search box: a part of the address, the owner's name, or the mobile number.\n5. These two buttons download the list. The first one downloads it as an Excel file, and the second one as a PDF.\n6. On each row, the pencil icon edits the property, the red icon deletes it, and the last icon downloads the property PDF. The first green icon is a shortcut to the next fee step, which we will see in the fee lesson.\n7. When the list is long, it is split into pages. At the bottom, you can see how many properties there are, choose how many rows to show, and move between pages.\n8. To open a property, simply click its row.",
-  "videoSource": "07.mp4"
+  "videoSource": "07.mp4",
+  "thumbSource": "07.jpg"
  },
  {
   "order": 8,
   "module": "Properties",
   "title": "Property Details and Property PDF",
   "body": "This lesson shows how to open a property, read its details, and download the property PDF.\n\n## What to do\n\n1. In Properties, click the row of the property you want to open. Here, 205 Kejriwal Bhawan.\n2. The Property Summary shows the address, rent, area, floors, frontage, the service fee, and every step of the fee discussion. The badge on the right shows the current fee status.\n3. Click Open location to see the property on Google Maps.\n4. Scroll down to see the owner's contact details, the property photos, and the drawings and documents.\n5. At the top, the pencil button opens the property for editing, and the PDF button downloads a property PDF.\n6. Click the PDF button. The PDF downloads straight away. It has the property details, the owner contacts and the photos, ready to send to a brand.\n7. The Property Dashboard button shows the same view that the owner sees in their Property Login. We will see it in a later lesson.",
-  "videoSource": "08.mp4"
+  "videoSource": "08.mp4",
+  "thumbSource": "08.jpg"
  },
  {
   "order": 9,
   "module": "Properties",
   "title": "Property Fee Workflow",
   "body": "This lesson shows the property fee workflow: how we agree our service fee with the property owner, step by step.\n\n## What to do\n\n1. Every property moves through these steps: service fee email, negotiation if needed, acceptance email, and MOU signing. When everything is done, the status becomes Accepted and Signed.\n2. This new property is at Pending Service Fee Email. Once we have emailed our fee proposal to the owner, click the green envelope icon on its row.\n3. Only the fee section opens. Enter the email sent date, and click Update Property.\n4. The status changes to Pending Acceptance Email. The owner wants to discuss the fee, so we open the fee section again, tick Negotiation Required, and add a follow-up date and remarks.\n5. Now the status is Pending Negotiation. When the owner agrees, and sends the acceptance email, enter the acceptance email date.\n6. Because MOU signing applies to this property, the status moves to Pending MOU Signing. After the MOU is signed, enter the MOU signing date.\n7. The property is now Accepted and Signed. It is ready to be offered to brands, and the fee shortcut icon disappears from its row.\n8. Tip: use the status tabs every morning to see which owners are waiting for our next step.",
-  "videoSource": "09.mp4"
+  "videoSource": "09.mp4",
+  "thumbSource": "09.jpg"
  },
  {
   "order": 10,
   "module": "Properties",
   "title": "How to Edit a Property",
   "body": "This lesson shows how to edit a property, for example when the rent changes, or the owner shares a new contact.\n\n## What to do\n\n1. There are two ways to open a property for editing. In the property list, click the pencil icon on its row.\n2. Or open the property, and click the pencil button at the top. Both open the same form.\n3. The form opens with all the saved details. The owner has agreed to a new rent, so we change the proposed rent to one lakh forty thousand.\n4. The owner's son will now handle the property, so we click Add Another Contact Person, and add his details.\n5. Scroll down, and click Update Property. Check the details in the box that opens, and click Save.\n6. The changes are saved straight away, and you can see the new rent in the list. The system also records your name as the person who made the change.",
-  "videoSource": "10.mp4"
+  "videoSource": "10.mp4",
+  "thumbSource": "10.jpg"
  },
  {
   "order": 11,
   "module": "Proposals",
   "title": "How to Add a Proposal",
   "body": "This lesson shows how to add a proposal. A proposal is one property offered to one brand.\n\n## What to do\n\n1. Open Proposals from the left menu, and click Add Proposal.\n2. Choose the property. You can type a part of the address to find it quickly.\n3. Then choose the brand we are offering it to. Here, Zudio.\n4. Enter the proposal date, the day the proposal was sent to the brand, and choose who sent it.\n5. Add any remarks from the brand, for example what kind of space they are looking for.\n6. Click Add Proposal, check the details in the box that opens, and click Save.\n7. The proposal is saved with its own proposal code. Its stage is Pending Follow Up, which means the next step is to follow up with the brand.\n8. Click the row to open the proposal. Everything about this deal will be recorded here: follow-ups, site visits and terms.",
-  "videoSource": "11.mp4"
+  "videoSource": "11.mp4",
+  "thumbSource": "11.jpg"
  },
  {
   "order": 12,
   "module": "Proposals",
   "title": "Proposal Stages Explained",
   "body": "This lesson shows the stages of a proposal. The system moves each proposal to the next stage by itself, based on what you record.\n\n## What to do\n\n1. In Proposals, the tabs at the top show every stage, with the number of proposals in it. Let's go through them in order.\n2. Draft. The proposal is saved, but the proposal date is not filled in yet.\n3. Pending Follow Up. The proposal has been sent to the brand. The next step is a follow-up call. You can see the next follow-up date right in the list.\n4. Pending Visit Scheduling. In a follow-up, the brand asked to see the space. The next step is to schedule the site visit.\n5. Pending Visit. A site visit is scheduled, and is waiting to happen.\n6. Pending Visit Again. One visit is done, and another visit is scheduled.\n7. Pending Terms Finalization. The visit is done, and we now agree the terms. As soon as the first term is entered, the badge changes to Terms In Progress.\n8. Pending Agreement or Store Opening. The lease agreement is signed. We are waiting for registration, if needed, and for the store to open.\n9. Pending Brand Fees. The store is open. Now we collect our service fee from the brand.\n10. Success Stories. Once the invoice number, date and amount are entered on the proposal, the deal is complete.\n11. On each row, the first green icon is a shortcut to the next step for that stage. In the next lessons, we will do each step.",
-  "videoSource": "12.mp4"
+  "videoSource": "12.mp4",
+  "thumbSource": "12.jpg"
  },
  {
   "order": 13,
   "module": "Proposals",
   "title": "Adding a Follow-up",
   "body": "This lesson shows how to record a follow-up with a brand, so that no call is ever forgotten.\n\n## What to do\n\n1. Open the proposal. Here, Zudio at 205 Kejriwal Bhawan, which is at Pending Follow Up.\n2. Scroll down to Follow-ups. Here you can see the earlier follow-up. Click Add New Follow Up.\n3. Enter the date of today's call, and write what the brand said in the remarks.\n4. Now choose the status. There are four options.\n5. Follow Up Again, when we need to call again. Pending Details and Documentation, when the brand needs more details or documents. Schedule Visit, when the brand wants to see the space. And Cancel Proposal, when the brand is not interested.\n6. Here, the brand will confirm next week, so we choose Follow Up Again, and set the next follow-up date and time.\n7. Click Add Follow Up, and confirm.\n8. The follow-up is added to the history, and the next follow-up date also shows in the proposal list, so you always know who to call next.",
-  "videoSource": "13.mp4"
+  "videoSource": "13.mp4",
+  "thumbSource": "13.jpg"
  },
  {
   "order": 14,
   "module": "Proposals",
   "title": "Scheduling a Site Visit",
   "body": "This lesson shows how to schedule a site visit, and send the visit details on WhatsApp to the owner and the brand.\n\n## What to do\n\n1. This proposal, Croma at 205 Kejriwal Bhawan, is at Pending Visit Scheduling. Open it.\n2. Scroll down to Site Visits, and click Schedule New Visit.\n3. Enter the date and time agreed with the brand and the owner.\n4. Choose the meeting type: Physical for a visit to the site, or Virtual for an online meeting. You can also add the meeting agenda.\n5. Click Schedule Visit. A box opens with the WhatsApp messages that will go to the property owner and to the brand contact.\n6. Read the messages once. Untick a side if you do not want to send it. Then click Save and send WhatsApp.\n7. The visit is saved, and the messages are sent. The proposal now moves to Pending Visit.",
-  "videoSource": "14.mp4"
+  "videoSource": "14.mp4",
+  "thumbSource": "14.jpg"
  },
  {
   "order": 15,
   "module": "Proposals",
   "title": "Updating a Visit After It Happens",
   "body": "This lesson shows how to update a site visit after it has happened.\n\n## What to do\n\n1. After the visit, open the proposal from the list. It is at Pending Visit.\n2. Scroll down to the Site Visits section. You can see the scheduled visit here.\n3. Now click the pencil icon on the visit row.\n4. Now fill in who attended. Developer Attendees means the people from the property owner's side. Brand Attendees means the people from the brand.\n5. Then choose the people from our team who attended. You can choose more than one.\n6. Enter the actual visit date, and write the outcome of the visit: what the brand liked, and what they asked for.\n7. All of these fields are required, so that our visit history is always complete.\n8. Click Update Visit. The WhatsApp box shows a thank-you message for the owner and the brand. Click Save and send WhatsApp.\n9. The visit is updated, and the proposal moves to Pending Terms Finalization, the next stage.\n10. If the brand wants a second visit, just schedule a new visit. The stage will show Pending Visit Again.",
-  "videoSource": "15.mp4"
+  "videoSource": "15.mp4",
+  "thumbSource": "15.jpg"
  },
  {
   "order": 16,
   "module": "Proposals",
   "title": "Terms Finalization and Lease Agreement",
   "body": "This lesson shows how to record the agreed terms, the lease agreement, and the store opening.\n\n## What to do\n\n1. After the visit, Croma is at Pending Terms Finalization. Click the green shortcut icon on its row, Add Terms.\n2. In Terms, write the main points agreed with the brand: the rent, the yearly increase, the lock-in period, and the rent-free period.\n3. If there is a meeting to discuss the terms or the agreement, enter its date and time.\n4. Then the key dates: the finalization date, when the terms were agreed; the preparation date, when the lease agreement was drafted; and the signing date, when it was signed.\n5. Enter the advance plan. If the agreement must be registered, tick Agreement Registration Required, and enter how the registration fee is shared, as a percentage, between the property and the brand.\n6. Add the first deposit stage, its name and amount. We will cover deposit stages in detail in a later lesson.\n7. Below, record what the property will provide: air conditioning, fire fighting, flooring, power load, DG backup, and so on.\n8. Click Add Terms, and confirm.\n9. Because the agreement is signed, the proposal moves to Pending Agreement or Store Opening.\n10. When the agreement is registered and the store opens, click the shortcut icon, Record agreement or store opening.\n11. Enter the date the lease agreement was registered, the store opening date, and any remarks. Then save.\n12. The store is open, so the proposal moves to Pending Brand Fees. Next, we collect our fee from the brand.",
-  "videoSource": "16.mp4"
+  "videoSource": "16.mp4",
+  "thumbSource": "16.jpg"
  },
  {
   "order": 17,
   "module": "Proposals",
   "title": "Proposal Details and Proposal PDF",
   "body": "This lesson shows how to read the proposal details page, and download the proposal PDF.\n\n## What to do\n\n1. Click any proposal row to open it. Here, Croma at 205 Kejriwal Bhawan.\n2. The Summary shows the property photo, rent, area and floors, the property and brand codes, both sets of contacts, the current stage, and who updated it last.\n3. Below, you can see the whole history of the deal: every follow-up, every site visit, and the terms, with the deposit stages and receipts.\n4. Each table has its own search box, and Excel and PDF download buttons.\n5. To change the proposal itself, such as the proposal date or the brand remarks, click Edit Proposal.\n6. Click Download PDF at the top. A complete proposal report downloads straight away, with the summary, follow-ups, visits, terms, deposits and receipts.\n7. Use it for internal reviews, or to keep on file.",
-  "videoSource": "17.mp4"
+  "videoSource": "17.mp4",
+  "thumbSource": "17.jpg"
  },
  {
   "order": 18,
   "module": "Deposits",
   "title": "Adding Deposit Stages",
   "body": "This lesson shows how to add deposit stages. A deposit stage is one part of the security deposit that the brand pays to the owner, for example a token advance, and then the balance.\n\n## What to do\n\n1. Deposit stages are part of the terms. Open the proposal, scroll down to Terms, and you can see the deposit stages already added.\n2. To add or change stages, click Edit Terms.\n3. Scroll down to Deposit Stages. Each stage has a name and an amount.\n4. Click Add Deposit Stage, and enter the next stage. Here, Balance Deposit, six lakh rupees, to be paid before handover.\n5. Add as many stages as the agreement says. The amount is required for every stage.\n6. Scroll down, click Update Terms, and save.\n7. The Deposit section now shows both stages, and the total deposit, nine lakh rupees.\n8. The deposit also appears on the Deposit screen until it is fully received. You can see the count next to Deposit in the left menu.",
-  "videoSource": "18.mp4"
+  "videoSource": "18.mp4",
+  "thumbSource": "18.jpg"
  },
  {
   "order": 19,
   "module": "Deposits",
   "title": "Recording Deposit Receipts",
   "body": "This lesson shows how to record a deposit receipt, each time the brand pays a part of the deposit.\n\n## What to do\n\n1. Open Deposit from the left menu. Every proposal with a deposit still to be received is listed here.\n2. You can see the total deposit, the amount received so far, the next deposit stage that is due, and its amount.\n3. The brand has paid the token advance. Click Update Receipt.\n4. Enter the date the payment was received, and the amount. Then click Save Receipt, and confirm.\n5. The amount received goes up to three lakh, and the next deposit due is now the balance deposit.\n6. When the balance is paid, record it the same way.\n7. Once the full deposit is received, the proposal leaves the Deposit screen, and the count in the menu goes down.\n8. All receipts are also shown in the proposal, under Terms, with the total received.",
-  "videoSource": "19.mp4"
+  "videoSource": "19.mp4",
+  "thumbSource": "19.jpg"
  },
  {
   "order": 20,
   "module": "Deposits",
   "title": "The Deposit Screen and Pending Deposits",
   "body": "This lesson shows how to use the Deposit screen, to keep track of every deposit that is still to be received.\n\n## What to do\n\n1. The number next to Deposit in the left menu shows how many proposals are waiting for a deposit. Click Deposit.\n2. Each row is one proposal, with the total deposit, the amount received so far, and the next stage that is due, with its amount.\n3. A proposal appears here as soon as its deposit stages are added in the terms. It leaves the list when the full deposit is received. Here, Zudio's deposit is fully paid, so it is not in the list.\n4. Use the search box to find a deposit by proposal code, address or brand.\n5. Download the list as Excel or PDF with these two buttons, for example to share in a weekly review.\n6. When a payment arrives, click Update Receipt on the row, as we saw in the last lesson.\n7. Tip: check this screen every week, and follow up with the brands whose deposit is due.",
-  "videoSource": "20.mp4"
+  "videoSource": "20.mp4",
+  "thumbSource": "20.jpg"
  },
  {
   "order": 21,
   "module": "Closing and Owner View",
   "title": "Success Stories",
   "body": "This lesson shows how to close a deal, and turn it into a success story.\n\n## What to do\n\n1. The Croma store at 205 Kejriwal Bhawan is open, so the proposal is at Pending Brand Fees. Now we bill the brand for our service fee.\n2. Click the green shortcut icon on the row, Edit proposal, invoice details.\n3. The proposal form opens, with the invoice fields at the bottom. Enter the invoice number, the invoice date, and the invoice amount.\n4. Click Update Proposal. The WhatsApp box shows a thank-you and congratulations message for the owner and the brand. Click Save and send WhatsApp.\n5. The deal is complete. The proposal moves to Success Stories.\n6. The Success Stories tab lists every completed deal. It is the best place to see what our team has achieved.",
-  "videoSource": "21.mp4"
+  "videoSource": "21.mp4",
+  "thumbSource": "21.jpg"
  },
  {
   "order": 22,
   "module": "Closing and Owner View",
   "title": "Property Login – What the Owner Sees",
   "body": "This lesson shows the Property Login, the page where a property owner can see all our work on their property.\n\n## What to do\n\n1. The owner opens the Siddvin System, clicks Open Property Dashboard Login, and signs in with the Property ID, such as P-4, and the property password we set when adding the property.\n2. At the top, the owner sees how many brands we have engaged, how many deals are active, how many visits are done, how many stores have opened, and the total number of updates.\n3. Below that is a short summary of the property.\n4. The Activity Table lists everything our team has done for this property: proposals sent, follow-ups, visits, terms, agreements and store openings, with the date, the time and who did it.\n5. The owner can filter by brand, activity, team member, or a date range, and search across all columns. Clear Filters shows everything again.\n6. At the top right, the owner can refresh the data, download the activity as a PDF or Excel file, and log out.\n7. The PDF downloads straight away, with the summary and the full activity table.\n8. For safety, the owner is signed out automatically after twenty minutes without any activity. The owner can only see their own property.",
-  "videoSource": "22.mp4"
+  "videoSource": "22.mp4",
+  "thumbSource": "22.jpg"
  },
  {
   "order": 23,
   "module": "Closing and Owner View",
   "title": "Property Dashboard for the Team",
   "body": "This lesson shows how our team can open the Property Dashboard, to see exactly what the owner sees.\n\n## What to do\n\n1. This is useful before calling an owner, or when an owner asks a question about their dashboard.\n2. Open the property from the property list. At the top, click Property Dashboard.\n3. The same dashboard opens, with the same cards, summary and activity table. You do not need the owner's password.\n4. You can filter, search, and download the PDF or Excel, just like the owner.\n5. When you are done, click Close at the top right, and you are back in the team app, still signed in.\n6. That's the end of the Siddvin System training. Follow these steps for every property and every deal, and the system will always show the true picture of our work. Thank you.",
-  "videoSource": "23.mp4"
+  "videoSource": "23.mp4",
+  "thumbSource": "23.jpg"
  }
 ]
