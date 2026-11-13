@@ -120,3 +120,5 @@ Version 1.0.46: Training thumbnails. Each standard lesson has a branded thumbnai
 Version 1.0.47: Training progress is saved on the server for each team member. Uploaded videos record the parts actually watched (across visits); a lesson completes automatically at 95% of the video watched; skipping ahead is blocked until a lesson is completed (Admins can skip); speed is capped at 2x. Lessons with a YouTube/Drive/Vimeo link use "Mark as completed". New Scoreboard tab for Admin/Super Admin: per member lessons completed, progress %, watch time, last activity, status, per-lesson details, Excel download.
 
 Version 1.0.48: property photos (1-5), PDF drawing, CAD drawing, property presentation and brand logo are uploaded from the computer instead of pasting links. Files are saved in wp-content/uploads/sidvin-files (scripts blocked there); large photos are resized in the browser before upload; old Google Drive links keep working and can be replaced. Property PDF reads uploaded photos straight from the server.
+
+Version 1.0.49: Training Scoreboard leaves out team members whose designation is MD; the "+ Add Lesson" button is removed from the Training header.
