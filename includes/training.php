@@ -24,6 +24,63 @@ function training_table(PDO $pdo): string {
   return $table;
 }
 
+function training_progress_table(PDO $pdo): string {
+  static $ready = false;
+  $table = sidvin_table_name('training_progress');
+  if (!$ready) {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS {$table} (
+      user_id VARCHAR(36) NOT NULL,
+      lesson_id VARCHAR(36) NOT NULL,
+      data JSON NOT NULL,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, lesson_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    $ready = true;
+  }
+  return $table;
+}
+
+/** Progress rows for one user (or everyone), keyed [userId][lessonId]. */
+function training_progress_rows(PDO $pdo, ?string $userId = null): array {
+  $table = training_progress_table($pdo);
+  if ($userId !== null) {
+    $stmt = $pdo->prepare("SELECT user_id, lesson_id, data FROM {$table} WHERE user_id = ?");
+    $stmt->execute([$userId]);
+    $rows = $stmt->fetchAll();
+  } else {
+    $rows = $pdo->query("SELECT user_id, lesson_id, data FROM {$table}")->fetchAll();
+  }
+  $out = [];
+  foreach ($rows as $r) {
+    $d = json_decode((string)$r['data'], true) ?: [];
+    unset($d['ranges']);
+    $out[$r['user_id']][$r['lesson_id']] = $d;
+  }
+  return $out;
+}
+
+/** Merges [start, end] second ranges and returns [merged, total seconds]. */
+function training_merge_ranges(array $ranges, float $duration): array {
+  $clean = [];
+  foreach (array_slice($ranges, 0, 400) as $r) {
+    if (!is_array($r) || count($r) < 2) continue;
+    $a = max(0.0, (float)$r[0]);
+    $b = (float)$r[1];
+    if ($duration > 0) $b = min($b, $duration);
+    if ($b - $a > 0.05) $clean[] = [$a, $b];
+  }
+  usort($clean, fn($x, $y) => $x[0] <=> $y[0]);
+  $merged = [];
+  foreach ($clean as $r) {
+    $n = count($merged);
+    if ($n && $r[0] <= $merged[$n - 1][1] + 1.0) $merged[$n - 1][1] = max($merged[$n - 1][1], $r[1]);
+    else $merged[] = $r;
+  }
+  $total = 0.0;
+  foreach ($merged as $r) $total += $r[1] - $r[0];
+  return [array_map(fn($r) => [round($r[0], 2), round($r[1], 2)], $merged), round($total, 2)];
+}
+
 function training_can_edit(array $session): bool {
   return $session['kind'] === 'team' && in_array($session['role'], ['Admin', 'Super Admin'], true);
 }
@@ -129,7 +186,59 @@ function training_handle(PDO $pdo, string $method, string $action, array $body, 
   $canEdit = training_can_edit($session);
 
   if ($method === 'GET' && $action === 'trainingList') {
-    ok(['lessons' => training_lessons($pdo), 'canEdit' => $canEdit, 'maxUpload' => training_max_upload()]);
+    ok(['lessons' => training_lessons($pdo), 'canEdit' => $canEdit, 'maxUpload' => training_max_upload(), 'progress' => (object)(training_progress_rows($pdo, $session['id'])[$session['id']] ?? [])]);
+  }
+
+  // ---- Training scoreboard (Admin / Super Admin) ----
+  if ($method === 'GET' && $action === 'trainingScoreboard') {
+    if (!$canEdit) fail(403, 'Only Admin or Super Admin can see the training scoreboard.');
+    $lessons = array_map(fn($l) => ['id' => $l['id'], 'title' => $l['title'] ?? '', 'module' => $l['module'] ?? '', 'tracked' => (($l['videoUrl'] ?? '') === '' && ($l['videoFile'] ?? '') !== '')], training_lessons($pdo));
+    $team = array_map('unpack_generic_row', $pdo->query("SELECT " . GENERIC_COLUMNS . " FROM " . sidvin_table_name('sidvin_team'))->fetchAll());
+    $progress = training_progress_rows($pdo);
+    $users = [];
+    foreach ($team as $m) {
+      $users[] = ['id' => $m['id'], 'name' => $m['name'] ?? '', 'role' => $m['role'] ?? '', 'designation' => $m['designation'] ?? '', 'email' => $m['email'] ?? '', 'progress' => (object)($progress[$m['id']] ?? [])];
+    }
+    usort($users, fn($a, $b) => strcasecmp($a['name'], $b['name']));
+    ok(['lessons' => $lessons, 'users' => $users]);
+  }
+
+  // ---- Watching progress (every team member, for themselves only) ----
+  if ($method === 'POST' && ($action === 'trainingProgress' || $action === 'trainingMark')) {
+    $lessonId = trim((string)($body['lessonId'] ?? ''));
+    $lr = $lessonId !== '' ? fetch_generic($pdo, $table, $lessonId) : null;
+    if (!$lr) fail(404, 'Lesson not found.');
+    $lesson = json_decode($lr['data'] ?? '{}', true) ?: [];
+    $tracked = ($lesson['videoUrl'] ?? '') === '' && ($lesson['videoFile'] ?? '') !== '';
+    $ptable = training_progress_table($pdo);
+    $stmt = $pdo->prepare("SELECT data FROM {$ptable} WHERE user_id = ? AND lesson_id = ?");
+    $stmt->execute([$session['id'], $lessonId]);
+    $cur = json_decode((string)($stmt->fetchColumn() ?: '{}'), true) ?: [];
+    $now = now_iso();
+    if ($action === 'trainingMark') {
+      if ($tracked) fail(400, 'This lesson is completed by watching the full video.');
+      $doneNow = !empty($body['done']);
+      $cur['completed'] = $doneNow;
+      $cur['manual'] = true;
+      $cur['completedAt'] = $doneNow ? ($cur['completedAt'] ?? $now) : null;
+    } else {
+      $duration = max((float)($cur['duration'] ?? 0), min(36000.0, (float)($body['duration'] ?? 0)));
+      [$merged, $watched] = training_merge_ranges(array_merge((array)($cur['ranges'] ?? []), (array)($body['ranges'] ?? [])), $duration);
+      $cur['ranges'] = $merged;
+      $cur['duration'] = round($duration, 2);
+      $cur['watched'] = $watched;
+      $cur['furthest'] = round(max((float)($cur['furthest'] ?? 0), min($duration ?: 36000.0, (float)($body['furthest'] ?? 0))), 2);
+      if ($tracked && $duration > 0 && $watched >= $duration * 0.95 && empty($cur['completed'])) {
+        $cur['completed'] = true;
+        $cur['completedAt'] = $now;
+      }
+      $cur['firstAt'] = $cur['firstAt'] ?? $now;
+    }
+    $cur['lastAt'] = $now;
+    $pdo->prepare("INSERT INTO {$ptable} (user_id, lesson_id, data) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)")
+      ->execute([$session['id'], $lessonId, json_encode($cur, JSON_UNESCAPED_UNICODE)]);
+    unset($cur['ranges']);
+    ok($cur);
   }
   if ($method !== 'POST') fail(405, 'Method not allowed');
   if (!$canEdit) fail(403, 'Only Admin or Super Admin can change training lessons.');
@@ -164,6 +273,7 @@ function training_handle(PDO $pdo, string $method, string $action, array $body, 
     training_delete_file((string)($old['videoFile'] ?? ''));
     training_delete_file((string)($old['thumbnail'] ?? ''));
     $pdo->prepare("DELETE FROM {$table} WHERE id = ?")->execute([$id]);
+    $pdo->prepare("DELETE FROM " . training_progress_table($pdo) . " WHERE lesson_id = ?")->execute([$id]);
     ok(true);
   }
 
