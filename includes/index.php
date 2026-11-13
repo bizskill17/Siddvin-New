@@ -6,6 +6,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/redlava.php';
 require_once __DIR__ . '/whatsapp_send.php';
 require_once __DIR__ . '/training.php';
+require_once __DIR__ . '/files.php';
 
 function json_out(int $status, $payload): void {
   http_response_code($status);
@@ -191,6 +192,11 @@ try {
 
   if (strpos($action, 'training') === 0) training_handle($pdo, $method, $action, $body, $session);
 
+  if ($action === 'fileUpload') {
+    if ($method !== 'POST') fail(405, 'Method not allowed');
+    files_handle_upload($session);
+  }
+
   // ---- A property photo as base64, for building PDFs in the browser ----
   // Only photos saved on the property are fetched (no arbitrary URLs), only for team members.
   if ($method === 'GET' && $action === 'propertyPhoto') {
@@ -206,6 +212,15 @@ try {
     if ($index < 0 || $index >= count($photos)) fail(404, 'Photo not found.');
     $url = trim($photos[$index]);
     if (!preg_match('#^https?://#i', $url)) fail(400, 'Not a web link.');
+
+    // Photos uploaded to this website are read straight from disk.
+    $local = files_local_path($url);
+    if ($local !== '') {
+      $bytes = (string)@file_get_contents($local);
+      $info = @getimagesizefromstring($bytes);
+      $mime = is_array($info) ? (string)($info['mime'] ?? '') : '';
+      if (in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) ok(['mime' => $mime, 'width' => (int)$info[0], 'height' => (int)$info[1], 'base64' => base64_encode($bytes)]);
+    }
 
     $candidates = [$url];
     $parts = parse_url($url);
